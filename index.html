@@ -1769,22 +1769,22 @@ window.addEventListener("resize", updateButtonPositions);
             const card = $(this).closest('.card')[0];
 
             child.slideToggle({
-              duration: 180,
-              progress: function() {
-                // アニメーションの進行中にグリッドサイズを強制再計算
+              duration: 200,
+              // step: アニメーションの「一コマ」ごとに実行される処理
+              step: function() {
+                // グリッドの高さ調整関数が存在すれば実行
                 if (typeof resizeGridItem === 'function') {
                   resizeGridItem(card);
                 }
               },
+              // complete: アニメーションが終わった瞬間に念押しで実行
               complete: function() {
-                // アニメーション完了時にも念押しで再計算
                 if (typeof resizeGridItem === 'function') {
                   resizeGridItem(card);
                 }
               }
             });
           });
-
           // もっと見る後は閉じるボタン表示
           if (offset > 0 && additionalItems.length > 0) closeAllButton.style.display = "inline-block";
 
