@@ -17,9 +17,6 @@
     }
   </style>
   <title>Portal_1</title>
-  <link rel="manifest" href="manifest.json">
-<link rel="apple-touch-icon" href="icon-192.png">
-<meta name="theme-color" content="#2196f3">
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700&display=swap" rel="stylesheet">
   <style>
     :root {
@@ -1764,11 +1761,28 @@ window.addEventListener("resize", updateButtonPositions);
             if (offset > 0) additionalItems.push(li);
           });
 
-          // アコーディオン
+         // アコーディオン
           $(document).off("click", ".ac-parent");
           $(document).on("click", ".ac-parent", function() {
             const child = $(this).next(".ac-child");
-            child.slideToggle(180);
+            // 親のカード要素を取得
+            const card = $(this).closest('.card')[0];
+
+            child.slideToggle({
+              duration: 180,
+              progress: function() {
+                // アニメーションの進行中にグリッドサイズを強制再計算
+                if (typeof resizeGridItem === 'function') {
+                  resizeGridItem(card);
+                }
+              },
+              complete: function() {
+                // アニメーション完了時にも念押しで再計算
+                if (typeof resizeGridItem === 'function') {
+                  resizeGridItem(card);
+                }
+              }
+            });
           });
 
           // もっと見る後は閉じるボタン表示
@@ -2198,17 +2212,7 @@ window.addEventListener("resize", updateButtonPositions);
       setInterval(fetchTraffic, 5 * 60 * 1000);
   </script>
 
-<script>
-  if ('serviceWorker' in navigator) {
-    window.addEventListener('load', function() {
-      navigator.serviceWorker.register('./sw.js').then(function(registration) {
-        console.log('ServiceWorker registration successful with scope: ', registration.scope);
-      }, function(err) {
-        console.log('ServiceWorker registration failed: ', err);
-      });
-    });
-  }
-</script>
+
 </body>
 
 </html>
