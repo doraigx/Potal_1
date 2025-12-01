@@ -643,8 +643,42 @@
   background: rgba(255,152,129,1);
 }
 
+#sun-card h2 {
+          margin-bottom: 0.5rem;
+        }
 
+        #sun-info {
+          font-size: 1rem;
+          line-height: 1.6;
+        }
+.Fort-btn {
+          padding: 8px 16px;
+          font-size: 0.95em;
+          font-weight: 500;
+          color: var(--text-color);
+          background-color: rgba(107, 184, 255,0.3);
+          font-weight: bold;
+          /* WebClassっぽい青 */
+          border: none;
+          border-radius: 4px;
+          cursor: pointer;
+          transition: background-color 0.2s;
+          border-radius: 8px;
+        }
 
+        .Fort-btn:hover {
+          background-color: rgba(107, 184, 255,1);
+        }
+        /* 占いカードの軽微なカスタマイズ（任意） */
+        #fortune-card p {
+          margin: 10px 0;
+          font-size: 1.1em;
+          font-weight: bold;
+        }
+
+        #fortune-card button {
+          margin-right: 5px;
+        }
   </style>
 </head>
 
@@ -732,103 +766,11 @@
         </div>
       </div>
 
-      <!-- 警報・注意報カード -->
-      <div class="card" id="alert-card">
-        <h2>警報・注意報（稲沢市）</h2>
-        <div id="alert-result" class="loading">取得中...</div>
-      </div>
-
-      <script>
-        async function fetchAlerts() {
-          const resultEl = document.getElementById("alert-result");
-          try {
-            const resp = await fetch("https://www.jma.go.jp/bosai/warning/data/warning/230000.json");
-            if (!resp.ok) throw new Error("APIエラー: " + resp.status);
-            const data = await resp.json();
-
-            const inazawaArea = data.areaTypes[1]?.areas.find(a => a.name === "稲沢市");
-            const warnings = inazawaArea?.warnings || [];
-
-            if (!warnings.length) {
-              resultEl.textContent = "現在、警報・注意報はありません。";
-              return;
-            }
-
-            let html = "";
-            for (const w of warnings) {
-              // event（警報・注意報の内容）が undefined の場合は「情報なし」とする
-              const event = w.status === "解除" ? "解除" : (w.event || "情報なし");
-              html += `<div>${w.status === "解除" ? "解除" : ""}${event !== "解除" ? `${event}` : ""}</div>`;
-            }
-
-            resultEl.innerHTML = html || "現在、警報・注意報はありません。";
-          } catch (err) {
-            console.error("警報取得失敗:", err);
-            resultEl.textContent = "警報情報の取得に失敗しました。";
-          }
-        }
-
-        fetchAlerts();
-      </script>
-
       <!--日の出・日の入カード -->
       <div class="card" id="sun-card">
         <h2>日の出・日の入</h2>
         <div id="sun-info">読み込み中...</div>
       </div>
-
-      <script>
-        async function fetchSunriseSunset() {
-          const sunInfo = document.getElementById("sun-info");
-          sunInfo.textContent = "読み込み中...";
-
-          try {
-            // 稲沢市（緯度・経度）
-            const lat = 35.25;
-            const lon = 136.78;
-
-            const apiUrl = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&daily=sunrise,sunset&timezone=Asia/Tokyo`;
-            const response = await fetch(apiUrl);
-
-            if (!response.ok) throw new Error("APIエラー: " + response.status);
-            const data = await response.json();
-
-            if (!data.daily || !data.daily.sunrise || !data.daily.sunset) {
-              sunInfo.textContent = "データ取得失敗";
-              return;
-            }
-
-            // 今日の日付インデックス（0番目が今日）
-            const sunrise = new Date(data.daily.sunrise[0]);
-            const sunset = new Date(data.daily.sunset[0]);
-
-            const sunriseTime = sunrise.toLocaleTimeString("ja-JP", { hour: "2-digit", minute: "2-digit" });
-            const sunsetTime = sunset.toLocaleTimeString("ja-JP", { hour: "2-digit", minute: "2-digit" });
-
-            sunInfo.innerHTML = `
-              ☀️ 日の出：<strong>${sunriseTime}</strong><br>
-              🌇 日の入：<strong>${sunsetTime}</strong>
-            `;
-          } catch (err) {
-            console.error(err);
-            sunInfo.textContent = "日の出・日の入の取得に失敗しました。";
-          }
-        }
-
-        // ページ読み込み後に実行
-        document.addEventListener("DOMContentLoaded", fetchSunriseSunset);
-      </script>
-
-      <style>
-        #sun-card h2 {
-          margin-bottom: 0.5rem;
-        }
-
-        #sun-info {
-          font-size: 1rem;
-          line-height: 1.6;
-        }
-      </style>
 
       <!-- 為替 -->
       <div class="card" id="kawase-card">
@@ -875,38 +817,6 @@
         <p id="horoscope-result" style="margin-top:0.8rem;font-weight:bold;">選んで「占う」を押してください</p>
       </div>
 
-      <script>
-        // 占いメッセージ一覧
-        const HOROSCOPE_MESSAGES = [
-          "大吉：新しい挑戦に吉。小さな一歩を踏み出そう。",
-          "中吉：安定運。計画的に動くと吉。",
-          "小吉：ゆっくり休むと運気回復。",
-          "吉：平穏。焦らず一つずつ。",
-          "凶：注意が必要。落ち着いて行動を。"
-        ];
-
-        function drawHoroscope() {
-          const select = document.getElementById('zodiac-select');
-          const sign = select.value;
-          const todayKey = new Date().toISOString().slice(0, 10);
-          const storageKey = `horoscope_${todayKey}_${sign}`;
-          const el = document.getElementById('horoscope-result');
-
-          let msg = localStorage.getItem(storageKey);
-          if (!msg) {
-            const seed = Array.from(todayKey + sign).reduce((s, c) => s + c.charCodeAt(0), 0);
-            const r = (seed * 9301 + 49297) % 233280;
-            const idx = r % HOROSCOPE_MESSAGES.length;
-            msg = HOROSCOPE_MESSAGES[idx];
-            localStorage.setItem(storageKey, msg);
-          }
-          el.textContent = `${select.options[select.selectedIndex].text} — ${msg}`;
-        }
-
-        // ボタンにイベント
-        document.getElementById('draw-horoscope').addEventListener('click', drawHoroscope);
-      </script>
-
 
       <!-- 地震情報 -->
         <div class="card" id="eq-card">
@@ -945,6 +855,32 @@
       </div>
 
 
+
+        <div class="card" id="memo-card">
+            <h2>簡易メモ帳</h2>
+            <textarea id="simple-memo" placeholder="ここにメモを入力... (自動保存されます)"
+                      style="
+            width: 100%;
+            height: 120px;
+            padding: 10px;
+            box-sizing: border-box;
+            border-radius: 8px;
+            border: 1px solid #ccc;
+            resize: vertical;
+            background: var(--bg-color);
+            color: var(--text-color);
+            font-family: inherit;
+            font-size: 0.95rem;
+            outline: none;
+          "></textarea>
+            <div style="text-align:right; margin-top:5px;">
+                <button onclick="document.getElementById('simple-memo').value=''; localStorage.removeItem('portalMemo');"
+                        style="font-size:0.8rem; padding:4px 8px; cursor:pointer; background:#f44336; color:white; border:none; border-radius:4px;">
+                    全消去
+                </button>
+            </div>
+        </div>
+
       <!-- 交通情報カード -->
       <div class="card" id="traffic-card">
         <h2>鉄道遅延情報β</h2>
@@ -967,166 +903,6 @@
                 <li class="loading">読み込み中...</li>
             </ul>
         </div>
-
-        <script>
-            async function fetchTrends() {
-              const container = document.getElementById("trend-list");
-              container.innerHTML = '<li class="loading">取得中…</li>';
-
-              // ★ 10件固定の虹カラー（透明度0.25）
-              const rainbow10 = [
-                "rgba(255, 0, 0, 0.25)",       // 1 赤
-                "rgba(255, 128, 0, 0.25)",     // 2 オレンジ
-                "rgba(255, 230, 0, 0.25)",     // 3 黄色
-                "rgba(180, 255, 0, 0.25)",     // 4 黄緑
-                "rgba(0, 200, 0, 0.25)",       // 5 緑
-                "rgba(0, 220, 255, 0.25)",     // 6 水色
-                "rgba(0, 120, 255, 0.25)",     // 7 青
-                "rgba(0, 0, 255, 0.25)",       // 8 藍
-                "rgba(160, 0, 255, 0.25)",     // 9 紫
-                "rgba(255, 80, 160, 0.25)"     // 10 ピンク
-              ];
-
-              try {
-                const url = "https://trends.google.co.jp/trending/rss?geo=JP";
-                const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(url)}`;
-
-                const res = await fetch(proxyUrl);
-                if (!res.ok) throw new Error("HTTP " + res.status);
-
-                const data = await res.json();
-                const parser = new DOMParser();
-                const xml = parser.parseFromString(data.contents, "application/xml");
-                const items = xml.querySelectorAll("item");
-
-                container.innerHTML = "";
-
-                if (!items || items.length === 0) {
-                  container.innerHTML = "<li>トレンド情報はありません。</li>";
-                  return;
-                }
-
-                items.forEach((item, idx) => {
-                  if (idx >= 10) return;
-
-                  const title = item.querySelector("title")?.textContent || "情報なし";
-                  const query = encodeURIComponent(title);
-                  const googleLink = `https://www.google.com/search?q=${query}`;
-
-                  // ★ 10件分の虹色を固定適用
-                  const bg = rainbow10[idx];
-                  const hoverBg = bg.replace("0.25", "0.40");
-
-                  const li = document.createElement("li");
-                  li.innerHTML = `
-                    <a href="${googleLink}" target="_blank"
-                      style="
-                        display: block;
-                        padding: 10px 14px;
-                        margin: 6px 0;
-                        font-weight: 900;
-                        color: var(--text-color);
-                        background: ${bg};
-                        border-radius: 10px;
-                        cursor: pointer;
-                        text-decoration: none;
-                        transition: 0.2s;
-                      "
-                      onmouseover="this.style.background='${hoverBg}'"
-                      onmouseout="this.style.background='${bg}'"
-                    >
-                      ${title}
-                    </a>
-                  `;
-                  container.appendChild(li);
-                });
-
-              } catch (err) {
-                container.innerHTML =
-                  `<li class="error">取得に失敗しました（${err.message}）</li>`;
-              }
-            }
-
-            fetchTrends();
-            setInterval(fetchTrends, 10 * 60 * 1000);
-        </script>
-
-
-        <script>
-        // 占い結果をランダム表示
-        function showFortune() {
-          const fortunes = [
-            "大吉：今日は最高の一日になりそう！",
-            "中吉：良いことがあります。慎重に行動を。",
-            "小吉：穏やかな日になりそうです。",
-            "吉：いつも通りの平和な日です。",
-            "凶：注意が必要な一日です。"
-          ];
-          const result = fortunes[Math.floor(Math.random() * fortunes.length)];
-          document.getElementById("fortune-result").textContent = result;
-        }
-
-        // カードの非表示・表示切り替え（既存の非表示管理と統合）
-        function toggleCard(cardId) {
-          const card = document.getElementById(cardId);
-          if (!card) return;
-          if (card.style.display === "none") {
-            card.style.display = "block";
-            saveCardVisibility(cardId, true);
-          } else {
-            card.style.display = "none";
-            saveCardVisibility(cardId, false);
-          }
-        }
-
-        // ローカルストレージに表示状態を保存（既存ポータルと同じ方式）
-        function saveCardVisibility(cardId, visible) {
-          const visibility = JSON.parse(localStorage.getItem("cardVisibility") || "{}");
-          visibility[cardId] = visible;
-          localStorage.setItem("cardVisibility", JSON.stringify(visibility));
-        }
-
-        // ページ読み込み時に表示状態を復元
-        window.addEventListener("DOMContentLoaded", () => {
-          const visibility = JSON.parse(localStorage.getItem("cardVisibility") || "{}");
-          const card = document.getElementById("fortune-card");
-          if (card && visibility.hasOwnProperty("fortune-card")) {
-            card.style.display = visibility["fortune-card"] ? "block" : "none";
-          }
-        });
-      </script>
-
-
-      <style>
-        .Fort-btn {
-          padding: 8px 16px;
-          font-size: 0.95em;
-          font-weight: 500;
-          color: var(--text-color);
-          background-color: rgba(107, 184, 255,0.3);
-          font-weight: bold;
-          /* WebClassっぽい青 */
-          border: none;
-          border-radius: 4px;
-          cursor: pointer;
-          transition: background-color 0.2s;
-          border-radius: 8px;
-        }
-
-        .Fort-btn:hover {
-          background-color: rgba(107, 184, 255,1);
-        }
-        /* 占いカードの軽微なカスタマイズ（任意） */
-        #fortune-card p {
-          margin: 10px 0;
-          font-size: 1.1em;
-          font-weight: bold;
-        }
-
-        #fortune-card button {
-          margin-right: 5px;
-        }
-      </style>
     </div>
   </div>
     </br></br></br></br></br>
@@ -1306,7 +1082,7 @@ window.addEventListener("resize", updateButtonPositions);
           card.style.position = "relative";
           card.appendChild(btn);
         } else if (!editMode) {
-          const btn = card.querySelector(".edit-delete");　
+          const btn = card.querySelector(".edit-delete");
           if (btn) btn.remove();
         }
       });
@@ -1643,6 +1419,23 @@ window.addEventListener("resize", updateButtonPositions);
     setInterval(fetchWeather, 10 * 60 * 1000);
   </script>
 
+  <script>
+      // --- 2. 簡易メモ帳（自動保存） ---
+      const memoArea = document.getElementById('simple-memo');
+      const MEMO_KEY = 'portalMemo';
+
+      // ページ読み込み時に保存されたメモを復元
+      const savedMemo = localStorage.getItem(MEMO_KEY);
+      if (savedMemo) {
+        memoArea.value = savedMemo;
+      }
+
+      // 入力するたびに保存
+      memoArea.addEventListener('input', () => {
+        localStorage.setItem(MEMO_KEY, memoArea.value);
+      });
+  </script>
+
   <!-- 地震情報 -->
   <script>
       /* =========================
@@ -1761,30 +1554,40 @@ window.addEventListener("resize", updateButtonPositions);
             if (offset > 0) additionalItems.push(li);
           });
 
-         // アコーディオン
+         // アコーディオン（ガクガク防止・先行リサイズ版）
           $(document).off("click", ".ac-parent");
           $(document).on("click", ".ac-parent", function() {
-            const child = $(this).next(".ac-child");
-            // 親のカード要素を取得
+            const $child = $(this).next(".ac-child");
             const card = $(this).closest('.card')[0];
 
-            child.slideToggle({
-              duration: 200,
-              // step: アニメーションの「一コマ」ごとに実行される処理
-              step: function() {
-                // グリッドの高さ調整関数が存在すれば実行
-                if (typeof resizeGridItem === 'function') {
-                  resizeGridItem(card);
-                }
-              },
-              // complete: アニメーションが終わった瞬間に念押しで実行
-              complete: function() {
-                if (typeof resizeGridItem === 'function') {
-                  resizeGridItem(card);
-                }
+            if ($child.is(":hidden")) {
+              // === 開くとき ===
+              // 1. まず一瞬だけ中身を表示状態にして、本来の高さを計算させる（画面には見せない）
+              $child.css({ display: 'block', visibility: 'hidden' });
+
+              // 2. カードの枠を「最終的な大きさ」まで一気に広げる
+              if (typeof resizeGridItem === 'function') {
+                resizeGridItem(card);
               }
-            });
+
+              // 3. 中身を隠して、アニメーションの準備
+              $child.css({ display: 'none', visibility: 'visible' });
+
+              // 4. 広がった空間に、中身をスッと滑り込ませる
+              $child.slideDown(300);
+
+            } else {
+              // === 閉じるとき ===
+              // 1. 先に中身をアニメーションで畳む
+              $child.slideUp(300, function() {
+                // 2. 畳み終わったら、カードの枠をパチッと縮める
+                if (typeof resizeGridItem === 'function') {
+                  resizeGridItem(card);
+                }
+              });
+            }
           });
+
           // もっと見る後は閉じるボタン表示
           if (offset > 0 && additionalItems.length > 0) closeAllButton.style.display = "inline-block";
 
@@ -2142,8 +1945,81 @@ window.addEventListener("resize", updateButtonPositions);
     }
   </style>
 
+  <!--星座占い-->
+  <script>
+      // 占いメッセージ一覧
+      const HOROSCOPE_MESSAGES = [
+        "大吉：新しい挑戦に吉。小さな一歩を踏み出そう。",
+        "中吉：安定運。計画的に動くと吉。",
+        "小吉：ゆっくり休むと運気回復。",
+        "吉：平穏。焦らず一つずつ。",
+        "凶：注意が必要。落ち着いて行動を。"
+      ];
 
+      function drawHoroscope() {
+        const select = document.getElementById('zodiac-select');
+        const sign = select.value;
+        const todayKey = new Date().toISOString().slice(0, 10);
+        const storageKey = `horoscope_${todayKey}_${sign}`;
+        const el = document.getElementById('horoscope-result');
 
+        let msg = localStorage.getItem(storageKey);
+        if (!msg) {
+          const seed = Array.from(todayKey + sign).reduce((s, c) => s + c.charCodeAt(0), 0);
+          const r = (seed * 9301 + 49297) % 233280;
+          const idx = r % HOROSCOPE_MESSAGES.length;
+          msg = HOROSCOPE_MESSAGES[idx];
+          localStorage.setItem(storageKey, msg);
+        }
+        el.textContent = `${select.options[select.selectedIndex].text} — ${msg}`;
+      }
+
+      // ボタンにイベント
+      document.getElementById('draw-horoscope').addEventListener('click', drawHoroscope);
+  </script>
+
+  <!--日の出・日の入カード -->
+  <script>
+      async function fetchSunriseSunset() {
+        const sunInfo = document.getElementById("sun-info");
+        sunInfo.textContent = "読み込み中...";
+
+        try {
+          // 稲沢市（緯度・経度）
+          const lat = 35.25;
+          const lon = 136.78;
+
+          const apiUrl = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&daily=sunrise,sunset&timezone=Asia/Tokyo`;
+          const response = await fetch(apiUrl);
+
+          if (!response.ok) throw new Error("APIエラー: " + response.status);
+          const data = await response.json();
+
+          if (!data.daily || !data.daily.sunrise || !data.daily.sunset) {
+            sunInfo.textContent = "データ取得失敗";
+            return;
+          }
+
+          // 今日の日付インデックス（0番目が今日）
+          const sunrise = new Date(data.daily.sunrise[0]);
+          const sunset = new Date(data.daily.sunset[0]);
+
+          const sunriseTime = sunrise.toLocaleTimeString("ja-JP", { hour: "2-digit", minute: "2-digit" });
+          const sunsetTime = sunset.toLocaleTimeString("ja-JP", { hour: "2-digit", minute: "2-digit" });
+
+          sunInfo.innerHTML = `
+            ☀️ 日の出：<strong>${sunriseTime}</strong><br>
+            🌇 日の入：<strong>${sunsetTime}</strong>
+          `;
+        } catch (err) {
+          console.error(err);
+          sunInfo.textContent = "日の出・日の入の取得に失敗しました。";
+        }
+      }
+
+      // ページ読み込み後に実行
+      document.addEventListener("DOMContentLoaded", fetchSunriseSunset);
+  </script>
 
   <!--交通情報-->
   <script>
@@ -2211,6 +2087,137 @@ window.addEventListener("resize", updateButtonPositions);
       fetchTraffic();
       setInterval(fetchTraffic, 5 * 60 * 1000);
   </script>
+
+
+  <!-- 今日のトレンドワード -->
+  <script>
+      async function fetchTrends() {
+        const container = document.getElementById("trend-list");
+        container.innerHTML = '<li class="loading">取得中…</li>';
+
+        // ★ 10件固定の虹カラー（透明度0.25）
+        const rainbow10 = [
+          "rgba(255, 0, 0, 0.25)",       // 1 赤
+          "rgba(255, 128, 0, 0.25)",     // 2 オレンジ
+          "rgba(255, 230, 0, 0.25)",     // 3 黄色
+          "rgba(180, 255, 0, 0.25)",     // 4 黄緑
+          "rgba(0, 200, 0, 0.25)",       // 5 緑
+          "rgba(0, 220, 255, 0.25)",     // 6 水色
+          "rgba(0, 120, 255, 0.25)",     // 7 青
+          "rgba(0, 0, 255, 0.25)",       // 8 藍
+          "rgba(160, 0, 255, 0.25)",     // 9 紫
+          "rgba(255, 80, 160, 0.25)"     // 10 ピンク
+        ];
+
+        try {
+          const url = "https://trends.google.co.jp/trending/rss?geo=JP";
+          const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(url)}`;
+
+          const res = await fetch(proxyUrl);
+          if (!res.ok) throw new Error("HTTP " + res.status);
+
+          const data = await res.json();
+          const parser = new DOMParser();
+          const xml = parser.parseFromString(data.contents, "application/xml");
+          const items = xml.querySelectorAll("item");
+
+          container.innerHTML = "";
+
+          if (!items || items.length === 0) {
+            container.innerHTML = "<li>トレンド情報はありません。</li>";
+            return;
+          }
+
+          items.forEach((item, idx) => {
+            if (idx >= 10) return;
+
+            const title = item.querySelector("title")?.textContent || "情報なし";
+            const query = encodeURIComponent(title);
+            const googleLink = `https://www.google.com/search?q=${query}`;
+
+            // ★ 10件分の虹色を固定適用
+            const bg = rainbow10[idx];
+            const hoverBg = bg.replace("0.25", "0.40");
+
+            const li = document.createElement("li");
+            li.innerHTML = `
+              <a href="${googleLink}" target="_blank"
+                style="
+                  display: block;
+                  padding: 10px 14px;
+                  margin: 6px 0;
+                  font-weight: 900;
+                  color: var(--text-color);
+                  background: ${bg};
+                  border-radius: 10px;
+                  cursor: pointer;
+                  text-decoration: none;
+                  transition: 0.2s;
+                "
+                onmouseover="this.style.background='${hoverBg}'"
+                onmouseout="this.style.background='${bg}'"
+              >
+                ${title}
+              </a>
+            `;
+            container.appendChild(li);
+          });
+
+        } catch (err) {
+          container.innerHTML =
+            `<li class="error">取得に失敗しました（${err.message}）</li>`;
+        }
+      }
+
+      fetchTrends();
+      setInterval(fetchTrends, 10 * 60 * 1000);
+  </script>
+
+  <!-- 今日のトレンドワード -->
+  <script>
+      // 占い結果をランダム表示
+      function showFortune() {
+        const fortunes = [
+          "大吉：今日は最高の一日になりそう！",
+          "中吉：良いことがあります。慎重に行動を。",
+          "小吉：穏やかな日になりそうです。",
+          "吉：いつも通りの平和な日です。",
+          "凶：注意が必要な一日です。"
+        ];
+        const result = fortunes[Math.floor(Math.random() * fortunes.length)];
+        document.getElementById("fortune-result").textContent = result;
+      }
+
+      // カードの非表示・表示切り替え（既存の非表示管理と統合）
+      function toggleCard(cardId) {
+        const card = document.getElementById(cardId);
+        if (!card) return;
+        if (card.style.display === "none") {
+          card.style.display = "block";
+          saveCardVisibility(cardId, true);
+        } else {
+          card.style.display = "none";
+          saveCardVisibility(cardId, false);
+        }
+      }
+
+      // ローカルストレージに表示状態を保存（既存ポータルと同じ方式）
+      function saveCardVisibility(cardId, visible) {
+        const visibility = JSON.parse(localStorage.getItem("cardVisibility") || "{}");
+        visibility[cardId] = visible;
+        localStorage.setItem("cardVisibility", JSON.stringify(visibility));
+      }
+
+      // ページ読み込み時に表示状態を復元
+      window.addEventListener("DOMContentLoaded", () => {
+        const visibility = JSON.parse(localStorage.getItem("cardVisibility") || "{}");
+        const card = document.getElementById("fortune-card");
+        if (card && visibility.hasOwnProperty("fortune-card")) {
+          card.style.display = visibility["fortune-card"] ? "block" : "none";
+        }
+      });
+  </script>
+
 
 
 </body>
