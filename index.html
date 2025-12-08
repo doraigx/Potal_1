@@ -5,6 +5,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="color-scheme" content="light dark">
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
   <style>
     html[data-theme="dark"] {
       background-color: #121212;
@@ -2021,110 +2022,94 @@ window.addEventListener("resize", updateButtonPositions);
       document.addEventListener("DOMContentLoaded", fetchSunriseSunset);
   </script>
 
-  <!--交通情報-->
-  <script>
-      async function fetchTraffic() {
-        const container = document.getElementById('traffic-list');
-        container.innerHTML = '<li class="loading">情報取得中…</li>';
-
-        try {
-          const url = 'https://transit.yahoo.co.jp/rss/trafficnews.xml';
-          const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(url)}`;
-
-          const res = await fetch(proxyUrl);
-          if (!res.ok) throw new Error("HTTP " + res.status);
-
-          const data = await res.json();
-          const parser = new DOMParser();
-          const xml = parser.parseFromString(data.contents, "application/xml");
-          const items = xml.querySelectorAll('item');
-
-          container.innerHTML = '';
-
-          let count = 0;
-
-          items.forEach(item => {
-            const title = item.querySelector('title')?.textContent || '';
-            const link = item.querySelector('link')?.textContent || '#';
-
-            if (title.includes("名鉄")) {
-              count++;
-
-              const li = document.createElement('li');
-              li.innerHTML = `
-                <a href="${link}" target="_blank"
-                   style="
-                     display:block;
-                     padding: 8px 10px;
-                     margin: 6px 0;
-                     text-decoration:none;
-                     font-weight:700;
-                     color: var(--text-color);
-                     background: rgba(0,140,255,0.25);
-                     border-radius:10px;
-                     backdrop-filter: blur(4px);
-                     transition: 0.2s;
-                   "
-                   onmouseover="this.style.background='rgba(0,140,255,0.35)'"
-                   onmouseout="this.style.background='rgba(0,140,255,0.25)'"
-                >
-                  ${title}
-                </a>
-              `;
-              container.appendChild(li);
-            }
-          });
-
-          if (count === 0) {
-            container.innerHTML = '<li>名鉄の遅延情報はありません</li>';
-          }
-
-        } catch (err) {
-          container.innerHTML = `<li class="error">交通情報の取得に失敗しました。（${err.message}）</li>`;
-        }
-      }
-
-      fetchTraffic();
-      setInterval(fetchTraffic, 5 * 60 * 1000);
-  </script>
-
-
-  <!-- 今日のトレンドワード -->
   <script>
       async function fetchTrends() {
         const container = document.getElementById("trend-list");
-        container.innerHTML = '<li class="loading">取得中…</li>';
+        const STORAGE_KEY = "portalTrendCache";
+        const CACHE_DURATION = 30 * 60 * 1000; // 30分間キャッシュ
 
-        // ★ 10件固定の虹カラー（透明度0.25）
-        const rainbow10 = [
-          "rgba(255, 0, 0, 0.25)",       // 1 赤
-          "rgba(255, 128, 0, 0.25)",     // 2 オレンジ
-          "rgba(255, 230, 0, 0.25)",     // 3 黄色
-          "rgba(180, 255, 0, 0.25)",     // 4 黄緑
-          "rgba(0, 200, 0, 0.25)",       // 5 緑
-          "rgba(0, 220, 255, 0.25)",     // 6 水色
-          "rgba(0, 120, 255, 0.25)",     // 7 青
-          "rgba(0, 0, 255, 0.25)",       // 8 藍
-          "rgba(160, 0, 255, 0.25)",     // 9 紫
-          "rgba(255, 80, 160, 0.25)"     // 10 ピンク
+        // --- 1. キャッシュチェック ---
+        // 毎回通信すると遅いので、前回のデータが新鮮ならそれを使う
+        try {
+          const cached = JSON.parse(localStorage.getItem(STORAGE_KEY));
+          if (cached && (Date.now() - cached.timestamp < CACHE_DURATION)) {
+            console.log("トレンド: キャッシュを使用します");
+            renderTrends(cached.data);
+            return; // 通信せずに終了
+          }
+        } catch (e) {
+          // キャッシュ読み込みエラーは無視して通信へ
+        }
+
+        container.innerHTML = '<li class="loading">高速取得中...</li>';
+
+        // RSSのURL
+        const rssUrl = "https://trends.google.co.jp/trending/rss?geo=JP";
+
+        // 使えるプロキシを全部用意（選手たち）
+        const proxies = [
+          `https://api.allorigins.win/get?url=${encodeURIComponent(rssUrl)}&t=${Date.now()}`,
+          `https://corsproxy.io/?${encodeURIComponent(rssUrl)}`,
+          `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(rssUrl)}`
         ];
 
         try {
-          const url = "https://trends.google.co.jp/trending/rss?geo=JP";
-          const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(url)}`;
+          // --- 2. 競争開始 (Promise.any) ---
+          // 全員同時に走らせて、一番最初に成功した結果だけを受け取る
+          const winnerResponse = await Promise.any(
+            proxies.map(url => 
+              fetch(url).then(async res => {
+                if (!res.ok) throw new Error("HTTP error");
+                // プロキシによって返し方が違うので統一する
+                const text = await res.text();
+                // alloriginsはJSONの中にcontentsがある
+                try {
+                  const json = JSON.parse(text);
+                  if (json.contents) return json.contents;
+                } catch(e) {}
+                return text; // そのままテキストならそれを返す
+              })
+            )
+          );
 
-          const res = await fetch(proxyUrl);
-          if (!res.ok) throw new Error("HTTP " + res.status);
+          // 成功したらキャッシュに保存
+          localStorage.setItem(STORAGE_KEY, JSON.stringify({
+            timestamp: Date.now(),
+            data: winnerResponse
+          }));
 
-          const data = await res.json();
+          // 描画
+          renderTrends(winnerResponse);
+
+        } catch (err) {
+          console.error(err);
+          container.innerHTML =
+            `<li class="error" style="font-size:0.85rem;">取得に失敗しました。<br>時間をおいてください。</li>`;
+        }
+      }
+
+      function renderTrends(xmlText) {
+        const container = document.getElementById("trend-list");
+        
+        // 虹カラー設定
+        const rainbow10 = [
+          "rgba(255, 0, 0, 0.25)", "rgba(255, 128, 0, 0.25)",
+          "rgba(255, 230, 0, 0.25)", "rgba(180, 255, 0, 0.25)",
+          "rgba(0, 200, 0, 0.25)", "rgba(0, 220, 255, 0.25)",
+          "rgba(0, 120, 255, 0.25)", "rgba(0, 0, 255, 0.25)",
+          "rgba(160, 0, 255, 0.25)", "rgba(255, 80, 160, 0.25)"
+        ];
+
+        try {
           const parser = new DOMParser();
-          const xml = parser.parseFromString(data.contents, "application/xml");
+          const xml = parser.parseFromString(xmlText, "application/xml"); // または text/xml
           const items = xml.querySelectorAll("item");
 
           container.innerHTML = "";
 
           if (!items || items.length === 0) {
-            container.innerHTML = "<li>トレンド情報はありません。</li>";
+            // パース失敗時などのガード
+            container.innerHTML = "<li>データ形式エラー</li>";
             return;
           }
 
@@ -2135,7 +2120,6 @@ window.addEventListener("resize", updateButtonPositions);
             const query = encodeURIComponent(title);
             const googleLink = `https://www.google.com/search?q=${query}`;
 
-            // ★ 10件分の虹色を固定適用
             const bg = rainbow10[idx];
             const hoverBg = bg.replace("0.25", "0.40");
 
@@ -2162,21 +2146,25 @@ window.addEventListener("resize", updateButtonPositions);
             `;
             container.appendChild(li);
           });
-
-        } catch (err) {
-          container.innerHTML =
-            `<li class="error">取得に失敗しました（${err.message}）</li>`;
+        } catch(e) {
+          container.innerHTML = "<li>解析エラー</li>";
         }
       }
 
+      // 初回実行と定期更新
       fetchTrends();
-      setInterval(fetchTrends, 10 * 60 * 1000);
+      // 30分おきに更新（キャッシュ時間と合わせる）
+      setInterval(fetchTrends, 30 * 60 * 1000);
   </script>
 
-  <!-- 今日のトレンドワード -->
-  <script>
-      // 占い結果をランダム表示
+  <!--占い-->
+ <script>
       function showFortune() {
+        const resultEl = document.getElementById("fortune-result");
+        
+        // ★ここを追加：結果の文字を常に真ん中に揃える
+        resultEl.style.textAlign = "center"; 
+        
         const fortunes = [
           "大吉：今日は最高の一日になりそう！",
           "中吉：良いことがあります。慎重に行動を。",
@@ -2184,37 +2172,74 @@ window.addEventListener("resize", updateButtonPositions);
           "吉：いつも通りの平和な日です。",
           "凶：注意が必要な一日です。"
         ];
+        
         const result = fortunes[Math.floor(Math.random() * fortunes.length)];
-        document.getElementById("fortune-result").textContent = result;
-      }
+        resultEl.textContent = result;
 
-      // カードの非表示・表示切り替え（既存の非表示管理と統合）
-      function toggleCard(cardId) {
-        const card = document.getElementById(cardId);
-        if (!card) return;
-        if (card.style.display === "none") {
-          card.style.display = "block";
-          saveCardVisibility(cardId, true);
+        // ★演出分岐
+        if (result.includes("大吉")) {
+          // 1. 文字を豪華にする
+          resultEl.style.color = "#FFD700"; // 金色
+          resultEl.style.textShadow = "0px 0px 10px rgba(255, 215, 0, 0.8)"; // 光らせる
+          // 拡大しても位置がズレないように設定
+          resultEl.style.transformOrigin = "center center"; 
+          resultEl.style.transform = "scale(1.15)"; // 少し大きく
+          resultEl.style.transition = "0.3s";
+
+          // 2. 紙吹雪を発射！
+          var duration = 3 * 1000;
+          var animationEnd = Date.now() + duration;
+          var defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 9999 };
+
+          function randomInRange(min, max) {
+            return Math.random() * (max - min) + min;
+          }
+
+          var interval = setInterval(function() {
+            var timeLeft = animationEnd - Date.now();
+
+            if (timeLeft <= 0) {
+              return clearInterval(interval);
+            }
+
+            var particleCount = 50 * (timeLeft / duration);
+            
+            confetti(Object.assign({}, defaults, { 
+              particleCount, 
+              origin: { x: randomInRange(0.1, 0.3), y: Math.random() - 0.2 },
+              colors: ['#2196f3', '#FFD700', '#ff0000']
+            }));
+            confetti(Object.assign({}, defaults, { 
+              particleCount, 
+              origin: { x: randomInRange(0.7, 0.9), y: Math.random() - 0.2 },
+              colors: ['#2196f3', '#FFD700', '#ff0000']
+            }));
+          }, 250);
+
+        } else if (result.includes("凶")) {
+          // 凶のとき
+          resultEl.style.color = "#555";
+          resultEl.style.textShadow = "none";
+          resultEl.style.transform = "scale(1.0)";
         } else {
-          card.style.display = "none";
-          saveCardVisibility(cardId, false);
+          // それ以外
+          resultEl.style.color = "var(--text-color)"; // 元の色に戻す
+          resultEl.style.textShadow = "none";
+          resultEl.style.transform = "scale(1.0)"; // 大きさを戻す
         }
       }
 
-      // ローカルストレージに表示状態を保存（既存ポータルと同じ方式）
-      function saveCardVisibility(cardId, visible) {
-        const visibility = JSON.parse(localStorage.getItem("cardVisibility") || "{}");
-        visibility[cardId] = visible;
-        localStorage.setItem("cardVisibility", JSON.stringify(visibility));
-      }
-
-      // ページ読み込み時に表示状態を復元
+      // カードの非表示・表示切り替え（既存機能維持）
       window.addEventListener("DOMContentLoaded", () => {
         const visibility = JSON.parse(localStorage.getItem("cardVisibility") || "{}");
         const card = document.getElementById("fortune-card");
         if (card && visibility.hasOwnProperty("fortune-card")) {
           card.style.display = visibility["fortune-card"] ? "block" : "none";
         }
+        
+        // 初期状態でもおみくじのテキストを中央揃えにしておく
+        const resultEl = document.getElementById("fortune-result");
+        if(resultEl) resultEl.style.textAlign = "center";
       });
   </script>
 
