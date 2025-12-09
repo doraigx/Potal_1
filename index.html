@@ -685,6 +685,43 @@
         #fortune-card button {
           margin-right: 5px;
         }
+
+        /* --- 地震の震度別カラー設定 --- */
+    
+    /* 震度1・2 (青系：安全) */
+    .eq.s1, .eq.s2 {
+      background-color: rgba(129, 212, 250, 0.15); /* 薄い水色 */
+      border-left-color: #81d4fa;
+    }
+
+    /* 震度3・4 (緑・黄系：注意) */
+    .eq.s3 {
+      background-color: rgba(129, 199, 132, 0.15); /* 薄い緑 */
+      border-left-color: #81c784;
+    }
+    .eq.s4 {
+      
+      background-color: rgba(255, 235, 59, 0.15);  /* 薄い黄色 */
+      border-left-color: #ffeb3b;
+    }
+
+    /* 震度5弱・5強 (オレンジ系：警告) */
+    .eq.s5-weak, .eq.s5-strong {
+      background-color: rgba(255, 152, 0, 0.2);   /* 薄いオレンジ */
+      border-left-color: #ff9800;
+    }
+
+    /* 震度6弱以上 (赤・紫系：危険) */
+    .eq.s6-weak, .eq.s6-strong {
+      background-color: rgba(244, 67, 54, 0.25);  /* 薄い赤 */
+      border-left-color: #f44336;
+    }
+    .eq.s7 {
+      background-color: rgba(106, 27, 154, 0.3);  /* 薄い紫 */
+      border-left-color: #6a1b9a;
+      color: #6a1b9a; /* 文字色も変えて強調 */
+      font-weight: bold;
+    }
   </style>
 </head>
 
