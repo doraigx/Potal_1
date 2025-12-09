@@ -51,7 +51,7 @@
       background: var(--bg-color);
       color: var(--text-color);
       transition: background 0.3s, color 0.3s;
-      padding-bottom: 0px;
+      padding-bottom: 30px;
     }
 
     header {
@@ -1010,6 +1010,14 @@
         <p id="today-info">読み込み中...</p>
       </div>
 
+       <!-- 今日のトレンドワード -->
+        <div class="card" id="trend-card">
+            <h2>今日のトレンド</h2>
+            <ul id="trend-list">
+                <li class="loading">読み込み中...</li>
+            </ul>
+        </div>
+
       <!-- 天気 -->
       <div class="card" id="weather-card">
         <h2>天気</h2>
@@ -1182,14 +1190,6 @@
         <p id="fortune-result">ボタンを押してね↓</p>
         <button class="Fort-btn" onclick="showFortune()">占う</button>
       </div>
-
-        <!-- 今日のトレンドワード -->
-        <div class="card" id="trend-card">
-            <h2>今日のトレンド</h2>
-            <ul id="trend-list">
-                <li class="loading">読み込み中...</li>
-            </ul>
-        </div>
 
     
     </div>
