@@ -700,7 +700,7 @@
       border-left-color: #81c784;
     }
     .eq.s4 {
-      
+
       background-color: rgba(255, 235, 59, 0.15);  /* 薄い黄色 */
       border-left-color: #ffeb3b;
     }
@@ -722,64 +722,272 @@
       color: #6a1b9a; /* 文字色も変えて強調 */
       font-weight: bold;
     }
+
+    /* --- あと何日カウンターのスタイル --- */
+    .countdown-display {
+      text-align: center;
+      margin: 1rem 0;
+    }
+
+    .cnt-label {
+      font-size: 1.1rem;
+      font-weight: bold;
+      margin-bottom: 4px;
+    }
+
+    .cnt-main {
+      display: flex;
+      justify-content: center;
+      align-items: baseline;
+      gap: 4px;
+      color: #2196f3;
+    }
+
+    .cnt-text {
+      font-size: 1rem;
+    }
+
+    .cnt-number {
+      font-size: 3rem;
+      font-weight: bold;
+      line-height: 1;
+    }
+
+    .cnt-date {
+      font-size: 0.85rem;
+      opacity: 0.7;
+      margin-top: 4px;
+    }
+
+    .cnt-btn-area {
+      text-align: right;
+    }
+
+    /* 設定ボタン（枠線のみ） */
+    .cnt-btn-outline {
+      font-size: 0.8rem;
+      background: transparent;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      color: var(--text-color);
+      cursor: pointer;
+      padding: 2px 8px;
+    }
+
+    /* 設定エリア */
+    .cnt-settings {
+      display: none; /* JSで制御 */
+      margin-top: 10px;
+      border-top: 1px solid rgba(0, 0, 0, 0.1);
+      padding-top: 10px;
+    }
+
+    .cnt-input {
+      width: 100%;
+      padding: 6px;
+      margin-bottom: 6px;
+      box-sizing: border-box;
+      border-radius: 4px;
+      border: 1px solid #ccc;
+      font-size: 1rem;
+    }
+
+    /* 保存ボタン */
+    .cnt-btn-primary {
+      width: 100%;
+      padding: 8px;
+      background: #4caf50;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+    .cnt-btn-primary:hover {
+      opacity: 0.9;
+    }
+
+    /* --- 猫カードのスタイル --- */
+    .cat-frame {
+      width: 100%;
+      height: 200px;
+      background: rgba(0, 0, 0, 0.05);
+      border-radius: 8px;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+    }
+
+    .cat-loading {
+      position: absolute;
+      font-size: 0.9rem;
+      opacity: 0.6;
+    }
+
+    .cat-img {
+      max-width: 100%;
+      max-height: 100%;
+      display: none; /* JSで制御 */
+      object-fit: contain;
+    }
+
+    .cat-btn {
+      width: 100%;
+      margin-top: 12px;
+      padding: 10px;
+      background: rgba(0,140,255,0.35);
+      color: var(--text-color);
+      text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+      border: none;
+      border-radius: 8px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+    .cat-btn:hover {
+      opacity: 0.8;
+      transform: translateY(-1px);
+    }
+
+    /* ヘッダー右側のボタングループ */
+  .header-controls {
+    margin-left: auto;
+    display: flex;
+    gap: 0.8rem;       /* ボタン同士の間隔 */
+    align-items: center;
+  }
+
+  /* ボタン共通デザイン (サイズ固定・正方形) */
+  .header-btn {
+    width: 42px;
+    height: 42px;
+    padding: 0;
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.1); /* 半透明の白背景 */
+    color: inherit;
+    font-size: 1.4rem;
+    border: none;
+    cursor: pointer;
+    display: flex;            /* 中身を中央揃え */
+    align-items: center;
+    justify-content: center;
+    transition: background 0.2s;
+  }
+
+  .header-btn:hover {
+    background: rgba(255, 255, 255, 0.25); /* ホバー時に少し明るく */
+  }
+
+  /* カラーピッカー専用のラッパー */
+  .color-picker-wrap {
+    position: relative;
+    width: 42px;
+    height: 42px;
+  }
+
+  /* 透明なカラーピッカー (ボタンの上に被せる) */
+  .hidden-picker {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    opacity: 0;
+    cursor: pointer;
+    z-index: 2; /* ボタンより手前に配置 */
+  }
+
+  /* ピッカーの下にある見た目用ボタン */
+  .dummy-btn {
+    pointer-events: none; /* クリック判定をピッカーに譲る */
+    width: 100%;
+    height: 100%;
+  }
   </style>
 </head>
 
 <body>
   <header>
-    <h1><a href="#" onclick="location.reload(); return false;">Portal_1</a></h1>
-    <nav></nav>
-    <div id="clock"></div>
-    <button class="theme-toggle" id="theme-toggle">🌙</button>
+  <h1><a href="#" onclick="location.reload(); return false;">Portal_1</a></h1>
+  <nav></nav>
+  <div id="clock"></div>
 
-    <script>
-      (function () {
-        const html = document.documentElement;
-        const toggleBtn = document.getElementById("theme-toggle");
+  <div class="header-controls">
+    
+    <div class="color-picker-wrap">
+      <input type="color" id="header-color-picker" class="hidden-picker">
+      <button class="header-btn dummy-btn" title="ヘッダー色変更">🎨</button>
+    </div>
 
-        //Android からテーマ取得
-        let androidTheme = null;
-        try {
-          if (window.AndroidTheme && window.AndroidTheme.getThemeMode) {
-            androidTheme = window.AndroidTheme.getThemeMode(); // 'dark' or 'light'
-          }
-        } catch (e) { }
+    <button id="theme-toggle" class="header-btn">🌙</button>
 
-        //テーマ決定
-        const savedTheme = localStorage.getItem("theme");
-        const prefersDark = window.matchMedia &&
-          window.matchMedia("(prefers-color-scheme: dark)").matches;
-        const initialTheme = savedTheme || androidTheme || (prefersDark ? "dark" : "light");
+  </div>
 
-        applyTheme(initialTheme);
+  <script>
+    (function () {
+      const html = document.documentElement;
+      const toggleBtn = document.getElementById("theme-toggle");
 
-        //切替ボタン
-        toggleBtn.addEventListener("click", () => {
-          const current = html.getAttribute("data-theme") === "dark" ? "light" : "dark";
-          applyTheme(current);
-          localStorage.setItem("theme", current);
+      // --- ヘッダー色変更ロジック ---
+      const colorPicker = document.getElementById("header-color-picker");
+      const STORAGE_KEY_COLOR = "portalHeaderColor";
 
-          //Androidへ通知
-          if (window.AndroidTheme && window.AndroidTheme.setThemeMode) {
-            window.AndroidTheme.setThemeMode(current);
-          }
-        });
+      // 1. 保存された色があれば適用
+      const savedColor = localStorage.getItem(STORAGE_KEY_COLOR);
+      if (savedColor) {
+        applyHeaderColor(savedColor);
+        colorPicker.value = savedColor;
+      }
 
-        function applyTheme(theme) {
-          html.setAttribute("data-theme", theme);
-          toggleBtn.textContent = theme === "dark" ? "☀️" : "🌙";
+      // 2. 色変更時
+      colorPicker.addEventListener("input", (e) => {
+        const color = e.target.value;
+        applyHeaderColor(color);
+        localStorage.setItem(STORAGE_KEY_COLOR, color);
+      });
+
+      function applyHeaderColor(color) {
+        document.documentElement.style.setProperty('--header-gradient', `linear-gradient(90deg, ${color}, ${color})`);
+      }
+      // ---------------------------
+
+      // --- テーマ切り替えロジック ---
+      let androidTheme = null;
+      try {
+        if (window.AndroidTheme && window.AndroidTheme.getThemeMode) {
+          androidTheme = window.AndroidTheme.getThemeMode();
         }
+      } catch (e) { }
 
-        // 初回ロードで Android のテーマを取得
-        if (androidTheme) {
-          applyTheme(androidTheme);
+      const savedTheme = localStorage.getItem("theme");
+      const prefersDark = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
+      const initialTheme = savedTheme || androidTheme || (prefersDark ? "dark" : "light");
+
+      applyTheme(initialTheme);
+
+      toggleBtn.addEventListener("click", () => {
+        const current = html.getAttribute("data-theme") === "dark" ? "light" : "dark";
+        applyTheme(current);
+        localStorage.setItem("theme", current);
+        if (window.AndroidTheme && window.AndroidTheme.setThemeMode) {
+          window.AndroidTheme.setThemeMode(current);
         }
-      })();
-    </script>
+      });
 
+      function applyTheme(theme) {
+        html.setAttribute("data-theme", theme);
+        toggleBtn.textContent = theme === "dark" ? "☀️" : "🌙";
+      }
 
-  </header>
-
+      if (androidTheme) {
+        applyTheme(androidTheme);
+      }
+    })();
+  </script>
+</header>
+  
   <div class="main-container">
     <div class="widgets">
 
@@ -860,6 +1068,39 @@
         <p id="horoscope-result" style="margin-top:0.8rem;font-weight:bold;">選んで「占う」を押してください</p>
       </div>
 
+     <div class="card" id="countdown-card">
+        <h2>あと何日？</h2>
+        <div class="countdown-display">
+          <div id="countdown-label" class="cnt-label">未設定</div>
+          <div class="cnt-main">
+            <span class="cnt-text">あと</span>
+            <span id="countdown-number" class="cnt-number">--</span>
+            <span class="cnt-text">日</span>
+          </div>
+          <div id="countdown-date-display" class="cnt-date">----/--/--</div>
+        </div>
+        
+        <div class="cnt-btn-area">
+          <button id="cnt-toggle-btn" class="cnt-btn-outline">設定</button>
+        </div>
+
+        <div id="cnt-settings" class="cnt-settings">
+          <input type="text" id="cnt-name" class="cnt-input" placeholder="イベント名 (例: 夏休み)">
+          <input type="date" id="cnt-date" class="cnt-input">
+          <button id="cnt-save" class="cnt-btn-primary">保存</button>
+        </div>
+      </div>
+
+      <div class="card" id="cat-card">
+        <h2>癒やしの猫</h2>
+        <div class="cat-frame">
+          <span id="cat-loading" class="cat-loading">読み込み中...</span>
+          <img id="cat-img" class="cat-img" src="" alt="猫画像">
+        </div>
+        <button onclick="fetchCat()" class="cat-btn">
+          次の猫を見る 🐱
+        </button>
+      </div>
 
       <!-- 地震情報 -->
         <div class="card" id="eq-card">
@@ -881,6 +1122,8 @@
           <li class="loading">取得中…</li>
         </ul>
       </div>
+
+      
 
       <!-- カレンダー -->
       <div class="card" id="calendar-card">
@@ -946,6 +1189,8 @@
                 <li class="loading">読み込み中...</li>
             </ul>
         </div>
+
+        
     </div>
   </div>
     </br></br></br></br></br>
@@ -1846,6 +2091,149 @@ window.addEventListener("resize", updateButtonPositions);
       setInterval(fetchNews, 15 * 60 * 1000);
   </script>
 
+  <script>
+    (function(){
+      const STORAGE_KEY = 'portalCountdown';
+      const cardEl = document.getElementById('countdown-card');
+      const labelEl = document.getElementById('countdown-label');
+      const numEl = document.getElementById('countdown-number');
+      const dateDispEl = document.getElementById('countdown-date-display');
+      
+      const settingsEl = document.getElementById('cnt-settings');
+      const toggleBtn = document.getElementById('cnt-toggle-btn');
+      const nameInput = document.getElementById('cnt-name');
+      const dateInput = document.getElementById('cnt-date');
+      const saveBtn = document.getElementById('cnt-save');
+
+      // 高さ再計算用の関数
+      function refreshGrid() {
+        if (typeof resizeGridItem === 'function' && cardEl) {
+          resizeGridItem(cardEl);
+        }
+      }
+
+      // 読み込みと表示更新
+      function loadAndRender() {
+        const data = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
+        if(data.name && data.date) {
+          labelEl.textContent = data.name;
+          dateDispEl.textContent = data.date.replace(/-/g, '/');
+          
+          const today = new Date();
+          today.setHours(0,0,0,0);
+          const target = new Date(data.date);
+          target.setHours(0,0,0,0);
+          
+          const diff = target - today;
+          const diffDays = Math.ceil(diff / (1000 * 60 * 60 * 24));
+          
+          if(diffDays > 0) {
+             numEl.textContent = diffDays;
+             numEl.style.color = "#2196f3";
+          } else if (diffDays === 0) {
+             numEl.textContent = "0";
+             labelEl.textContent = "今日が " + data.name + " です！";
+             numEl.style.color = "#ff9800";
+          } else {
+             numEl.textContent = Math.abs(diffDays);
+             labelEl.innerHTML = data.name + "<br><span style='font-size:0.8rem;font-weight:normal;'>から経過</span>";
+             numEl.style.color = "#f44336";
+          }
+        } else {
+          labelEl.textContent = "イベント未設定";
+          numEl.textContent = "--";
+          dateDispEl.textContent = "";
+        }
+        // 表示更新後に高さを合わせる
+        setTimeout(refreshGrid, 50);
+      }
+
+      // ★設定エリアの開閉アニメーション（ここを変更）
+      $(toggleBtn).on('click', function() {
+        const $settings = $(settingsEl);
+        
+        if($settings.is(':hidden')) {
+          // === 開くとき ===
+          // 1. 先に今の設定値を入力欄に入れる
+          const data = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
+          nameInput.value = data.name || '';
+          dateInput.value = data.date || '';
+
+          // 2. グリッドの場所確保：一瞬だけ見えない状態で開いて、高さを計算させる
+          $settings.css({ display: 'block', visibility: 'hidden' });
+          refreshGrid(); 
+          
+          // 3. アニメーション開始：見えない状態を解除して、slideDown
+          $settings.css({ display: 'none', visibility: 'visible' });
+          $settings.slideDown(300); // 0.3秒かけて開く
+
+        } else {
+          // === 閉じるとき ===
+          // 1. slideUpで閉じる
+          $settings.slideUp(300, function() {
+            // 2. アニメ終了後にグリッドを縮める
+            refreshGrid();
+          });
+        }
+      });
+
+      // 保存処理
+      $(saveBtn).on('click', function() {
+        const name = nameInput.value;
+        const date = dateInput.value;
+        if(name && date) {
+          localStorage.setItem(STORAGE_KEY, JSON.stringify({ name, date }));
+          loadAndRender();
+          
+          // 保存したら閉じる（アニメーション付き）
+          $(settingsEl).slideUp(300, function(){
+            refreshGrid();
+          });
+          
+        } else {
+          alert('イベント名と日付を入力してください');
+        }
+      });
+
+      // 初回実行
+      loadAndRender();
+    })();
+  </script>
+
+  <script>
+    async function fetchCat() {
+      const imgEl = document.getElementById('cat-img');
+      const loadingEl = document.getElementById('cat-loading');
+      
+      // 画像を隠してロード中を表示
+      imgEl.style.display = 'none';
+      loadingEl.style.display = 'block';
+
+      try {
+        // The Cat API (登録なしでもランダム取得は可能)
+        const res = await fetch('https://api.thecatapi.com/v1/images/search');
+        const data = await res.json();
+        
+        if(data && data.length > 0) {
+          const url = data[0].url;
+          
+          // 画像の読み込み完了を待ってから表示
+          imgEl.onload = () => {
+            loadingEl.style.display = 'none';
+            imgEl.style.display = 'block';
+          };
+          imgEl.src = url;
+        }
+      } catch(e) {
+        loadingEl.textContent = "取得失敗...";
+        console.error(e);
+      }
+    }
+    
+    // 初回ロード
+    fetchCat();
+  </script>
+
 
   <!--カレンダー-->
   <script>
@@ -2296,7 +2684,65 @@ window.addEventListener("resize", updateButtonPositions);
       });
     }
   </script>
+<div style="text-align: center; margin: 60px 0 30px; opacity: 0.8;">
+    <p style="font-size: 0.8rem; color: #888; margin-bottom: 8px;">アプリの調子が悪い時やデータを消したい時に</p>
+    <button id="factory-reset-btn" style="background: #ff4444; color: white; border: none; padding: 8px 16px; border-radius: 4px; font-weight: bold; cursor: pointer; font-size: 0.9rem;">
+      ⚠️ 初期設定に戻す
+    </button>
+  </div>
 
+  <script>
+    document.getElementById('factory-reset-btn').addEventListener('click', async () => {
+      // 1. 誤操作防止の確認アラート
+      if (!confirm("【本当に初期化しますか？】\n\n・保存したメモ\n・時間割\n・ヘッダーの色\n・並び替え設定\n\nこれら全てが削除され、最初の状態に戻ります。")) {
+        return; 
+      }
+
+      const btn = document.getElementById('factory-reset-btn');
+      const originalText = btn.textContent;
+      btn.textContent = "初期化中...";
+      btn.disabled = true;
+
+      // 2. localStorage（メモや設定）を全消去
+      // これはローカルファイルでも動作することが多い
+      try {
+        localStorage.clear();
+        console.log("LocalStorage cleared.");
+      } catch (e) {
+        console.warn("LocalStorage clear failed:", e);
+      }
+
+      // 3. Service Worker（PWAの裏方）を解除
+      // ※ここが file:// だとエラーになるので、個別にtry-catchで囲む
+      try {
+        if ('serviceWorker' in navigator) {
+          const registrations = await navigator.serviceWorker.getRegistrations();
+          for (const registration of registrations) {
+            await registration.unregister();
+          }
+          console.log("ServiceWorkers unregistered.");
+        }
+      } catch (e) {
+        console.warn("ServiceWorker unregister skipped (Local file mode):", e);
+      }
+
+      // 4. Cache Storage（保存されたHTML/CSS/画像）を全消去
+      try {
+        if ('caches' in window) {
+          const keys = await caches.keys();
+          await Promise.all(keys.map(key => caches.delete(key)));
+          console.log("Caches deleted.");
+        }
+      } catch (e) {
+        console.warn("Cache delete skipped:", e);
+      }
+
+      alert("データを削除しました。ページを再読み込みします。");
+      
+      // 5. 強制リロード
+      window.location.reload(true);
+    });
+  </script>
 </body>
 
 </html>
