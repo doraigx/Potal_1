@@ -2037,10 +2037,16 @@ window.addEventListener("resize", updateButtonPositions);
       async function fetchWithFallback(urls) {
         for (const url of urls) {
           try {
-            const res = await fetch(url);
+            const controller = new AbortController();
+            const id = setTimeout(() => controller.abort(), 5000); // 5秒でタイムアウト
+
+            const res = await fetch(url, { signal: controller.signal });
+            clearTimeout(id);
+            
             if (res.ok) return await res.text();
           } catch (e) {
             // 次の URL を試す
+            console.warn("Proxy failed, trying next...", e);
           }
         }
         throw new Error("全プロキシ失敗");
@@ -2048,48 +2054,80 @@ window.addEventListener("resize", updateButtonPositions);
 
       async function fetchNews() {
         const container = document.getElementById('news-list');
+        const STORAGE_KEY = 'portalNewsCache';
+        
+        // とりあえずロード中表示（ただしキャッシュがあればそれを先に表示しても良い）
         container.innerHTML = '<li class="loading">ニュースを取得中…</li>';
 
         const rssUrl = 'https://news.yahoo.co.jp/rss/topics/domestic.xml';
 
-        // ★ Fallback 用プロキシ一覧
+        // ★強化ポイント1: プロキシを増量（上から順に試します）
         const proxyList = [
           `https://api.allorigins.win/raw?url=${encodeURIComponent(rssUrl)}`,
-          `https://cors.isteed.cc/?${encodeURIComponent(rssUrl)}`,
+          `https://corsproxy.io/?${encodeURIComponent(rssUrl)}`,
+          `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(rssUrl)}`
         ];
 
         try {
-          // ★ どれか成功したものを取得
+          // 通信開始
           const xmlText = await fetchWithFallback(proxyList);
 
-          const parser = new DOMParser();
-          const xml = parser.parseFromString(xmlText, "application/xml");
-          const items = xml.querySelectorAll("item");
-
-          container.innerHTML = '';
-          if (!items || items.length === 0) {
-            container.innerHTML = '<li>ニュース情報はありません。</li>';
-            return;
-          }
-
-          items.forEach((item, idx) => {
-            if (idx >= 10) return;
-
-            const title = item.querySelector("title")?.textContent || '情報なし';
-            const link = item.querySelector("link")?.textContent || '#';
-
-            const li = document.createElement("li");
-            li.innerHTML = `<a href="${link}" target="_blank"
-              style="text-decoration:none;color:#2196f3;">${title}</a>`;
-            container.appendChild(li);
-          });
+          // 成功したらキャッシュに保存
+          localStorage.setItem(STORAGE_KEY, xmlText);
+          
+          // 描画
+          renderNews(xmlText);
+          console.log("ニュース: 最新取得成功");
 
         } catch (err) {
-          container.innerHTML = `<li class="error">ニュース取得に失敗しました。（${err.message}）</li>`;
+          console.warn("ニュース取得失敗、キャッシュを試みます", err);
+          
+          // ★強化ポイント2: 失敗したらキャッシュを確認
+          const cachedXML = localStorage.getItem(STORAGE_KEY);
+          if (cachedXML) {
+            renderNews(cachedXML);
+            // キャッシュであることを表示
+            const note = document.createElement('li');
+            note.style.fontSize = "0.75rem";
+            note.style.color = "#888";
+            note.style.textAlign = "right";
+            note.textContent = "※前回取得した情報を表示中";
+            container.appendChild(note);
+          } else {
+            // キャッシュもなければエラー表示
+            container.innerHTML = `<li class="error">ニュース取得に失敗しました。<br>時間をおいてください。</li>`;
+          }
         }
       }
 
+      function renderNews(xmlText) {
+        const container = document.getElementById('news-list');
+        const parser = new DOMParser();
+        const xml = parser.parseFromString(xmlText, "application/xml");
+        const items = xml.querySelectorAll("item");
+
+        container.innerHTML = '';
+        if (!items || items.length === 0) {
+          container.innerHTML = '<li>ニュース情報はありません。</li>';
+          return;
+        }
+
+        items.forEach((item, idx) => {
+          if (idx >= 8) return; // 8件まで表示
+
+          const title = item.querySelector("title")?.textContent || '情報なし';
+          const link = item.querySelector("link")?.textContent || '#';
+
+          const li = document.createElement("li");
+          li.innerHTML = `<a href="${link}" target="_blank"
+            style="text-decoration:none;color:var(--link-color);">${title}</a>`;
+          container.appendChild(li);
+        });
+      }
+
+      // 初回実行
       fetchNews();
+      // 15分おきに更新
       setInterval(fetchNews, 15 * 60 * 1000);
   </script>
 
