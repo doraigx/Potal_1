@@ -1152,29 +1152,68 @@
 
 
         <div class="card" id="memo-card">
-            <h2>簡易メモ帳</h2>
-            <textarea id="simple-memo" placeholder="ここにメモを入力... (自動保存されます)"
-                      style="
-            width: 100%;
-            height: 120px;
-            padding: 10px;
-            box-sizing: border-box;
-            border-radius: 8px;
-            border: 1px solid #ccc;
-            resize: vertical;
-            background: var(--bg-color);
-            color: var(--text-color);
-            font-family: inherit;
-            font-size: 0.95rem;
-            outline: none;
-          "></textarea>
-            <div style="text-align:right; margin-top:5px;">
-                <button onclick="document.getElementById('simple-memo').value=''; localStorage.removeItem('portalMemo');"
-                        style="font-size:0.8rem; padding:4px 8px; cursor:pointer; background:#f44336; color:white; border:none; border-radius:4px;">
-                    全消去
-                </button>
-            </div>
+    <h2>簡易メモ帳</h2>
+    <textarea id="simple-memo" placeholder="ここにメモを入力... (自動保存されます)"
+              style="
+    width: 100%;
+    height: 120px;
+    padding: 10px;
+    box-sizing: border-box;
+    border-radius: 8px;
+    border: 1px solid #ccc;
+    resize: vertical;
+    background: var(--bg-color);
+    color: var(--text-color);
+    font-family: inherit;
+    font-size: 0.95rem;
+    outline: none;
+  "></textarea>
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 5px;">
+        <div id="memo-count" style="font-size: 0.85rem; color: var(--text-color); opacity: 0.8;">
+            文字数: <span id="char-count">0</span>
         </div>
+        <button onclick="clearMemo()"
+                style="font-size:0.8rem; padding:4px 8px; cursor:pointer; background:#f44336; color:white; border:none; border-radius:4px;">
+            全消去
+        </button>
+    </div>
+</div>
+
+<script>
+    // --- 簡易メモ帳ロジック ---
+    const memoArea = document.getElementById('simple-memo');
+    const charCountSpan = document.getElementById('char-count');
+    const MEMO_KEY = 'portalMemo';
+
+    // 文字数を更新する関数
+    function updateCharCount() {
+        charCountSpan.textContent = memoArea.value.length;
+    }
+
+    // 全消去の関数
+    function clearMemo() {
+        if(confirm("メモをすべて消去しますか？")) {
+            memoArea.value = '';
+            localStorage.removeItem(MEMO_KEY);
+            updateCharCount();
+        }
+    }
+
+    // ページ読み込み時の復元
+    window.addEventListener('DOMContentLoaded', () => {
+        const savedMemo = localStorage.getItem(MEMO_KEY);
+        if (savedMemo) {
+            memoArea.value = savedMemo;
+            updateCharCount(); // 読み込み時にもカウント
+        }
+    });
+
+    // 入力するたびに保存 ＆ カウント更新
+    memoArea.addEventListener('input', () => {
+        localStorage.setItem(MEMO_KEY, memoArea.value);
+        updateCharCount();
+    });
+</script>
 
       <!-- 交通情報カード -->
       <div class="card" id="traffic-card">
