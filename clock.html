@@ -3,195 +3,149 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <title>Clock Mode</title>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@700&display=swap" rel="stylesheet">
     <style>
         :root {
             --clock-color: #ffffff;
-            --bg-color: #121212;
-            --panel-bg: rgba(255, 255, 255, 0.1);
         }
-        
         body {
             margin: 0;
-            background-color: var(--bg-color);
+            background-color: #000000;
             color: var(--clock-color);
             font-family: 'Noto Sans JP', sans-serif;
             display: flex;
             flex-direction: column;
             justify-content: center;
             align-items: center;
-            /* iOSのツールバーを除いた高さを確保するハック */
             height: 100vh;
-            height: -webkit-fill-available; 
             overflow: hidden;
             transition: color 0.5s ease;
             position: relative;
         }
-
-        /* 時計エリア */
         #clock-container {
             text-align: center;
+            cursor: pointer;
             user-select: none;
             width: 100%;
-            /* 擬似全画面時は少し上にずらす調整 */
-            transform: translateY(0);
-            transition: transform 0.3s ease;
         }
-        
         #date {
-            font-size: 7vw; /* iOS向けに少し小さく調整 */
-            margin-bottom: 0.5rem;
+            font-size: 5vw;
+            margin-bottom: 1rem;
             opacity: 0.8;
         }
-        
         #time {
-            font-size: 28vw; /* iOS向けに少し小さく調整 */
+            font-size: 25vw;
             line-height: 1;
             font-weight: 700;
         }
-
-        /* --- 操作パネル（右上） --- */
-        #controls-panel {
+        
+        /* 操作パネル */
+        #controls {
             position: absolute;
-            /* iOSのSafe Area（ノッチなど）を考慮 */
-            top: env(safe-area-inset-top, 20px);
+            top: 20px;
             right: 20px;
             display: flex;
             align-items: center;
-            gap: 15px;
-            background: var(--panel-bg);
+            gap: 12px;
+            background: rgba(255,255,255,0.1);
             padding: 10px 15px;
-            border-radius: 12px;
+            border-radius: 8px;
             z-index: 100;
-            transition: opacity 0.3s ease, transform 0.3s ease;
+            transition: opacity 0.3s, visibility 0.3s;
         }
 
-        /* カラーピッカーエリア */
-        .color-picker-wrap {
+        #controls span {
+            color: #ffffff !important;
+            font-size: 0.9rem;
+            font-weight: normal;
+        }
+
+        /* 各種ボタンの共通スタイル */
+        .btn {
+            background: none;
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            color: #ffffff;
+            padding: 5px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            transition: 0.2s;
+        }
+        .btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+            border-color: #ffffff;
+        }
+
+        /* 戻るボタン専用（左上） */
+        .back-btn {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            z-index: 100;
+            text-decoration: none;
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 5px;
+            opacity: 0.8;
         }
-        
-        .color-picker-wrap span {
-            color: #ffffff !important; /* 文字色は白固定 */
-            font-size: 0.9rem;
-            white-space: nowrap;
+
+        .hint {
+            position: absolute;
+            bottom: 30px;
+            font-size: 1.2rem;
+            opacity: 0.4;
+            color: #ffffff !important;
+            transition: opacity 0.3s;
+        }
+
+        /* 擬似全画面（UIを隠す）モード */
+        .is-ui-hidden #controls, 
+        .is-ui-hidden .back-btn, 
+        .is-ui-hidden .hint {
+            opacity: 0;
+            visibility: hidden;
+        }
+
+        /* ブラウザ標準の全画面時 */
+        :fullscreen #controls, :fullscreen .back-btn, :fullscreen .hint {
+            display: none;
         }
 
         input[type="color"] {
             cursor: pointer;
             border: none;
-            width: 34px;
-            height: 34px;
+            width: 30px;
+            height: 30px;
             background: none;
             padding: 0;
-            -webkit-appearance: none; /* iOSデフォルトスタイル除去 */
         }
-        input[type="color"]::-webkit-color-swatch-wrapper {
-            padding: 0;
-        }
-        input[type="color"]::-webkit-color-swatch {
-            border: 2px solid #ffffff;
-            border-radius: 50%;
-        }
-
-        /* --- 全画面/解除ボタン（Index.html風） --- */
-        .fs-btn {
-            background: none;
-            border: 2px solid #ffffff;
-            color: #ffffff;
-            font-size: 1.2rem;
-            padding: 6px 12px;
-            border-radius: 8px;
-            cursor: pointer;
-            line-height: 1;
-            transition: background 0.2s;
-            -webkit-appearance: none; /* iOSデフォルトスタイル除去 */
-        }
-        
-        .fs-btn:active {
-            background: rgba(255,255,255,0.2);
-        }
-
-        /* ポータルに戻るボタン */
-        .back-btn {
-            position: absolute;
-            top: env(safe-area-inset-top, 20px);
-            left: 20px;
-            background: var(--panel-bg);
-            color: #ffffff;
-            border: none;
-            padding: 10px;
-            border-radius: 50%;
-            cursor: pointer;
-            z-index: 100;
-            font-size: 1.2rem;
-            line-height: 1;
-            transition: opacity 0.3s ease;
-        }
-
-        /* --- 擬似全画面モード時のスタイル --- */
-        body.is-pseudo-fullscreen #controls-panel,
-        body.is-pseudo-fullscreen .back-btn {
-            opacity: 0;
-            pointer-events: none; /* クリックできないようにする */
-            transform: translateY(-20px);
-        }
-        
-        body.is-pseudo-fullscreen #clock-container {
-            /* ツールバーが消えた分、中央に寄せる調整 */
-            transform: translateY(-5%); 
-        }
-
-        /* 解除用隠しボタン（全画面時に画面下部をタップで解除） */
-        #exit-fs-touch {
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            width: 100%;
-            height: 15vh;
-            background: transparent;
-            z-index: 50;
-            display: none;
-        }
-        
-        body.is-pseudo-fullscreen #exit-fs-touch {
-            display: block;
-        }
-
     </style>
 </head>
-<body id="clock-body">
+<body id="main-body">
 
-    <button class="back-btn" onclick="window.close();" title="ポータルに戻る">🔙</button>
+    <a href="index.html" class="back-btn btn">🔙 ポータルに戻る</a>
 
-    <div id="controls-panel">
-        <div class="color-picker-wrap">
-            <span>文字色:</span>
-            <input type="color" id="color-picker" value="#ffffff">
-        </div>
-        <button id="toggle-fs-btn" class="fs-btn" onclick="togglePseudoFullscreen()" title="時計のみ表示">🖥️</button>
+    <div id="controls">
+        <span>文字色:</span>
+        <input type="color" id="color-picker" value="#ffffff">
+        <button class="btn" onclick="resetSettings()" title="初期化">🔄 リセット</button>
+        <button class="btn" onclick="toggleFullScreen()" title="全画面">🖥️ 全画面</button>
     </div>
 
-    <div id="clock-container">
-        <div id="date">----/--/-- (-)</div>
+    <div id="clock-container" onclick="toggleUI()">
+        <div id="date">0000/00/00 (曜)</div>
         <div id="time">00:00</div>
     </div>
     
-    <div id="exit-fs-touch" onclick="togglePseudoFullscreen()"></div>
+    <div class="hint">時計をクリックでUIを隠す / Escで終了</div>
 
     <script>
         const timeEl = document.getElementById("time");
         const dateEl = document.getElementById("date");
         const colorPicker = document.getElementById("color-picker");
-        const bodyEl = document.getElementById("clock-body");
-        const fsBtnEl = document.getElementById("toggle-fs-btn");
+        const body = document.getElementById("main-body");
 
-        // 時刻更新
         function updateClock() {
             const now = new Date();
             const y = now.getFullYear();
@@ -206,53 +160,55 @@
             timeEl.textContent = `${h}:${mi}`;
         }
 
-        // --- 擬似全画面切り替え（iOS対応） ---
-        function togglePseudoFullscreen() {
-            // bodyにクラスを付与して、CSSで操作パネルを隠す
-            const isFs = bodyEl.classList.toggle('is-pseudo-fullscreen');
-            
-            // ボタンの文字を変える（Index.html風）
-            fsBtnEl.textContent = isFs ? "✖️" : "🖥️";
-            
-            // iOS Safariのアドレスバーを隠すためのハック（画面を少しスクロールさせる）
-            if (isFs) {
-                window.scrollTo(0, 1);
-            } else {
-                window.scrollTo(0, 0);
+        // 文字色変更
+        colorPicker.addEventListener("input", (e) => {
+            const color = e.target.value;
+            applyColor(color);
+        });
+
+        function applyColor(color) {
+            document.documentElement.style.setProperty('--clock-color', color);
+            localStorage.setItem("clock_color", color);
+            colorPicker.value = color;
+        }
+
+        // 初期化処理
+        function resetSettings() {
+            if(confirm("文字色設定を初期化しますか？")) {
+                localStorage.removeItem("clock_color");
+                applyColor("#ffffff");
             }
         }
 
-        // カラーピッカー連動
-        colorPicker.addEventListener("input", (e) => {
-            const color = e.target.value;
-            document.documentElement.style.setProperty('--clock-color', color);
-            localStorage.setItem("clock_color", color);
-        });
+        // 全画面切り替え（ブラウザ標準）
+        function toggleFullScreen() {
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen().catch(err => {
+                    console.error(`Error: ${err.message}`);
+                    // 失敗した場合は擬似全画面にする
+                    toggleUI();
+                });
+            } else {
+                if (document.exitFullscreen) {
+                    document.exitFullscreen();
+                }
+            }
+        }
 
-        // 初期化
+        // 擬似全画面（UIのみ隠す）
+        function toggleUI() {
+            body.classList.toggle('is-ui-hidden');
+        }
+
+        // 設定の復元
         window.addEventListener("DOMContentLoaded", () => {
-            // 色の復元
             const savedColor = localStorage.getItem("clock_color");
             if (savedColor) {
-                document.documentElement.style.setProperty('--clock-color', savedColor);
-                colorPicker.value = savedColor;
+                applyColor(savedColor);
             }
-            
-            // 時計開始
             updateClock();
             setInterval(updateClock, 1000);
-            
-            // iOS Safariのアドレスバーハックのための準備
-            setTimeout(() => window.scrollTo(0, 0), 100);
         });
-
-        // 誤動作防止：スクロールを検知したら全画面を解除する
-        window.addEventListener('scroll', () => {
-            if (window.scrollY > 5 && bodyEl.classList.contains('is-pseudo-fullscreen')) {
-                togglePseudoFullscreen();
-            }
-        });
-
     </script>
 </body>
 </html>
