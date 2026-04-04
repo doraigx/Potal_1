@@ -2,7 +2,6 @@
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Clock Mode</title>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@700&display=swap" rel="stylesheet">
     <style>
@@ -20,14 +19,12 @@
             align-items: center;
             height: 100vh;
             overflow: hidden;
-            transition: color 0.5s ease;
-            position: relative;
+            transition: color 0.5s ease; /* 色変更を滑らかに */
         }
         #clock-container {
             text-align: center;
             cursor: pointer;
             user-select: none;
-            width: 100%;
         }
         #date {
             font-size: 5vw;
@@ -39,8 +36,8 @@
             line-height: 1;
             font-weight: 700;
         }
-        
-        /* 操作パネル */
+
+        /* 操作パネル（右上） */
         #controls {
             position: absolute;
             top: 20px;
@@ -49,27 +46,29 @@
             align-items: center;
             gap: 12px;
             background: rgba(255,255,255,0.1);
-            padding: 10px 15px;
+            padding: 10px;
             border-radius: 8px;
             z-index: 100;
-            transition: opacity 0.3s, visibility 0.3s;
         }
 
-        #controls span {
-            color: #ffffff !important;
-            font-size: 0.9rem;
-            font-weight: normal;
+        /* 戻るボタン（左上） */
+        #back-link {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            z-index: 100;
         }
 
-        /* 各種ボタンの共通スタイル */
+        /* ボタン共通スタイル */
         .btn {
-            background: none;
-            border: 1px solid rgba(255, 255, 255, 0.5);
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.3);
             color: #ffffff;
             padding: 5px 10px;
             border-radius: 4px;
             cursor: pointer;
             font-size: 0.85rem;
+            text-decoration: none;
             transition: 0.2s;
         }
         .btn:hover {
@@ -77,17 +76,11 @@
             border-color: #ffffff;
         }
 
-        /* 戻るボタン専用（左上） */
-        .back-btn {
-            position: absolute;
-            top: 20px;
-            left: 20px;
-            z-index: 100;
-            text-decoration: none;
-            display: flex;
-            align-items: center;
-            gap: 5px;
-            opacity: 0.8;
+        /* 『文字色』ラベルを常に白に固定 */
+        #controls span {
+            color: #ffffff !important;
+            font-size: 0.9rem;
+            font-weight: normal;
         }
 
         .hint {
@@ -95,20 +88,11 @@
             bottom: 30px;
             font-size: 1.2rem;
             opacity: 0.4;
-            color: #ffffff !important;
-            transition: opacity 0.3s;
+            color: #ffffff !important; /* ヒントも白固定の方が見やすい */
         }
 
-        /* 擬似全画面（UIを隠す）モード */
-        .is-ui-hidden #controls, 
-        .is-ui-hidden .back-btn, 
-        .is-ui-hidden .hint {
-            opacity: 0;
-            visibility: hidden;
-        }
-
-        /* ブラウザ標準の全画面時 */
-        :fullscreen #controls, :fullscreen .back-btn, :fullscreen .hint {
+        /* 全画面表示時に隠す要素 */
+        :fullscreen #controls, :fullscreen .hint, :fullscreen #back-link {
             display: none;
         }
 
@@ -122,29 +106,30 @@
         }
     </style>
 </head>
-<body id="main-body">
+<body>
 
-    <a href="index.html" class="back-btn btn">🔙 ポータルに戻る</a>
+    <div id="back-link">
+        <a href="index.html" class="btn">🔙 ポータルに戻る</a>
+    </div>
 
     <div id="controls">
         <span>文字色:</span>
         <input type="color" id="color-picker" value="#ffffff">
-        <button class="btn" onclick="resetSettings()" title="初期化">🔄 リセット</button>
-        <button class="btn" onclick="toggleFullScreen()" title="全画面">🖥️ 全画面</button>
+        <button class="btn" onclick="resetColor()">初期化</button>
+        <button class="btn" onclick="toggleFullScreen()">全画面</button>
     </div>
 
-    <div id="clock-container" onclick="toggleUI()">
+    <div id="clock-container" onclick="toggleFullScreen()">
         <div id="date">0000/00/00 (曜)</div>
         <div id="time">00:00</div>
     </div>
     
-    <div class="hint">時計をクリックでUIを隠す / Escで終了</div>
+    <div class="hint">画面クリックで全画面 / Escで終了</div>
 
     <script>
         const timeEl = document.getElementById("time");
         const dateEl = document.getElementById("date");
         const colorPicker = document.getElementById("color-picker");
-        const body = document.getElementById("main-body");
 
         function updateClock() {
             const now = new Date();
@@ -160,47 +145,24 @@
             timeEl.textContent = `${h}:${mi}`;
         }
 
-        // 文字色変更
-        colorPicker.addEventListener("input", (e) => {
-            const color = e.target.value;
-            applyColor(color);
-        });
-
+        // 色の適用と保存
         function applyColor(color) {
             document.documentElement.style.setProperty('--clock-color', color);
             localStorage.setItem("clock_color", color);
             colorPicker.value = color;
         }
 
-        // 初期化処理
-        function resetSettings() {
-            if(confirm("文字色設定を初期化しますか？")) {
-                localStorage.removeItem("clock_color");
+        colorPicker.addEventListener("input", (e) => {
+            applyColor(e.target.value);
+        });
+
+        // 初期化ボタンの処理
+        function resetColor() {
+            if (confirm("文字色を白に戻しますか？")) {
                 applyColor("#ffffff");
             }
         }
 
-        // 全画面切り替え（ブラウザ標準）
-        function toggleFullScreen() {
-            if (!document.fullscreenElement) {
-                document.documentElement.requestFullscreen().catch(err => {
-                    console.error(`Error: ${err.message}`);
-                    // 失敗した場合は擬似全画面にする
-                    toggleUI();
-                });
-            } else {
-                if (document.exitFullscreen) {
-                    document.exitFullscreen();
-                }
-            }
-        }
-
-        // 擬似全画面（UIのみ隠す）
-        function toggleUI() {
-            body.classList.toggle('is-ui-hidden');
-        }
-
-        // 設定の復元
         window.addEventListener("DOMContentLoaded", () => {
             const savedColor = localStorage.getItem("clock_color");
             if (savedColor) {
@@ -209,6 +171,18 @@
             updateClock();
             setInterval(updateClock, 1000);
         });
+
+        function toggleFullScreen() {
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen().catch(err => {
+                    console.error(`Error: ${err.message}`);
+                });
+            } else {
+                if (document.exitFullscreen) {
+                    document.exitFullscreen();
+                }
+            }
+        }
     </script>
 </body>
 </html>
