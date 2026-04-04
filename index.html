@@ -40,7 +40,7 @@
       --text-color: #eaeaea;
       --card-bg: #1e1e1e;
       --card-shadow: rgba(0, 0, 0, 0.6);
-      --header-gradient: linear-gradient(90deg, #333, #444);
+      ---gradient: linear-gradient(90deg, #333, #444);
       --link-color: #90caf9;
     }
 
@@ -55,15 +55,15 @@
     }
     
 
-    header {
-      background: var(--header-gradient);
+     {
+      background: var(---gradient);
       padding: 0.8rem 1.2rem;
       display: flex;
       gap: 1rem;
       align-items: center;
     }
 
-    header h1 a {
+     h1 a {
       color: white;
       text-decoration: none;
       font-size: 1.8rem;
@@ -854,11 +854,28 @@
     }
 
     /* ヘッダー右側のボタングループ */
+  /* 基本の並び（PCなど） */
   .header-controls {
     margin-left: auto;
     display: flex;
-    gap: 0.8rem;       /* ボタン同士の間隔 */
+    gap: 0.8rem;
     align-items: center;
+  }
+
+  /* スマホ（画面幅480px以下）の時、2x2のグリッドにする */
+  @media screen and (max-width: 480px) {
+    .header-controls {
+      display: grid;
+      grid-template-columns: repeat(2, 42px); /* 42px幅の列を2つ作る */
+      gap: 8px;
+      justify-content: end; /* 右側に寄せる */
+    }
+
+    /* アイコンの余白を微調整 */
+    .header-btn {
+      width: 42px !important;
+      height: 42px !important;
+    }
   }
 
   /* ボタン共通デザイン (サイズ固定・正方形) */
