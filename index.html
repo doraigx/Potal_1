@@ -2399,12 +2399,12 @@ $(document).on("click", ".ac-parent", function() {
       const titleEl = document.getElementById("calendar-title");
       titleEl.textContent = `${year}年 ${month}月`;
 
-      const Row = document.createElement("tr");
+      const headerRow = document.createElement("tr"); // 'headerRow' に変更
       const days = ["日", "月", "火", "水", "木", "金", "土"];
       days.forEach(d => {
         const th = document.createElement("th");
         th.textContent = d;
-        headerRow.appendChild(th);
+        headerRow.appendChild(th); 
       });
       table.appendChild(headerRow);
 
