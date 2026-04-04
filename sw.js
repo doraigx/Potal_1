@@ -1,5 +1,5 @@
 // バージョン番号を v2 に上げる（これが重要！）
-const CACHE_NAME = 'portal-cache-v9.1'; 
+const CACHE_NAME = 'portal-cache-v9.2'; 
 const urlsToCache = [
   './',
   './index.html',
