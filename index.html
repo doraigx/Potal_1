@@ -41,7 +41,7 @@
       --card-bg: #1e1e1e;
       --card-shadow: rgba(0, 0, 0, 0.6);
       ---gradient: linear-gradient(90deg, #333, #444);
-      --header-gradient: linear-gradient(90deg, #444, #444) !important;
+      --header-gradient: linear-gradient(90deg, #444, #444);
       --link-color: #90caf9;
     }
 
@@ -1058,8 +1058,9 @@
       });
 
       function applyHeaderColor(color) {
-        document.documentElement.style.setProperty('--header-gradient', `linear-gradient(90deg, ${color}, ${color})`);
-      }
+  // !important を付与して適用することで、CSSの定義より優先させます
+  document.documentElement.style.setProperty('--header-gradient', `linear-gradient(90deg, ${color}, ${color})`, 'important');
+}
       // ---------------------------
 
       // --- テーマ切り替えロジック ---
