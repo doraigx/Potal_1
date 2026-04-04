@@ -19,7 +19,7 @@
             align-items: center;
             height: 100vh;
             overflow: hidden;
-            transition: color 0.5s ease; /* 色変更を滑らかに */
+            transition: color 0.5s ease;
         }
         #clock-container {
             text-align: center;
@@ -36,8 +36,6 @@
             line-height: 1;
             font-weight: 700;
         }
-
-        /* 操作パネル（右上） */
         #controls {
             position: absolute;
             top: 20px;
@@ -50,16 +48,12 @@
             border-radius: 8px;
             z-index: 100;
         }
-
-        /* 戻るボタン（左上） */
         #back-link {
             position: absolute;
             top: 20px;
             left: 20px;
             z-index: 100;
         }
-
-        /* ボタン共通スタイル */
         .btn {
             background: rgba(255, 255, 255, 0.1);
             border: 1px solid rgba(255, 255, 255, 0.3);
@@ -75,27 +69,21 @@
             background: rgba(255, 255, 255, 0.2);
             border-color: #ffffff;
         }
-
-        /* 『文字色』ラベルを常に白に固定 */
         #controls span {
             color: #ffffff !important;
             font-size: 0.9rem;
             font-weight: normal;
         }
-
         .hint {
             position: absolute;
             bottom: 30px;
             font-size: 1.2rem;
             opacity: 0.4;
-            color: #ffffff !important; /* ヒントも白固定の方が見やすい */
+            color: #ffffff !important;
         }
-
-        /* 全画面表示時に隠す要素 */
         :fullscreen #controls, :fullscreen .hint, :fullscreen #back-link {
             display: none;
         }
-
         input[type="color"] {
             cursor: pointer;
             border: none;
@@ -109,13 +97,13 @@
 <body>
 
     <div id="back-link">
-        <a href="index.html" class="btn">ポータルに戻る</a>
+        <a href="index.html" class="btn">🔙 ポータルに戻る</a>
     </div>
 
     <div id="controls">
         <span>文字色:</span>
         <input type="color" id="color-picker" value="#ffffff">
-        <button class="btn" onclick="resetColor()">初期化</button>
+        <button class="btn" onclick="factoryReset(event)">初期化</button>
         <button class="btn" onclick="toggleFullScreen()">全画面</button>
     </div>
 
@@ -137,7 +125,6 @@
             const m = String(now.getMonth() + 1).padStart(2, '0');
             const d = String(now.getDate()).padStart(2, '0');
             const week = ["日", "月", "火", "水", "木", "金", "土"][now.getDay()];
-            
             const h = String(now.getHours()).padStart(2, '0');
             const mi = String(now.getMinutes()).padStart(2, '0');
 
@@ -145,7 +132,6 @@
             timeEl.textContent = `${h}:${mi}`;
         }
 
-        // 色の適用と保存
         function applyColor(color) {
             document.documentElement.style.setProperty('--clock-color', color);
             localStorage.setItem("clock_color", color);
@@ -156,11 +142,36 @@
             applyColor(e.target.value);
         });
 
-        // 初期化ボタンの処理
-        function resetColor() {
-            if (confirm("文字色を白に戻しますか？")) {
-                applyColor("#ffffff");
-            }
+        // 統合された初期化関数
+        async function factoryReset(event) {
+            if (!confirm("【警告】設定を初期化しますか？\n文字色やキャッシュが削除されます。")) return;
+
+            const btn = event.target;
+            btn.textContent = "初期化中...";
+
+            // 1. localStorage の時計設定のみ削除
+            localStorage.removeItem("clock_color");
+
+            // 2. Service Worker の解除
+            try {
+                if ('serviceWorker' in navigator) {
+                    const registrations = await navigator.serviceWorker.getRegistrations();
+                    for (const registration of registrations) {
+                        await registration.unregister();
+                    }
+                }
+            } catch (e) { console.warn(e); }
+
+            // 3. キャッシュストレージの削除
+            try {
+                if ('caches' in window) {
+                    const keys = await caches.keys();
+                    await Promise.all(keys.map(key => caches.delete(key)));
+                }
+            } catch (e) { console.warn(e); }
+
+            alert("初期化が完了しました。再読み込みします。");
+            window.location.reload(true);
         }
 
         window.addEventListener("DOMContentLoaded", () => {
