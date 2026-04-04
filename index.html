@@ -41,6 +41,7 @@
       --card-bg: #1e1e1e;
       --card-shadow: rgba(0, 0, 0, 0.6);
       ---gradient: linear-gradient(90deg, #333, #444);
+      --header-gradient: linear-gradient(90deg, #444, #444) !important;
       --link-color: #90caf9;
     }
 
@@ -853,9 +854,7 @@
       transform: translateY(-1px);
     }
 
-    /* ヘッダー右側のボタングループ */
-  /* 基本の並び（PCなど） */
-  /* ヘッダー全体の高さと配置を固定 */
+/* --- ヘッダー基本設定 --- */
   header {
     background: var(--header-gradient);
     padding: 0.8rem 1.2rem;
@@ -863,9 +862,28 @@
     gap: 1rem;
     align-items: center;
     min-height: 60px;
+    transition: background 0.5s ease;
   }
 
-  /* 基本の並び（PCなど） */
+  /* ダークモード時の強制上書き設定 */
+  [data-theme="dark"] {
+    --bg-color: #111111;
+    --text-color: #eaeaea;
+    --card-bg: #1e1e1e;
+    --card-shadow: rgba(0, 0, 0, 0.6);
+    /* カラーピッカーの保存値よりダークモード用カラーを優先 */
+    --header-gradient: linear-gradient(90deg, #444, #444) !important;
+    --link-color: #90caf9;
+  }
+
+  header h1 a {
+    color: white;
+    text-decoration: none;
+    font-size: 1.8rem;
+    font-weight: 700;
+  }
+
+  /* PC等のボタン並び */
   .header-controls {
     margin-left: auto;
     display: flex;
@@ -873,90 +891,80 @@
     align-items: center;
   }
 
-  /* スマホ（画面幅480px以下）の時 */
+  /* ボタン共通デザイン */
+  .header-btn {
+    width: 42px;
+    height: 42px;
+    padding: 0;
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.1);
+    color: inherit;
+    font-size: 1.4rem;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.2s;
+  }
+
+  .header-btn:hover {
+    background: rgba(255, 255, 255, 0.25);
+  }
+
+  /* --- スマホ用レスポンシブ設定 (480px以下) --- */
   @media screen and (max-width: 480px) {
     header {
-      /* ボタンを2段にするため、上下中央揃えを調整 */
       justify-content: space-between;
       padding: 0.8rem 1rem;
     }
 
-    .header-controls {
-      display: grid !important; 
-      /* 文字を入れるため、42px固定から横幅いっぱいの2列に変更 */
-      grid-template-columns: repeat(2, 1fr); 
-      gap: 6px;
-      margin-left: 0.5rem; /* タイトルとの間隔 */
-      flex-grow: 1; /* ボタンエリアを広げる */
+    header h1 a {
+      font-size: 1.2rem !important; /* ボタンに場所を譲るため縮小 */
+      white-space: nowrap;
     }
 
-    /* ボタンのサイズ調整：文字が入るよう横幅を自動に */
+    .header-controls {
+      display: grid !important; 
+      grid-template-columns: 1fr 1fr; /* 左右50%ずつに完全固定してズレを防止 */
+      gap: 8px;
+      margin-left: 0.5rem;
+      flex-grow: 1;
+      justify-items: stretch; /* 中身をグリッド幅いっぱいに広げる */
+    }
+
+    /* ボタン・カラーピッカー枠のサイズと配置を統一 */
     .header-btn, .color-picker-wrap {
       width: 100% !important; 
       height: 40px !important;
       margin: 0 !important;
-      padding: 0 6px !important; /* 内側に少し余白 */
-      font-size: 1.1rem !important; /* アイコンを少し小さくして文字スペース確保 */
+      display: flex !important;
+      align-items: center;
+      justify-content: center;
+      background: rgba(255, 255, 255, 0.15);
+      border-radius: 8px;
     }
-    
-    /* --- アイコンの横に文字を表示させる設定 --- */
+
+    /* カラーピッカー自体を枠全体に広げる */
+    .hidden-picker {
+      width: 100% !important;
+      height: 100% !important;
+      cursor: pointer;
+    }
+
+    /* アイコン横のテキスト表示設定 */
     .header-btn::after {
-      font-size: 0.65rem;
+      font-size: 0.7rem;
       margin-left: 4px;
       font-weight: bold;
       white-space: nowrap;
     }
 
-    /* 各ボタンのテキスト内容 */
+    /* 各ボタンのラベル文字 */
     #fullscreen-btn::after { content: "全画面"; }
     .dummy-btn::after { content: "カラー"; }
     #theme-toggle::after { content: "モード"; }
     #clock-portal-btn::after { content: "時計"; }
-
-    header h1 a {
-      font-size: 1.2rem !important; /* 文字が入る分、タイトルをさらに少し小さく */
-      white-space: nowrap;
-    }
-  }
-
-  /* ボタン共通デザイン */
-  .header-btn {
-    width: 42px;
-    height: 42px;
-    padding: 0;
-    border-radius: 8px;
-    background: rgba(255, 255, 255, 0.1);
-    color: inherit;
-    font-size: 1.4rem;
-    border: none;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: background 0.2s;
-  }
-    
-    /* タイトル文字が大きすぎて押し出されている場合は少し小さく */
-    header h1 a {
-      font-size: 1.4rem !important;
-    }
-  }
-
-  /* ボタン共通デザイン */
-  .header-btn {
-    width: 42px;
-    height: 42px;
-    padding: 0;
-    border-radius: 8px;
-    background: rgba(255, 255, 255, 0.1);
-    color: inherit;
-    font-size: 1.4rem;
-    border: none;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: background 0.2s;
   }
   /* カラーピッカー専用のラッパー */
   .color-picker-wrap {
