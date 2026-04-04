@@ -3,12 +3,11 @@ const urlsToCache = [
   './',
   './index.html',
   './manifest.json',
-  './clock.html', // 新しく作ったファイルも追加
+  './clock.html', 
   './icon-192.png',
   './icon-512.png'
 ];
 
-// インストール：新しいファイルを強制的に取りに行く
 self.addEventListener('install', function(event) {
   event.waitUntil(
     caches.open(CACHE_NAME).then(function(cache) {
