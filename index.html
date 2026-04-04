@@ -862,7 +862,7 @@
     display: flex;
     gap: 1rem;
     align-items: center;
-    min-height: 60px; /* 高さを確保 */
+    min-height: 60px;
   }
 
   /* 基本の並び（PCなど） */
@@ -876,25 +876,65 @@
   /* スマホ（画面幅480px以下）の時 */
   @media screen and (max-width: 480px) {
     header {
-      /* スマホ時は要素が入り切るように配置を調整 */
+      /* ボタンを2段にするため、上下中央揃えを調整 */
       justify-content: space-between;
+      padding: 0.8rem 1rem;
     }
 
     .header-controls {
-      display: grid !important; /* 強制的にグリッド適用 */
-      grid-template-columns: repeat(2, 42px); 
-      grid-template-rows: repeat(2, 42px);
-      gap: 5px;
-      /* 右側に寄せる */
-      margin-left: auto;
+      display: grid !important; 
+      /* 文字を入れるため、42px固定から横幅いっぱいの2列に変更 */
+      grid-template-columns: repeat(2, 1fr); 
+      gap: 6px;
+      margin-left: 0.5rem; /* タイトルとの間隔 */
+      flex-grow: 1; /* ボタンエリアを広げる */
     }
 
-    /* ボタンのサイズを強制固定 */
-    .header-btn {
-      width: 42px !important;
-      height: 42px !important;
+    /* ボタンのサイズ調整：文字が入るよう横幅を自動に */
+    .header-btn, .color-picker-wrap {
+      width: 100% !important; 
+      height: 40px !important;
       margin: 0 !important;
+      padding: 0 6px !important; /* 内側に少し余白 */
+      font-size: 1.1rem !important; /* アイコンを少し小さくして文字スペース確保 */
     }
+    
+    /* --- アイコンの横に文字を表示させる設定 --- */
+    .header-btn::after {
+      font-size: 0.65rem;
+      margin-left: 4px;
+      font-weight: bold;
+      white-space: nowrap;
+    }
+
+    /* 各ボタンのテキスト内容 */
+    #fullscreen-btn::after { content: "全画面"; }
+    .dummy-btn::after { content: "カラー"; }
+    #theme-toggle::after { content: "モード"; }
+    #clock-portal-btn::after { content: "時計"; }
+
+    header h1 a {
+      font-size: 1.2rem !important; /* 文字が入る分、タイトルをさらに少し小さく */
+      white-space: nowrap;
+    }
+  }
+
+  /* ボタン共通デザイン */
+  .header-btn {
+    width: 42px;
+    height: 42px;
+    padding: 0;
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.1);
+    color: inherit;
+    font-size: 1.4rem;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.2s;
+  }
     
     /* タイトル文字が大きすぎて押し出されている場合は少し小さく */
     header h1 a {
