@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>Clock Mode</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            margin: 0;
+            background-color: #121212;
+            color: #ffffff;
+            font-family: 'Noto Sans JP', sans-serif;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            overflow: hidden;
+            cursor: pointer;
+        }
+        #date {
+            font-size: 5vw;
+            margin-bottom: 2rem;
+            opacity: 0.8;
+        }
+        #time {
+            font-size: 20vw;
+            line-height: 1;
+            font-weight: 700;
+        }
+        .hint {
+            position: absolute;
+            bottom: 20px;
+            font-size: 1.2rem;
+            opacity: 0.3;
+        }
+    </style>
+</head>
+<body onclick="toggleFullScreen()">
+
+    <div id="date">0000/00/00 (曜)</div>
+    <div id="time">00:00:00</div>
+    
+    <div class="hint">画面クリックで全画面 / Escで終了</div>
+
+    <script>
+        function updateClock() {
+            const now = new Date();
+            const y = now.getFullYear();
+            const m = String(now.getMonth() + 1).padStart(2, '0');
+            const d = String(now.getDate()).padStart(2, '0');
+            const week = ["日", "月", "火", "水", "木", "金", "土"][now.getDay()];
+            
+            const h = String(now.getHours()).padStart(2, '0');
+            const mi = String(now.getMinutes()).padStart(2, '0');
+            const s = String(now.getSeconds()).padStart(2, '0');
+
+            document.getElementById("date").textContent = `${y}/${m}/${d} (${week})`;
+            document.getElementById("time").textContent = `${h}:${mi}:${s}`;
+        }
+
+        // 全画面切り替え
+        function toggleFullScreen() {
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen();
+            } else {
+                if (document.exitFullscreen) {
+                    document.exitFullscreen();
+                }
+            }
+        }
+
+        setInterval(updateClock, 1000);
+        updateClock();
+    </script>
+</body>
+</html>
