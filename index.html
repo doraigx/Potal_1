@@ -2782,7 +2782,7 @@ $(document).on("click", ".ac-parent", function() {
     if (!document.fullscreenElement) {
       // 全画面にする（ページ全体を指定）
       document.documentElement.requestFullscreen().then(() => {
-        fsBtn.textContent = "❌"; // 全画面中はアイコンを変える
+        fsBtn.textContent = "×"; // 全画面中はアイコンを変える
       }).catch(err => {
         console.error(`全画面表示に失敗しました: ${err.message}`);
       });
