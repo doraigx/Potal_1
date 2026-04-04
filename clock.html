@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Clock Mode</title>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@700&display=swap" rel="stylesheet">
     <style>
@@ -14,7 +14,13 @@
             background-color: #000000;
             color: var(--clock-color);
             font-family: 'Noto Sans JP', sans-serif;
+            /* スマホのツールバーを考慮した高さ設定 */
             height: 100vh;
+            height: 100dvh; 
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
             overflow: hidden;
             transition: color 0.5s ease;
             position: relative;
@@ -28,18 +34,18 @@
             transform: translate(-50%, -50%);
             text-align: center;
             transition: transform 0.1s linear, font-size 0.5s ease;
-            width: 100%;
+            width: 90%; /* スマホでの横幅溢れ防止 */
             pointer-events: none; /* 下のクリックを邪魔しない */
         }
 
         #date {
-            font-size: 5vw;
+            font-size: 6vw; /* スマホ向けに少し調整 */
             margin-bottom: 1rem;
             opacity: 0.8;
             transition: font-size 0.5s ease;
         }
         #time {
-            font-size: 25vw;
+            font-size: 22vw; /* スマホでの折り返し防止のため少し縮小 */
             line-height: 1;
             font-weight: 700;
             transition: font-size 0.5s ease;
@@ -57,25 +63,47 @@
         }
 
         #controls {
-            position: absolute; top: 20px; right: 20px;
-            display: flex; align-items: center; gap: 12px;
+            position: absolute; 
+            /* Safe Area対応：画面端に寄りすぎないよう調整 */
+            top: env(safe-area-inset-top, 20px); 
+            right: env(safe-area-inset-right, 20px);
+            display: flex; align-items: center; gap: 8px; /* gapを少し詰め */
             background: rgba(255,255,255,0.1); padding: 10px 15px; border-radius: 8px; z-index: 100;
+            flex-wrap: wrap; justify-content: flex-end; /* スマホでボタンが溢れた時用 */
         }
-        #back-link { position: absolute; top: 20px; left: 20px; z-index: 100; }
+        #back-link { 
+            position: absolute; 
+            top: env(safe-area-inset-top, 20px); 
+            left: env(safe-area-inset-left, 20px); 
+            z-index: 100; 
+        }
 
         .btn {
             background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.3);
-            color: #ffffff; padding: 5px 10px; border-radius: 4px; cursor: pointer; font-size: 0.85rem;
+            color: #ffffff; padding: 8px 12px; border-radius: 4px; cursor: pointer; font-size: 0.8rem; /* 少し小さく */
             text-decoration: none; transition: 0.2s;
+            white-space: nowrap; /* 改行防止 */
         }
         .btn:hover { background: rgba(255, 255, 255, 0.2); border-color: #ffffff; }
         .btn.active { background: #2196f3; border-color: #2196f3; }
 
-        #controls span { color: #ffffff !important; font-size: 0.9rem; font-weight: normal; }
-        .hint { position: absolute; bottom: 30px; left: 50%; transform: translateX(-50%); font-size: 1.2rem; opacity: 0.4; color: #ffffff !important; }
+        #controls span { color: #ffffff !important; font-size: 0.8rem; font-weight: normal; }
+        .hint { 
+            position: absolute; 
+            bottom: env(safe-area-inset-bottom, 30px); 
+            left: 50%; transform: translateX(-50%); 
+            font-size: 1rem; opacity: 0.4; color: #ffffff !important; 
+            width: 100%; text-align: center;
+        }
 
         :fullscreen #controls, :fullscreen .hint, :fullscreen #back-link { display: none; }
-        input[type="color"] { cursor: pointer; border: none; width: 30px; height: 30px; background: none; padding: 0; }
+        input[type="color"] { cursor: pointer; border: none; width: 28px; height: 28px; background: none; padding: 0; }
+        
+        /* 横画面スマホ用の微調整 */
+        @media screen and (orientation: landscape) and (max-height: 500px) {
+            #time { font-size: 35vh; }
+            #date { font-size: 10vh; }
+        }
     </style>
 </head>
 <body id="main-body" onmousemove="resetIdleTimer()" onclick="resetIdleTimer()" ontouchstart="resetIdleTimer()">
@@ -85,7 +113,7 @@
     </div>
 
     <div id="controls">
-        <span>文字色:</span>
+        <span>色:</span>
         <input type="color" id="color-picker" value="#ffffff">
         <button class="btn" id="burn-in-btn" onclick="toggleBurnIn()">焼きつき防止</button>
         <button class="btn" onclick="factoryReset(event)">初期化</button>
@@ -122,11 +150,11 @@
         let idleTimer;
         function resetIdleTimer() {
             const uiElements = [document.getElementById('controls'), document.getElementById('back-link'), document.querySelector('.hint')];
-            uiElements.forEach(el => el.classList.remove('idle-hide'));
+            uiElements.forEach(el => { if(el) el.classList.remove('idle-hide'); });
             
             clearTimeout(idleTimer);
             idleTimer = setTimeout(() => {
-                uiElements.forEach(el => el.classList.add('idle-hide'));
+                uiElements.forEach(el => { if(el) el.classList.add('idle-hide'); });
             }, 5000);
         }
 
@@ -142,14 +170,14 @@
             
             if (isBurnInMode) {
                 btn.classList.add('active');
-                timeEl.style.fontSize = "15vw"; // 小さくする
-                dateEl.style.fontSize = "3vw";
+                timeEl.style.fontSize = "18vw"; // 少し大きめに調整
+                dateEl.style.fontSize = "4vw";
                 animateClock();
             } else {
                 btn.classList.remove('active');
                 cancelAnimationFrame(animationFrame);
-                timeEl.style.fontSize = "25vw"; // 元に戻す
-                dateEl.style.fontSize = "5vw";
+                timeEl.style.fontSize = ""; // 元に戻す
+                dateEl.style.fontSize = "";
                 wrapper.style.left = "50%";
                 wrapper.style.top = "50%";
                 wrapper.style.transform = "translate(-50%, -50%)";
@@ -162,9 +190,9 @@
             moveX += dx;
             moveY += dy;
 
-            // 画面端で跳ね返る判定 (範囲は少し余裕を持たせる)
-            if (moveX > 70 || moveX < 30) dx *= -1;
-            if (moveY > 70 || moveY < 30) dy *= -1;
+            // スマホ向けに跳ね返り範囲を調整
+            if (moveX > 75 || moveX < 25) dx *= -1;
+            if (moveY > 80 || moveY < 20) dy *= -1;
 
             wrapper.style.left = moveX + "%";
             wrapper.style.top = moveY + "%";
@@ -189,7 +217,9 @@
 
         function toggleFullScreen() {
             if (!document.fullscreenElement) {
-                document.documentElement.requestFullscreen().catch(e => console.error(e));
+                document.documentElement.requestFullscreen().catch(() => {
+                    // スマホSafari用：全画面不可時はUI隠しだけで対応
+                });
             } else {
                 document.exitFullscreen();
             }
