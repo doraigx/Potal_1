@@ -1,50 +1,50 @@
-const CACHE_NAME = 'portal-cache-v2'; // 更新のたびにここを v3, v4 と変えると確実です
+// バージョン番号を v2 に上げる（これが重要！）
+const CACHE_NAME = 'portal-cache-v2'; 
 const urlsToCache = [
   './',
   './index.html',
   './manifest.json',
+  './clock.html', // 新しく作ったファイルも追加
   './icon-192.png',
-  './icon-512.png',
-  './clock.html' // clock.html も追加しておきましょう
+  './icon-512.png'
 ];
 
-// インストール：新しいキャッシュを強制的に適用
+// インストール：新しいファイルを強制的に取りに行く
 self.addEventListener('install', function(event) {
   event.waitUntil(
     caches.open(CACHE_NAME).then(function(cache) {
       return cache.addAll(urlsToCache);
-    }).then(() => self.skipWaiting()) // すぐに新しいSWを有効化
+    }).then(() => self.skipWaiting()) // 待機せずにすぐ入れ替える
   );
 });
 
-// アクティベート：古いキャッシュを削除
+// アクティベート：古い v1 などのキャッシュを完全に消去する
 self.addEventListener('activate', function(event) {
   event.waitUntil(
     caches.keys().then(function(cacheNames) {
       return Promise.all(
-        cacheNames.filter(function(cacheName) {
-          return cacheName !== CACHE_NAME;
-        }).map(function(cacheName) {
-          return caches.delete(cacheName);
+        cacheNames.map(function(cacheName) {
+          if (cacheName !== CACHE_NAME) {
+            console.log('古いキャッシュを削除:', cacheName);
+            return caches.delete(cacheName);
+          }
         })
       );
-    }).then(() => self.clients.claim()) // 全てのタブを即座に制御下に置く
+    }).then(() => self.clients.claim())
   );
 });
 
-// リクエスト対応：Network First (まず最新を、ダメならキャッシュを)
+// フェッチ：まずネットを確認、ダメならキャッシュ（Network First）
 self.addEventListener('fetch', function(event) {
   event.respondWith(
     fetch(event.request)
       .then(function(response) {
-        // ネットワークから取得できたらキャッシュを更新して返す
         return caches.open(CACHE_NAME).then(function(cache) {
           cache.put(event.request, response.clone());
           return response;
         });
       })
       .catch(function() {
-        // オフラインなどでネットワークに失敗したらキャッシュを返す
         return caches.match(event.request);
       })
   );
