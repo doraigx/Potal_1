@@ -855,6 +855,17 @@
 
     /* ヘッダー右側のボタングループ */
   /* 基本の並び（PCなど） */
+  /* ヘッダー全体の高さと配置を固定 */
+  header {
+    background: var(--header-gradient);
+    padding: 0.8rem 1.2rem;
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+    min-height: 60px; /* 高さを確保 */
+  }
+
+  /* 基本の並び（PCなど） */
   .header-controls {
     margin-left: auto;
     display: flex;
@@ -862,43 +873,51 @@
     align-items: center;
   }
 
-  /* スマホ（画面幅480px以下）の時、2x2のグリッドにする */
+  /* スマホ（画面幅480px以下）の時 */
   @media screen and (max-width: 480px) {
-    .header-controls {
-      display: grid;
-      grid-template-columns: repeat(2, 42px); /* 42px幅の列を2つ作る */
-      gap: 8px;
-      justify-content: end; /* 右側に寄せる */
+    header {
+      /* スマホ時は要素が入り切るように配置を調整 */
+      justify-content: space-between;
     }
 
-    /* アイコンの余白を微調整 */
+    .header-controls {
+      display: grid !important; /* 強制的にグリッド適用 */
+      grid-template-columns: repeat(2, 42px); 
+      grid-template-rows: repeat(2, 42px);
+      gap: 5px;
+      /* 右側に寄せる */
+      margin-left: auto;
+    }
+
+    /* ボタンのサイズを強制固定 */
     .header-btn {
       width: 42px !important;
       height: 42px !important;
+      margin: 0 !important;
+    }
+    
+    /* タイトル文字が大きすぎて押し出されている場合は少し小さく */
+    header h1 a {
+      font-size: 1.4rem !important;
     }
   }
 
-  /* ボタン共通デザイン (サイズ固定・正方形) */
+  /* ボタン共通デザイン */
   .header-btn {
     width: 42px;
     height: 42px;
     padding: 0;
     border-radius: 8px;
-    background: rgba(255, 255, 255, 0.1); /* 半透明の白背景 */
+    background: rgba(255, 255, 255, 0.1);
     color: inherit;
     font-size: 1.4rem;
     border: none;
     cursor: pointer;
-    display: flex;            /* 中身を中央揃え */
+    display: flex;
     align-items: center;
     justify-content: center;
     transition: background 0.2s;
   }
-
-  .header-btn:hover {
-    background: rgba(255, 255, 255, 0.25); /* ホバー時に少し明るく */
-  }
-
   /* カラーピッカー専用のラッパー */
   .color-picker-wrap {
     position: relative;
@@ -2316,7 +2335,7 @@ $(document).on("click", ".ac-parent", function() {
       const titleEl = document.getElementById("calendar-title");
       titleEl.textContent = `${year}年 ${month}月`;
 
-      const headerRow = document.createElement("tr");
+      const Row = document.createElement("tr");
       const days = ["日", "月", "火", "水", "木", "金", "土"];
       days.forEach(d => {
         const th = document.createElement("th");
