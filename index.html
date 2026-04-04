@@ -2705,14 +2705,21 @@ $(document).on("click", ".ac-parent", function() {
 
 <script>
     if ('serviceWorker' in navigator) {
-      window.addEventListener('load', function() {
-        navigator.serviceWorker.register('./sw.js').then(function(registration) {
-          console.log('ServiceWorker registration successful with scope: ', registration.scope);
-        }, function(err) {
-          console.log('ServiceWorker registration failed: ', err);
+  window.addEventListener('load', function() {
+    navigator.serviceWorker.register('./sw.js').then(function(reg) {
+      // 更新が見つかった時の処理
+      reg.addEventListener('updatefound', () => {
+        const newWorker = reg.installing;
+        newWorker.addEventListener('statechange', () => {
+          if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+            // 新しいバージョンがインストールされたら強制リロード
+            window.location.reload();
+          }
         });
       });
-    }
+    });
+  });
+}
   </script>
 <div style="text-align: center; opacity: 0.8;">
     <p style="font-size: 0.8rem; color: #888;">アプリの調子が悪い時やデータを消したい時に</p>
