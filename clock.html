@@ -14,7 +14,6 @@
             background-color: #000000;
             color: var(--clock-color);
             font-family: 'Noto Sans JP', sans-serif;
-            /* スマホのツールバーを考慮した高さ設定 */
             height: 100vh;
             height: 100dvh; 
             display: flex;
@@ -34,83 +33,103 @@
             transform: translate(-50%, -50%);
             text-align: center;
             transition: transform 0.1s linear, font-size 0.5s ease;
-            width: 90%; /* スマホでの横幅溢れ防止 */
-            pointer-events: none; /* 下のクリックを邪魔しない */
+            width: 90%;
+            pointer-events: none;
         }
 
         #date {
-            font-size: 6vw; /* スマホ向けに少し調整 */
+            font-size: 6vw;
             margin-bottom: 1rem;
             opacity: 0.8;
             transition: font-size 0.5s ease;
         }
         #time {
-            font-size: 22vw; /* スマホでの折り返し防止のため少し縮小 */
+            font-size: 22vw;
             line-height: 1;
             font-weight: 700;
             transition: font-size 0.5s ease;
         }
 
-        /* 操作パネル */
-        #controls, #back-link, .hint {
+        /* 操作パネル（上部中央揃え） */
+        #controls {
+            position: absolute; 
+            top: env(safe-area-inset-top, 20px); 
+            left: 50%;
+            transform: translateX(-50%); /* 中央揃え */
+            display: flex; 
+            align-items: center; 
+            gap: 8px;
+            background: rgba(255,255,255,0.1); 
+            padding: 8px 12px; 
+            border-radius: 8px; 
+            z-index: 100;
+            white-space: nowrap;
+        }
+
+        /* 下部エリア（ヒントと戻るボタンをまとめる） */
+        #footer-area {
+            position: absolute;
+            bottom: env(safe-area-inset-bottom, 30px);
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
+            width: 100%;
+            z-index: 100;
+        }
+
+        .hint {
+            font-size: 1rem;
+            opacity: 0.4;
+            color: #ffffff !important;
+            text-align: center;
+        }
+
+        #back-link {
+            /* 位置固定を解除し、footer-area内での配置にする */
+            position: static; 
+        }
+
+        /* アニメーション用 */
+        #controls, #footer-area {
             transition: opacity 0.5s ease, visibility 0.5s;
         }
 
-        /* 無操作時に隠すクラス */
         .idle-hide {
             opacity: 0;
             visibility: hidden;
         }
 
-        #controls {
-            position: absolute; 
-            /* Safe Area対応：画面端に寄りすぎないよう調整 */
-            top: env(safe-area-inset-top, 20px); 
-            right: env(safe-area-inset-right, 20px);
-            display: flex; align-items: center; gap: 8px; /* gapを少し詰め */
-            background: rgba(255,255,255,0.1); padding: 10px 15px; border-radius: 8px; z-index: 100;
-            flex-wrap: wrap; justify-content: flex-end; /* スマホでボタンが溢れた時用 */
-        }
-        #back-link { 
-            position: absolute; 
-            top: env(safe-area-inset-top, 20px); 
-            left: env(safe-area-inset-left, 20px); 
-            z-index: 100; 
-        }
-
         .btn {
-            background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.3);
-            color: #ffffff; padding: 8px 12px; border-radius: 4px; cursor: pointer; font-size: 0.8rem; /* 少し小さく */
-            text-decoration: none; transition: 0.2s;
-            white-space: nowrap; /* 改行防止 */
+            background: rgba(255, 255, 255, 0.1); 
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            color: #ffffff; 
+            padding: 8px 12px; 
+            border-radius: 4px; 
+            cursor: pointer; 
+            font-size: 0.8rem;
+            text-decoration: none; 
+            transition: 0.2s;
+            white-space: nowrap;
         }
         .btn:hover { background: rgba(255, 255, 255, 0.2); border-color: #ffffff; }
         .btn.active { background: #2196f3; border-color: #2196f3; }
 
         #controls span { color: #ffffff !important; font-size: 0.8rem; font-weight: normal; }
-        .hint { 
-            position: absolute; 
-            bottom: env(safe-area-inset-bottom, 30px); 
-            left: 50%; transform: translateX(-50%); 
-            font-size: 1rem; opacity: 0.4; color: #ffffff !important; 
-            width: 100%; text-align: center;
-        }
 
-        :fullscreen #controls, :fullscreen .hint, :fullscreen #back-link { display: none; }
+        :fullscreen #controls, :fullscreen #footer-area { display: none; }
         input[type="color"] { cursor: pointer; border: none; width: 28px; height: 28px; background: none; padding: 0; }
         
-        /* 横画面スマホ用の微調整 */
         @media screen and (orientation: landscape) and (max-height: 500px) {
             #time { font-size: 35vh; }
             #date { font-size: 10vh; }
+            #footer-area { bottom: 10px; gap: 5px; }
         }
     </style>
 </head>
 <body id="main-body" onmousemove="resetIdleTimer()" onclick="resetIdleTimer()" ontouchstart="resetIdleTimer()">
-
-    <div id="back-link">
-        <a href="index.html" class="btn">ポータルに戻る</a>
-    </div>
 
     <div id="controls">
         <span>色:</span>
@@ -125,7 +144,12 @@
         <div id="time">00:00</div>
     </div>
     
-    <div class="hint">無操作でUIが隠れます</div>
+    <div id="footer-area">
+        <div class="hint">無操作でUIが隠れます</div>
+        <div id="back-link">
+            <a href="index.html" class="btn">ポータルに戻る</a>
+        </div>
+    </div>
 
     <script>
         const timeEl = document.getElementById("time");
@@ -133,7 +157,6 @@
         const wrapper = document.getElementById("clock-wrapper");
         const colorPicker = document.getElementById("color-picker");
 
-        // --- 時計更新 ---
         function updateClock() {
             const now = new Date();
             const y = now.getFullYear();
@@ -146,10 +169,9 @@
             timeEl.textContent = `${h}:${mi}`;
         }
 
-        // --- 無操作タイマー (5秒) ---
         let idleTimer;
         function resetIdleTimer() {
-            const uiElements = [document.getElementById('controls'), document.getElementById('back-link'), document.querySelector('.hint')];
+            const uiElements = [document.getElementById('controls'), document.getElementById('footer-area')];
             uiElements.forEach(el => { if(el) el.classList.remove('idle-hide'); });
             
             clearTimeout(idleTimer);
@@ -158,10 +180,9 @@
             }, 5000);
         }
 
-        // --- 焼きつき防止機能 ---
         let isBurnInMode = false;
         let moveX = 50, moveY = 50;
-        let dx = 0.05, dy = 0.05; // 移動速度
+        let dx = 0.05, dy = 0.05; 
         let animationFrame;
 
         function toggleBurnIn() {
@@ -170,13 +191,13 @@
             
             if (isBurnInMode) {
                 btn.classList.add('active');
-                timeEl.style.fontSize = "18vw"; // 少し大きめに調整
+                timeEl.style.fontSize = "18vw"; 
                 dateEl.style.fontSize = "4vw";
                 animateClock();
             } else {
                 btn.classList.remove('active');
                 cancelAnimationFrame(animationFrame);
-                timeEl.style.fontSize = ""; // 元に戻す
+                timeEl.style.fontSize = ""; 
                 dateEl.style.fontSize = "";
                 wrapper.style.left = "50%";
                 wrapper.style.top = "50%";
@@ -186,21 +207,14 @@
 
         function animateClock() {
             if (!isBurnInMode) return;
-
-            moveX += dx;
-            moveY += dy;
-
-            // スマホ向けに跳ね返り範囲を調整
+            moveX += dx; moveY += dy;
             if (moveX > 75 || moveX < 25) dx *= -1;
             if (moveY > 80 || moveY < 20) dy *= -1;
-
             wrapper.style.left = moveX + "%";
             wrapper.style.top = moveY + "%";
-            
             animationFrame = requestAnimationFrame(animateClock);
         }
 
-        // --- 初期化 / その他機能 ---
         async function factoryReset(event) {
             if (!confirm("設定とキャッシュを初期化しますか？")) return;
             localStorage.removeItem("clock_color");
@@ -217,9 +231,7 @@
 
         function toggleFullScreen() {
             if (!document.fullscreenElement) {
-                document.documentElement.requestFullscreen().catch(() => {
-                    // スマホSafari用：全画面不可時はUI隠しだけで対応
-                });
+                document.documentElement.requestFullscreen().catch(() => {});
             } else {
                 document.exitFullscreen();
             }
