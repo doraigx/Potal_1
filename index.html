@@ -925,6 +925,16 @@
     </div>
 
     <button id="theme-toggle" class="header-btn">🌙</button>
+    <button id="clock-portal-btn" class="header-btn" title="時計モード" onclick="openClockMode()">🕒</button>
+
+<script>
+  function openClockMode() {
+    // 別タブで時計サイトを開く
+    const clockWindow = window.open('clock.html', '_blank');
+    
+    // ブラウザの仕様上、遷移先でユーザーが画面をクリックした際に全画面化するようにします
+  }
+</script>
 </div>
 
   <script>

@@ -5,10 +5,13 @@
     <title>Clock Mode</title>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@700&display=swap" rel="stylesheet">
     <style>
+        :root {
+            --clock-color: #ffffff;
+        }
         body {
             margin: 0;
-            background-color: #121212;
-            color: #ffffff;
+            background-color: #000000;
+            color: var(--clock-color);
             font-family: 'Noto Sans JP', sans-serif;
             display: flex;
             flex-direction: column;
@@ -16,34 +19,80 @@
             align-items: center;
             height: 100vh;
             overflow: hidden;
+            transition: color 0.5s ease; /* 色変更を滑らかに */
+        }
+        #clock-container {
+            text-align: center;
             cursor: pointer;
+            user-select: none;
         }
         #date {
             font-size: 5vw;
-            margin-bottom: 2rem;
+            margin-bottom: 1rem;
             opacity: 0.8;
         }
         #time {
-            font-size: 20vw;
+            font-size: 25vw;
             line-height: 1;
             font-weight: 700;
         }
+        #controls {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: rgba(255,255,255,0.1);
+            padding: 10px;
+            border-radius: 8px;
+            z-index: 100;
+        }
+        /* 『文字色』ラベルを常に白に固定 */
+        #controls span {
+            color: #ffffff !important;
+            font-size: 0.9rem;
+            font-weight: normal;
+        }
         .hint {
             position: absolute;
-            bottom: 20px;
+            bottom: 30px;
             font-size: 1.2rem;
-            opacity: 0.3;
+            opacity: 0.4;
+            color: #ffffff !important; /* ヒントも白固定の方が見やすい */
+        }
+        :fullscreen #controls, :fullscreen .hint {
+            display: none;
+        }
+        input[type="color"] {
+            cursor: pointer;
+            border: none;
+            width: 30px;
+            height: 30px;
+            background: none;
+            padding: 0;
         }
     </style>
 </head>
-<body onclick="toggleFullScreen()">
+<body>
 
-    <div id="date">0000/00/00 (曜)</div>
-    <div id="time">00:00:00</div>
+    <div id="controls">
+        <span>文字色:</span>
+        <input type="color" id="color-picker" value="#ffffff">
+    </div>
+
+    <div id="clock-container" onclick="toggleFullScreen()">
+        <div id="date">0000/00/00 (曜)</div>
+        <div id="time">00:00</div>
+    </div>
     
     <div class="hint">画面クリックで全画面 / Escで終了</div>
 
     <script>
+        const timeEl = document.getElementById("time");
+        const dateEl = document.getElementById("date");
+        const colorPicker = document.getElementById("color-picker");
+
         function updateClock() {
             const now = new Date();
             const y = now.getFullYear();
@@ -53,16 +102,30 @@
             
             const h = String(now.getHours()).padStart(2, '0');
             const mi = String(now.getMinutes()).padStart(2, '0');
-            const s = String(now.getSeconds()).padStart(2, '0');
 
-            document.getElementById("date").textContent = `${y}/${m}/${d} (${week})`;
-            document.getElementById("time").textContent = `${h}:${mi}:${s}`;
+            dateEl.textContent = `${y}/${m}/${d} (${week})`;
+            timeEl.textContent = `${h}:${mi}`;
         }
 
-        // 全画面切り替え
+        colorPicker.addEventListener("input", (e) => {
+            const color = e.target.value;
+            document.documentElement.style.setProperty('--clock-color', color);
+            localStorage.setItem("clock_color", color);
+        });
+
+        window.addEventListener("DOMContentLoaded", () => {
+            const savedColor = localStorage.getItem("clock_color");
+            if (savedColor) {
+                document.documentElement.style.setProperty('--clock-color', savedColor);
+                colorPicker.value = savedColor;
+            }
+        });
+
         function toggleFullScreen() {
             if (!document.fullscreenElement) {
-                document.documentElement.requestFullscreen();
+                document.documentElement.requestFullscreen().catch(err => {
+                    console.error(`Error: ${err.message}`);
+                });
             } else {
                 if (document.exitFullscreen) {
                     document.exitFullscreen();
