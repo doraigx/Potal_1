@@ -2,6 +2,7 @@
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Clock Mode</title>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@700&display=swap" rel="stylesheet">
     <style>
@@ -13,112 +14,98 @@
             background-color: #000000;
             color: var(--clock-color);
             font-family: 'Noto Sans JP', sans-serif;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
             height: 100vh;
             overflow: hidden;
             transition: color 0.5s ease;
+            position: relative;
         }
-        #clock-container {
+
+        /* 時計の移動用コンテナ */
+        #clock-wrapper {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
             text-align: center;
-            cursor: pointer;
-            user-select: none;
+            transition: transform 0.1s linear, font-size 0.5s ease;
+            width: 100%;
+            pointer-events: none; /* 下のクリックを邪魔しない */
         }
+
         #date {
             font-size: 5vw;
             margin-bottom: 1rem;
             opacity: 0.8;
+            transition: font-size 0.5s ease;
         }
         #time {
             font-size: 25vw;
             line-height: 1;
             font-weight: 700;
+            transition: font-size 0.5s ease;
         }
+
+        /* 操作パネル */
+        #controls, #back-link, .hint {
+            transition: opacity 0.5s ease, visibility 0.5s;
+        }
+
+        /* 無操作時に隠すクラス */
+        .idle-hide {
+            opacity: 0;
+            visibility: hidden;
+        }
+
         #controls {
-            position: absolute;
-            top: 20px;
-            right: 20px;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            background: rgba(255,255,255,0.1);
-            padding: 10px;
-            border-radius: 8px;
-            z-index: 100;
+            position: absolute; top: 20px; right: 20px;
+            display: flex; align-items: center; gap: 12px;
+            background: rgba(255,255,255,0.1); padding: 10px 15px; border-radius: 8px; z-index: 100;
         }
-        #back-link {
-            position: absolute;
-            top: 20px;
-            left: 20px;
-            z-index: 100;
-        }
+        #back-link { position: absolute; top: 20px; left: 20px; z-index: 100; }
+
         .btn {
-            background: rgba(255, 255, 255, 0.1);
-            border: 1px solid rgba(255, 255, 255, 0.3);
-            color: #ffffff;
-            padding: 5px 10px;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 0.85rem;
-            text-decoration: none;
-            transition: 0.2s;
+            background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.3);
+            color: #ffffff; padding: 5px 10px; border-radius: 4px; cursor: pointer; font-size: 0.85rem;
+            text-decoration: none; transition: 0.2s;
         }
-        .btn:hover {
-            background: rgba(255, 255, 255, 0.2);
-            border-color: #ffffff;
-        }
-        #controls span {
-            color: #ffffff !important;
-            font-size: 0.9rem;
-            font-weight: normal;
-        }
-        .hint {
-            position: absolute;
-            bottom: 30px;
-            font-size: 1.2rem;
-            opacity: 0.4;
-            color: #ffffff !important;
-        }
-        :fullscreen #controls, :fullscreen .hint, :fullscreen #back-link {
-            display: none;
-        }
-        input[type="color"] {
-            cursor: pointer;
-            border: none;
-            width: 30px;
-            height: 30px;
-            background: none;
-            padding: 0;
-        }
+        .btn:hover { background: rgba(255, 255, 255, 0.2); border-color: #ffffff; }
+        .btn.active { background: #2196f3; border-color: #2196f3; }
+
+        #controls span { color: #ffffff !important; font-size: 0.9rem; font-weight: normal; }
+        .hint { position: absolute; bottom: 30px; left: 50%; transform: translateX(-50%); font-size: 1.2rem; opacity: 0.4; color: #ffffff !important; }
+
+        :fullscreen #controls, :fullscreen .hint, :fullscreen #back-link { display: none; }
+        input[type="color"] { cursor: pointer; border: none; width: 30px; height: 30px; background: none; padding: 0; }
     </style>
 </head>
-<body>
+<body id="main-body" onmousemove="resetIdleTimer()" onclick="resetIdleTimer()" ontouchstart="resetIdleTimer()">
 
     <div id="back-link">
-        <a href="index.html" class="btn">ポータルに戻る</a>
+        <a href="index.html" class="btn">🔙 ポータルに戻る</a>
     </div>
 
     <div id="controls">
         <span>文字色:</span>
         <input type="color" id="color-picker" value="#ffffff">
+        <button class="btn" id="burn-in-btn" onclick="toggleBurnIn()">🛡️ 焼きつき防止</button>
         <button class="btn" onclick="factoryReset(event)">初期化</button>
         <button class="btn" onclick="toggleFullScreen()">全画面</button>
     </div>
 
-    <div id="clock-container" onclick="toggleFullScreen()">
+    <div id="clock-wrapper">
         <div id="date">0000/00/00 (曜)</div>
         <div id="time">00:00</div>
     </div>
     
-    <div class="hint">画面クリックで全画面 / Escで終了</div>
+    <div class="hint">無操作でUIが隠れます / クリックで全画面</div>
 
     <script>
         const timeEl = document.getElementById("time");
         const dateEl = document.getElementById("date");
+        const wrapper = document.getElementById("clock-wrapper");
         const colorPicker = document.getElementById("color-picker");
 
+        // --- 時計更新 ---
         function updateClock() {
             const now = new Date();
             const y = now.getFullYear();
@@ -127,73 +114,102 @@
             const week = ["日", "月", "火", "水", "木", "金", "土"][now.getDay()];
             const h = String(now.getHours()).padStart(2, '0');
             const mi = String(now.getMinutes()).padStart(2, '0');
-
             dateEl.textContent = `${y}/${m}/${d} (${week})`;
             timeEl.textContent = `${h}:${mi}`;
         }
 
-        function applyColor(color) {
-            document.documentElement.style.setProperty('--clock-color', color);
-            localStorage.setItem("clock_color", color);
-            colorPicker.value = color;
+        // --- 無操作タイマー (5秒) ---
+        let idleTimer;
+        function resetIdleTimer() {
+            const uiElements = [document.getElementById('controls'), document.getElementById('back-link'), document.querySelector('.hint')];
+            uiElements.forEach(el => el.classList.remove('idle-hide'));
+            
+            clearTimeout(idleTimer);
+            idleTimer = setTimeout(() => {
+                uiElements.forEach(el => el.classList.add('idle-hide'));
+            }, 5000);
+        }
+
+        // --- 焼きつき防止機能 ---
+        let isBurnInMode = false;
+        let moveX = 50, moveY = 50;
+        let dx = 0.05, dy = 0.05; // 移動速度
+        let animationFrame;
+
+        function toggleBurnIn() {
+            isBurnInMode = !isBurnInMode;
+            const btn = document.getElementById('burn-in-btn');
+            
+            if (isBurnInMode) {
+                btn.classList.add('active');
+                timeEl.style.fontSize = "15vw"; // 小さくする
+                dateEl.style.fontSize = "3vw";
+                animateClock();
+            } else {
+                btn.classList.remove('active');
+                cancelAnimationFrame(animationFrame);
+                timeEl.style.fontSize = "25vw"; // 元に戻す
+                dateEl.style.fontSize = "5vw";
+                wrapper.style.left = "50%";
+                wrapper.style.top = "50%";
+                wrapper.style.transform = "translate(-50%, -50%)";
+            }
+        }
+
+        function animateClock() {
+            if (!isBurnInMode) return;
+
+            moveX += dx;
+            moveY += dy;
+
+            // 画面端で跳ね返る判定 (範囲は少し余裕を持たせる)
+            if (moveX > 70 || moveX < 30) dx *= -1;
+            if (moveY > 70 || moveY < 30) dy *= -1;
+
+            wrapper.style.left = moveX + "%";
+            wrapper.style.top = moveY + "%";
+
+            animationFrame = requestAnimationFrame(animateClock);
+        }
+
+        // --- 初期化 / その他機能 ---
+        async function factoryReset(event) {
+            if (!confirm("設定とキャッシュを初期化しますか？")) return;
+            localStorage.removeItem("clock_color");
+            if ('serviceWorker' in navigator) {
+                const regs = await navigator.serviceWorker.getRegistrations();
+                for (let r of regs) await r.unregister();
+            }
+            if ('caches' in window) {
+                const keys = await caches.keys();
+                await Promise.all(keys.map(k => caches.delete(k)));
+            }
+            window.location.reload(true);
+        }
+
+        function toggleFullScreen() {
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen().catch(e => console.error(e));
+            } else {
+                document.exitFullscreen();
+            }
         }
 
         colorPicker.addEventListener("input", (e) => {
-            applyColor(e.target.value);
+            document.documentElement.style.setProperty('--clock-color', e.target.value);
+            localStorage.setItem("clock_color", e.target.value);
         });
-
-        // 統合された初期化関数
-        async function factoryReset(event) {
-            if (!confirm("【警告】設定を初期化しますか？\n文字色やキャッシュが削除されます。")) return;
-
-            const btn = event.target;
-            btn.textContent = "初期化中...";
-
-            // 1. localStorage の時計設定のみ削除
-            localStorage.removeItem("clock_color");
-
-            // 2. Service Worker の解除
-            try {
-                if ('serviceWorker' in navigator) {
-                    const registrations = await navigator.serviceWorker.getRegistrations();
-                    for (const registration of registrations) {
-                        await registration.unregister();
-                    }
-                }
-            } catch (e) { console.warn(e); }
-
-            // 3. キャッシュストレージの削除
-            try {
-                if ('caches' in window) {
-                    const keys = await caches.keys();
-                    await Promise.all(keys.map(key => caches.delete(key)));
-                }
-            } catch (e) { console.warn(e); }
-
-            alert("初期化が完了しました。再読み込みします。");
-            window.location.reload(true);
-        }
 
         window.addEventListener("DOMContentLoaded", () => {
             const savedColor = localStorage.getItem("clock_color");
             if (savedColor) {
-                applyColor(savedColor);
+                document.documentElement.style.setProperty('--clock-color', savedColor);
+                colorPicker.value = savedColor;
             }
             updateClock();
             setInterval(updateClock, 1000);
+            resetIdleTimer();
         });
-
-        function toggleFullScreen() {
-            if (!document.fullscreenElement) {
-                document.documentElement.requestFullscreen().catch(err => {
-                    console.error(`Error: ${err.message}`);
-                });
-            } else {
-                if (document.exitFullscreen) {
-                    document.exitFullscreen();
-                }
-            }
-        }
     </script>
 </body>
 </html>
