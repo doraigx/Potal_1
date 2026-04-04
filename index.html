@@ -929,11 +929,10 @@
 
 <script>
   function openClockMode() {
-    // 別タブで時計サイトを開く
-    const clockWindow = window.open('clock.html', '_blank');
-    
-    // ブラウザの仕様上、遷移先でユーザーが画面をクリックした際に全画面化するようにします
-  }
+    // '_blank' ではなく名前を固定（例: 'pwa-clock'）
+    // PWAとしてインストールされている場合、これでアプリ内ウィンドウとして開きやすくなります
+    window.open('clock.html', 'pwa-clock', 'noopener,noreferrer');
+}
 </script>
 </div>
 
