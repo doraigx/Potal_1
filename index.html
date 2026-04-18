@@ -21,7 +21,9 @@
       background-color: #ffffff;
       color-scheme: light;
     }
+
   </style>
+
   <title>Portal_1</title>
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700&display=swap" rel="stylesheet">
   <style>
@@ -94,32 +96,46 @@
       padding: 0 2rem;
     }
 
-    .widgets {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-      grid-auto-rows: 10px;
-      gap: 1rem;
-      align-items: start;
-      /*max-width: 1100px;*/
-      margin: 0 auto;
-    }
+    /* 90行目付近：.widgets の設定を安定させる */
+/* 90行目付近：.widgets を丸ごと差し替え */
+/* 90行目付近：.widgets の修正 */
+.widgets {
+  display: block;
+  /* 列数を指定する代わりに「1列の最小幅」を指定します */
+  /* これにより、画面幅に合わせて 1列〜3列 以上に自動調整されます */
+  column-width: 300px; 
+  
+  /* 列同士の横の隙間を固定 */
+  column-gap: 1.5rem; 
+  
+  width: 100%;
+  margin: 0 auto;
+}
 
+/* 105行目付近：.widgets .card の修正 */
+.widgets .card {
+  display: inline-block; /* 必須：カラム内でカードが正しく並ぶようにする */
+  width: 100%;
+  
+  /* ★ここがあなたの求めていた「一定の余白」です */
+  margin-bottom: 1.5rem; 
+  
+  background: var(--card-bg);
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  box-sizing: border-box;
+  break-inside: avoid;   /* カードが列の途中でちぎれるのを防ぐ */
+  transition: transform 0.3s ease;
+}
 
-    /* 70行目付近： .widgets .card の中身を修正 */
-    .widgets .card {
-      background: var(--card-bg);
-      border-radius: 12px;
-      /* grid-row-end: span var(--row-span, 20); はそのままでOK */
-      cursor: default;
-      transition: transform 0.3s ease, box-shadow 0.25s ease;
-
-      margin-bottom: 0 !important;
-      /* ← 16pxから 0 に変更 */
-      padding: 20px;
-      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-      display: block;
-      /* 高さを正しく計算させるため */
-    }
+/* スマホ用のレスポンシブ設定（一括調整） */
+@media screen and (max-width: 900px) {
+  .widgets { column-count: 2; }
+}
+@media screen and (max-width: 600px) {
+  .widgets { column-count: 1; }
+}
 
     .weather {
       display: flex;
@@ -1808,39 +1824,51 @@
 
 
   <script>
-    function resizeGridItem(item) {
-      const grid = document.querySelector(".widgets");
-      if (!grid) return;
+    /* --- グリッドレイアウトの再計算ロジック --- */
+function resizeGridItem(item) {
+  const grid = document.querySelector(".widgets");
+  if (!grid) return;
 
-      const rowGap = parseInt(window.getComputedStyle(grid).getPropertyValue('gap'));
-      // 1マスを10pxに戻す
-      const rowHeight = 10;
+  // grid-auto-rows(10px) と gap を取得
+  const rowHeight = 10;
+  const rowGap = parseInt(window.getComputedStyle(grid).getPropertyValue('row-gap'));
 
-      const itemHeight = item.getBoundingClientRect().height;
-      // 隙間を考慮した正確なマス目計算
-      const rowSpan = Math.ceil((itemHeight + rowGap) / (rowHeight + rowGap));
+  // カードの実際の高さを取得
+  const itemHeight = item.getBoundingClientRect().height;
 
-      item.style.gridRowEnd = "span " + rowSpan;
-    }
+  // 正確なスパン数を計算（余白のズレを最小限にする）
+  const rowSpan = Math.ceil((itemHeight + rowGap) / (rowHeight + rowGap));
+  item.style.gridRowEnd = "span " + rowSpan;
+}
 
-    // 修正ポイント：画像が読み込み終わってから再計算させる
-    window.addEventListener("load", resizeAllGridItems);
+function resizeAllGridItems() {
+  document.querySelectorAll(".widgets .card").forEach(resizeGridItem);
+}
 
-    // 地震情報などのアコーディオンが開閉した際も呼び出す
-    $(document).on("click", ".ac-parent", function() {
-      setTimeout(resizeAllGridItems, 350); // アニメーション終了後に実行
-    });
+// ページ読み込み完了時とリサイズ時に実行
+window.addEventListener("load", resizeAllGridItems);
+window.addEventListener("resize", resizeAllGridItems);
 
-    function resizeAllGridItems() {
-      document.querySelectorAll(".widgets .card").forEach(resizeGridItem);
-    }
-    window.addEventListener("load", resizeAllGridItems);
-    window.addEventListener("resize", resizeAllGridItems);
-    const observer = new MutationObserver(resizeAllGridItems);
-    observer.observe(document.querySelector(".widgets"), {
-      childList: true,
-      subtree: true
-    });
+// 中身が書き換わったのを検知して自動で再計算
+const observer = new MutationObserver(() => {
+  resizeAllGridItems();
+});
+observer.observe(document.querySelector(".widgets"), {
+  childList: true,
+  subtree: true,
+  characterData: true
+});
+
+/* --- API取得後に個別に再計算を叩く（ここが重要） --- */
+// 天気、トレンド、ニュース、為替などの各 fetch 関数内の
+// container.innerHTML = ... もしくは appendChild の直後に、
+// 以下の1行をそれぞれ追加してください。
+
+// 例：天気の場合
+// resizeGridItem(document.getElementById('weather-card'));
+
+// 例：トレンドの場合
+// resizeGridItem(document.getElementById('trend-card'));
   </script>
 
   <script>
@@ -1918,6 +1946,7 @@
 
       } catch (err) {
         container.innerHTML = `<div class="error">天気情報の取得に失敗しました。（${err.message}）</div>`;
+        resizeGridItem(document.getElementById('weather-card'));
       }
     }
 
@@ -2143,6 +2172,7 @@
                   `;
 
           container.appendChild(li);
+          resizeGridItem(document.getElementById('trend-card'));
 
           // 追加分は配列に格納
           if (offset > 0) additionalItems.push(li);
