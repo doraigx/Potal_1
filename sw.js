@@ -1,4 +1,4 @@
-const CACHE_NAME = 'portal-cache-v11'; 
+const CACHE_NAME = 'portal-cache-v11.0'; 
 const urlsToCache = [
   './',
   './index.html',
