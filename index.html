@@ -1166,6 +1166,41 @@
         display: none;
         z-index: 9999;
       }
+
+      #drag-guideline {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 12.7%; /* 画面の上半分 */
+        background-color: rgba(9, 5, 5, 0.939); /* 半透明の赤 */
+        z-index: 10001; /* ボタンのすぐ下 */
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-weight: bold;
+        font-size: 1.2rem;
+        letter-spacing: 0.1em;
+        opacity: 0; /* 初期状態は透明 */
+        visibility: hidden; /* クリック判定もなくす */
+        transform: scale(0.95); /* 少し小さくしておく（アニメーション用） */
+        transition: opacity 0.3s ease, transform 0.3s ease, background-color 0.2s ease, visibility 0.3s;
+        pointer-events: none; /* ガイド自体はタッチをスルーさせる */
+      }
+
+      /* ガイドライン表示時 */
+      #drag-guideline.active {
+        opacity: 1;
+        visibility: visible;
+        transform: scale(1);
+      }
+      
+      /* 指が上半分のエリアに入った時の強調状態 */
+      #drag-guideline.highlight {
+        background-color: rgba(21, 141, 69, 0.589); /* 赤を濃くする */
+        box-shadow: 0 0 30px rgba(64, 152, 176, 0.555);
+      }
   </style>
 </head>
 
@@ -3179,14 +3214,19 @@ observer.observe(document.querySelector(".widgets"), {
     const overlay = document.getElementById('circle-overlay');
     const items = document.querySelectorAll('.ring-item');
 
-    let isDragging = false;
-    let currentSelected = null;
+    // 赤いガイドライン要素を動的に作成
+    const guideline = document.createElement('div');
+    guideline.id = 'drag-guideline';
+    guideline.innerHTML = '<span>TOPへ戻る</span>';
+    document.body.appendChild(guideline);
 
-    // 12分割の境界線データ（背景の描き直し用）
+    let isDragging = false;
+    const halfHeight = window.innerHeight / 2;
     const baseGrid = "transparent 0deg 29.5deg, rgba(255, 255, 255, 0.2) 29.5deg 30deg, transparent 30deg 59.5deg, rgba(255, 255, 255, 0.2) 59.5deg 60deg, transparent 60deg 89.5deg, rgba(255, 255, 255, 0.2) 89.5deg 90deg, transparent 90deg 119.5deg, rgba(255, 255, 255, 0.2) 119.5deg 120deg, transparent 120deg 149.5deg, rgba(255, 255, 255, 0.2) 149.5deg 150deg, transparent 150deg 179.5deg, rgba(255, 255, 255, 0.2) 179.5deg 180deg, transparent 180deg 209.5deg, rgba(255, 255, 255, 0.2) 209.5deg 210deg, transparent 210deg 239.5deg, rgba(255, 255, 255, 0.2) 239.5deg 240deg, transparent 240deg 269.5deg, rgba(255, 255, 255, 0.2) 269.5deg 270deg, transparent 270deg 299.5deg, rgba(255, 255, 255, 0.2) 299.5deg 300deg, transparent 300deg 329.5deg, rgba(255, 255, 255, 0.2) 329.5deg 330deg, transparent 330deg 359.5deg, rgba(255, 255, 255, 0.2) 359.5deg 360deg";
 
+    let currentSelected = null;
+
     function updateSelection(ringRotation) {
-      // 0度の位置にあるものを判定
       let targetAngle = (-ringRotation % 360 + 360) % 360;
       let closest = null;
       let minDiff = Infinity;
@@ -3196,7 +3236,6 @@ observer.observe(document.querySelector(".widgets"), {
         const itemAngle = (parseInt(item.style.transform.replace('rotate(', '').replace('deg)', '')) + 360) % 360;
         let diff = Math.abs(targetAngle - itemAngle);
         if (diff > 180) diff = 360 - diff;
-
         if (diff < 15) {
           if (diff < minDiff) {
             minDiff = diff;
@@ -3211,14 +3250,8 @@ observer.observe(document.querySelector(".widgets"), {
       if (closest) {
         closest.classList.add('selected');
         closest.style.color = '#00e5ff';
-        
-        // ハイライト背景の更新
         const startDeg = (selectedIdx * 30 - 15);
-        ring.style.backgroundImage = `
-          conic-gradient(from ${startDeg}deg, rgba(0, 229, 255, 0.35) 0deg 30deg, transparent 30deg 360deg),
-          conic-gradient(from -15deg, ${baseGrid})
-        `;
-
+        ring.style.backgroundImage = `conic-gradient(from ${startDeg}deg, rgba(0, 229, 255, 0.35) 0deg 30deg, transparent 30deg 360deg), conic-gradient(from -15deg, ${baseGrid})`;
         if (currentSelected !== closest) {
           currentSelected = closest;
           if (window.navigator.vibrate) window.navigator.vibrate(10);
@@ -3233,13 +3266,13 @@ observer.observe(document.querySelector(".widgets"), {
       if (e.cancelable) e.preventDefault();
       isDragging = true;
       
-      // ★修正ポイント: 初回アニメーションのバグを防ぐため、開始時に状態を強制リセット
       ring.style.transition = 'transform 0.4s cubic-bezier(0.15, 1.15, 0.6, 1.0), opacity 0.2s';
       ring.style.transform = `translateX(-50%) scale(1) rotate(0deg)`;
       ring.style.backgroundImage = `conic-gradient(from -15deg, ${baseGrid})`;
       
       ring.classList.add('active');
       overlay.style.display = 'block';
+      guideline.classList.add('active'); // ガイド表示
       
       if (window.navigator.vibrate) window.navigator.vibrate(15);
     }, { passive: false });
@@ -3247,52 +3280,57 @@ observer.observe(document.querySelector(".widgets"), {
     document.addEventListener('touchmove', (e) => {
       if (!isDragging) return;
 
-      // 回転中は指に吸いつかせる
       ring.style.transition = 'none';
-
       const touch = e.touches[0];
       const rect = trigger.getBoundingClientRect();
       const centerX = rect.left + rect.width / 2;
       const centerY = rect.top + rect.height / 2;
 
+      // ガイド強調判定
+      if (touch.clientY < halfHeight) {
+        guideline.classList.add('highlight');
+      } else {
+        guideline.classList.remove('highlight');
+      }
+
+      // サークル回転計算
       const angle = Math.atan2(touch.clientY - centerY, touch.clientX - centerX);
       const degree = angle * (180 / Math.PI) + 90;
-
       ring.style.transform = `translateX(-50%) scale(1) rotate(${degree}deg)`;
       
       updateSelection(degree);
-      e.preventDefault();
+      if (e.cancelable) e.preventDefault();
     }, { passive: false });
 
-    document.addEventListener('touchend', () => {
+    document.addEventListener('touchend', (e) => {
       if (!isDragging) return;
       isDragging = false;
 
+      const touchY = e.changedTouches[0].clientY;
+
+      // TOPスクロール判定
+      if (touchY < halfHeight) {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+        if (window.navigator.vibrate) window.navigator.vibrate([20, 50, 20]);
+      } else if (currentSelected) {
+        // 通常の項目遷移判定
+        const targetId = currentSelected.getAttribute('data-target');
+        const targetEl = document.getElementById(targetId);
+        if (targetEl) {
+          window.scrollTo({ top: targetEl.getBoundingClientRect().top + window.pageYOffset - 80, behavior: 'smooth' });
+        }
+      }
+
+      // リセット処理
       ring.style.transition = 'transform 0.3s ease-in, opacity 0.2s';
       ring.style.transform = `translateX(-50%) scale(0) rotate(0deg)`;
       ring.classList.remove('active');
       overlay.style.display = 'none';
-
-      if (currentSelected) {
-        const targetId = currentSelected.getAttribute('data-target');
-        const targetEl = document.getElementById(targetId);
-        if (targetEl) {
-          const offset = 80;
-          const elementPosition = targetEl.getBoundingClientRect().top + window.pageYOffset;
-          window.scrollTo({
-            top: elementPosition - offset,
-            behavior: 'smooth'
-          });
-        }
-      }
+      guideline.classList.remove('active', 'highlight');
 
       setTimeout(() => {
-        items.forEach(i => {
-            i.classList.remove('selected');
-            i.style.color = '';
-        });
+        items.forEach(i => { i.classList.remove('selected'); i.style.color = ''; });
         currentSelected = null;
-        // 背景のリセット
         ring.style.backgroundImage = `conic-gradient(from -15deg, ${baseGrid})`;
       }, 300);
     });
