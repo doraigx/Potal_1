@@ -1084,58 +1084,36 @@
 
       /* 回転するリング */
       /* --- サークルメニュー本体 --- */
-      /* --- サークルメニュー本体 --- */
       #circle-menu-ring {
         position: fixed;
+        /* ボタンの中心(bottom:60px)にリングの中心(280/2)を合わせる */
         bottom: -80px; 
         left: 50%;
         width: 280px;
         height: 280px;
-        transform: translateX(-50%) scale(0);
+        
+        /* 初回アニメーションのバグを防ぐため、初期値を明示 */
+        transform: translateX(-50%) scale(0) rotate(0deg);
+        opacity: 0;
+        
         border-radius: 50%;
         z-index: 10001;
         transform-origin: center center; 
+        
+        /* 放射状アニメーションの設定 */
         transition: transform 0.4s cubic-bezier(0.15, 1.15, 0.6, 1.0), opacity 0.2s;
-        opacity: 0;
         pointer-events: none;
         border: 2px solid rgba(255, 255, 255, 0.4);
         box-shadow: 0 0 30px rgba(0, 0, 0, 0.6);
         overflow: hidden;
-
-        /* 基本の背景：半透明の黒 */
         background-color: #00000070;
-        /* 境目ラインの設定 */
-        background-image: conic-gradient(
-          from -15deg,
-          transparent 0deg 29.5deg,
-          rgba(255, 255, 255, 0.2) 29.5deg 30deg,
-          transparent 30deg 59.5deg,
-          rgba(255, 255, 255, 0.2) 59.5deg 60deg,
-          transparent 60deg 89.5deg,
-          rgba(255, 255, 255, 0.2) 89.5deg 90deg,
-          transparent 90deg 119.5deg,
-          rgba(255, 255, 255, 0.2) 119.5deg 120deg,
-          transparent 120deg 149.5deg,
-          rgba(255, 255, 255, 0.2) 149.5deg 150deg,
-          transparent 150deg 179.5deg,
-          rgba(255, 255, 255, 0.2) 179.5deg 180deg,
-          transparent 180deg 209.5deg,
-          rgba(255, 255, 255, 0.2) 209.5deg 210deg,
-          transparent 210deg 239.5deg,
-          rgba(255, 255, 255, 0.2) 239.5deg 240deg,
-          transparent 240deg 269.5deg,
-          rgba(255, 255, 255, 0.2) 269.5deg 270deg,
-          transparent 270deg 299.5deg,
-          rgba(255, 255, 255, 0.2) 299.5deg 300deg,
-          transparent 300deg 329.5deg,
-          rgba(255, 255, 255, 0.2) 329.5deg 330deg,
-          transparent 330deg 359.5deg,
-          rgba(255, 255, 255, 0.2) 359.5deg 360deg
-        );
+        
+        /* 境界線グラデーション (baseGridをJSで定義するのでここでは背景色のみ) */
       }
 
+      /* 表示時のクラス */
       #circle-menu-ring.active {
-        transform: translateX(-50%) scale(1);
+        transform: translateX(-50%) scale(1) rotate(0deg);
         opacity: 1;
       }
 
@@ -3194,7 +3172,7 @@ observer.observe(document.querySelector(".widgets"), {
     })();
   </script>
 
- <script>
+<script>
   (function() {
     const trigger = document.getElementById('circle-trigger-btn');
     const ring = document.getElementById('circle-menu-ring');
@@ -3204,20 +3182,26 @@ observer.observe(document.querySelector(".widgets"), {
     let isDragging = false;
     let currentSelected = null;
 
+    // 12分割の境界線データ（背景の描き直し用）
+    const baseGrid = "transparent 0deg 29.5deg, rgba(255, 255, 255, 0.2) 29.5deg 30deg, transparent 30deg 59.5deg, rgba(255, 255, 255, 0.2) 59.5deg 60deg, transparent 60deg 89.5deg, rgba(255, 255, 255, 0.2) 89.5deg 90deg, transparent 90deg 119.5deg, rgba(255, 255, 255, 0.2) 119.5deg 120deg, transparent 120deg 149.5deg, rgba(255, 255, 255, 0.2) 149.5deg 150deg, transparent 150deg 179.5deg, rgba(255, 255, 255, 0.2) 179.5deg 180deg, transparent 180deg 209.5deg, rgba(255, 255, 255, 0.2) 209.5deg 210deg, transparent 210deg 239.5deg, rgba(255, 255, 255, 0.2) 239.5deg 240deg, transparent 240deg 269.5deg, rgba(255, 255, 255, 0.2) 269.5deg 270deg, transparent 270deg 299.5deg, rgba(255, 255, 255, 0.2) 299.5deg 300deg, transparent 300deg 329.5deg, rgba(255, 255, 255, 0.2) 329.5deg 330deg, transparent 330deg 359.5deg, rgba(255, 255, 255, 0.2) 359.5deg 360deg";
+
     function updateSelection(ringRotation) {
+      // 0度の位置にあるものを判定
       let targetAngle = (-ringRotation % 360 + 360) % 360;
       let closest = null;
       let minDiff = Infinity;
+      let selectedIdx = -1;
 
-      items.forEach(item => {
+      items.forEach((item, idx) => {
         const itemAngle = (parseInt(item.style.transform.replace('rotate(', '').replace('deg)', '')) + 360) % 360;
         let diff = Math.abs(targetAngle - itemAngle);
         if (diff > 180) diff = 360 - diff;
 
-        if (diff < 20) {
+        if (diff < 15) {
           if (diff < minDiff) {
             minDiff = diff;
             closest = item;
+            selectedIdx = idx;
           }
         }
         item.classList.remove('selected');
@@ -3227,11 +3211,20 @@ observer.observe(document.querySelector(".widgets"), {
       if (closest) {
         closest.classList.add('selected');
         closest.style.color = '#00e5ff';
+        
+        // ハイライト背景の更新
+        const startDeg = (selectedIdx * 30 - 15);
+        ring.style.backgroundImage = `
+          conic-gradient(from ${startDeg}deg, rgba(0, 229, 255, 0.35) 0deg 30deg, transparent 30deg 360deg),
+          conic-gradient(from -15deg, ${baseGrid})
+        `;
+
         if (currentSelected !== closest) {
           currentSelected = closest;
           if (window.navigator.vibrate) window.navigator.vibrate(10);
         }
       } else {
+        ring.style.backgroundImage = `conic-gradient(from -15deg, ${baseGrid})`;
         currentSelected = null;
       }
     }
@@ -3240,9 +3233,10 @@ observer.observe(document.querySelector(".widgets"), {
       if (e.cancelable) e.preventDefault();
       isDragging = true;
       
-      // 出現アニメーション：transitionを有効にしてscale(1)へ
+      // ★修正ポイント: 初回アニメーションのバグを防ぐため、開始時に状態を強制リセット
       ring.style.transition = 'transform 0.4s cubic-bezier(0.15, 1.15, 0.6, 1.0), opacity 0.2s';
       ring.style.transform = `translateX(-50%) scale(1) rotate(0deg)`;
+      ring.style.backgroundImage = `conic-gradient(from -15deg, ${baseGrid})`;
       
       ring.classList.add('active');
       overlay.style.display = 'block';
@@ -3253,7 +3247,7 @@ observer.observe(document.querySelector(".widgets"), {
     document.addEventListener('touchmove', (e) => {
       if (!isDragging) return;
 
-      // 回転中はtransitionを切り、指の動きに即座に反応させる
+      // 回転中は指に吸いつかせる
       ring.style.transition = 'none';
 
       const touch = e.touches[0];
@@ -3264,7 +3258,6 @@ observer.observe(document.querySelector(".widgets"), {
       const angle = Math.atan2(touch.clientY - centerY, touch.clientX - centerX);
       const degree = angle * (180 / Math.PI) + 90;
 
-      // 放射状に広がった状態(scale 1)を維持したまま回転
       ring.style.transform = `translateX(-50%) scale(1) rotate(${degree}deg)`;
       
       updateSelection(degree);
@@ -3275,7 +3268,6 @@ observer.observe(document.querySelector(".widgets"), {
       if (!isDragging) return;
       isDragging = false;
 
-      // 消える時は中心に向かって放射状に収束する
       ring.style.transition = 'transform 0.3s ease-in, opacity 0.2s';
       ring.style.transform = `translateX(-50%) scale(0) rotate(0deg)`;
       ring.classList.remove('active');
@@ -3300,6 +3292,8 @@ observer.observe(document.querySelector(".widgets"), {
             i.style.color = '';
         });
         currentSelected = null;
+        // 背景のリセット
+        ring.style.backgroundImage = `conic-gradient(from -15deg, ${baseGrid})`;
       }, 300);
     });
 
