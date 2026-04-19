@@ -998,8 +998,8 @@
 
 
     .header-btn {
-  background: rgba(255, 255, 255, 0.1) !important; /* ボタン自体の色 */
-}
+      background: rgba(255, 255, 255, 0.1) !important; /* ボタン自体の色 */
+    }
 
       .hidden-picker {
         width: 100% !important;
@@ -1083,69 +1083,101 @@
       }
 
       /* 回転するリング */
+      /* --- サークルメニュー本体 --- */
+      /* --- サークルメニュー本体 --- */
       #circle-menu-ring {
         position: fixed;
-        /* --- 修正箇所：ボタンの中心と計算を合わせる --- */
-        /* ボタンの底が30px + ボタンの半径30px = 中心は60px */
-        /* リングの半径は140pxなので、中心を合わせるには 60px - 140px = -80px */
         bottom: -80px; 
         left: 50%;
         width: 280px;
         height: 280px;
-        /* transformの基準を中心に固定しつつ、開閉のscaleを適用 */
         transform: translateX(-50%) scale(0);
-        background: rgba(0, 0, 0, 0.5);
         border-radius: 50%;
         z-index: 10001;
-        transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.2s;
+        transform-origin: center center; 
+        transition: transform 0.4s cubic-bezier(0.15, 1.15, 0.6, 1.0), opacity 0.2s;
         opacity: 0;
         pointer-events: none;
-        border: 1px solid rgba(0, 229, 255, 0.5);
-        box-shadow: 0 0 20px rgba(0, 229, 255, 0.3);
-        transform-origin: center center;
+        border: 2px solid rgba(255, 255, 255, 0.4);
+        box-shadow: 0 0 30px rgba(0, 0, 0, 0.6);
+        overflow: hidden;
+
+        /* 基本の背景：半透明の黒 */
+        background-color: #00000070;
+        /* 境目ラインの設定 */
+        background-image: conic-gradient(
+          from -15deg,
+          transparent 0deg 29.5deg,
+          rgba(255, 255, 255, 0.2) 29.5deg 30deg,
+          transparent 30deg 59.5deg,
+          rgba(255, 255, 255, 0.2) 59.5deg 60deg,
+          transparent 60deg 89.5deg,
+          rgba(255, 255, 255, 0.2) 89.5deg 90deg,
+          transparent 90deg 119.5deg,
+          rgba(255, 255, 255, 0.2) 119.5deg 120deg,
+          transparent 120deg 149.5deg,
+          rgba(255, 255, 255, 0.2) 149.5deg 150deg,
+          transparent 150deg 179.5deg,
+          rgba(255, 255, 255, 0.2) 179.5deg 180deg,
+          transparent 180deg 209.5deg,
+          rgba(255, 255, 255, 0.2) 209.5deg 210deg,
+          transparent 210deg 239.5deg,
+          rgba(255, 255, 255, 0.2) 239.5deg 240deg,
+          transparent 240deg 269.5deg,
+          rgba(255, 255, 255, 0.2) 269.5deg 270deg,
+          transparent 270deg 299.5deg,
+          rgba(255, 255, 255, 0.2) 299.5deg 300deg,
+          transparent 300deg 329.5deg,
+          rgba(255, 255, 255, 0.2) 329.5deg 330deg,
+          transparent 330deg 359.5deg,
+          rgba(255, 255, 255, 0.2) 359.5deg 360deg
+        );
       }
 
       #circle-menu-ring.active {
-        /* translateX(-50%) を維持しないと左にズレるため注意 */
         transform: translateX(-50%) scale(1);
         opacity: 1;
       }
 
-      /* リング内の各項目 */
+      /* --- 各項目：弧の側へ配置を調整 --- */
       .ring-item {
         position: absolute;
-        top: 25px;
+        /* topを小さく（10px）して外側の弧へ寄せる */
+        top: 10px; 
         left: 50%;
-        width: 50px;
-        height: 50px;
-        margin-left: -25px;
+        width: 60px;
+        height: 60px;
+        margin-left: -30px;
         display: flex;
-        flex-direction: column;
+        flex-direction: column-reverse; /* 文字を上に配置 */
         align-items: center;
         justify-content: center;
-        color: white;
-        /* transform-origin の計算：(リングの高さ280 / 2) - topの25 = 115px */
-        transform-origin: 50% 115px;
-        transition: color 0.2s;
+        color: rgba(255, 255, 255, 0.8);
+        /* 中心からの距離（半径）を 130px に伸ばす */
+        transform-origin: 50% 130px; 
+        transition: all 0.2s ease;
+        z-index: 10;
       }
 
-      .ring-item span {
-        font-size: 2rem;
+      .ring-item span { 
+        font-size: 1.8rem; 
+        line-height: 1; 
+      }
+      
+      .ring-item label { 
+        font-size: 0.65rem; 
+        font-weight: bold; 
+        margin-bottom: 4px; /* アイコンとの距離 */
       }
 
-      .ring-item label {
-        font-size: 0.6rem;
-        margin-top: 2px;
-        font-weight: bold;
-      }
-
+      /* 選択時の強調 */
       .ring-item.selected {
-        color: #00ffcc;
-        transform: scale(1.2) translateX(-50%);
-        transform-origin: 50% 115px;
+        color: #00e5ff !important;
+        /* 外側にいるため、その場で少し拡大する設定 */
+        transform: scale(1.15); 
+        text-shadow: 0 0 10px rgba(0, 229, 255, 0.8);
       }
 
-      /* オーバーレイ */
       #circle-overlay {
         position: fixed;
         top: 0;
@@ -1156,7 +1188,6 @@
         display: none;
         z-index: 9999;
       }
-    }
   </style>
 </head>
 
