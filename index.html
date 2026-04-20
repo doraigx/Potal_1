@@ -1166,7 +1166,7 @@
         display: none;
         z-index: 9999;
       }
-
+      @media screen and (max-width: 480px) {
       #drag-guideline {
         position: fixed;
         top: 0;
@@ -1194,13 +1194,14 @@
         opacity: 1;
         visibility: visible;
         transform: scale(1);
-      }
+      }f
       
       /* 指が上半分のエリアに入った時の強調状態 */
       #drag-guideline.highlight {
         background-color: rgba(21, 141, 69, 0.589); /* 赤を濃くする */
         box-shadow: 0 0 30px rgba(64, 152, 176, 0.555);
       }
+    }
   </style>
 </head>
 
