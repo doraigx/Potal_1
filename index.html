@@ -67,6 +67,7 @@
 
     header h1 a {
       color: white;
+      mix-blend-mode: difference;
       text-decoration: none;
       font-size: 1.8rem;
       font-weight: 700;
@@ -387,13 +388,13 @@
     }
 
     #theme-toggle {
-      margin-left: 1rem;
       padding: 0.4rem 0.8rem;
       border: none;
       background: none;
       color: inherit;
       font-size: 1.5rem;
       cursor: pointer;
+      background: rgba(255, 255, 255, 0.1);
     }
 
     .calendar-card {
@@ -533,17 +534,6 @@
       box-shadow: 0 8px 18px rgba(255, 255, 255, 0.12);
     }
 
-    #theme-toggle {
-      margin-left: auto;
-      padding: 0.6rem 1rem;
-      border-radius: 8px;
-      background: rgba(255, 255, 255, 0.1);
-      color: inherit;
-      font-size: 1.8rem;
-      cursor: pointer;
-      z-index: 1000;
-    }
-
     .weather .meta {
       margin: 0;
       padding: 0;
@@ -625,6 +615,7 @@
 
     #clock {
       color: white;
+      mix-blend-mode: difference;
       /* 文字色を白に */
       font-weight: bold;
       /* 太文字に */
@@ -972,8 +963,18 @@
       }
 
       header h1 a {
+        /* line-height: 1; を削除して normal に戻すか、高さを合わせる */
+        line-height: 1.2; 
         font-size: 1.2rem !important;
         white-space: nowrap;
+        mix-blend-mode: difference;
+        color: white;
+        /* 垂直中央を完璧にするための設定 */
+        display: flex;
+        align-items: center;
+        height: 100%; /* 親の高さに合わせる */
+        position: relative;
+        top: -1px; 
       }
 
       .header-controls {
@@ -998,7 +999,8 @@
 
 
     .header-btn {
-      background: rgba(255, 255, 255, 0.1) !important; /* ボタン自体の色 */
+      position: relative;
+      isolation: auto;
     }
 
       .hidden-picker {
@@ -1011,6 +1013,8 @@
         margin-left: 4px;
         font-weight: bold;
         white-space: nowrap;
+        color: white;
+        mix-blend-mode: difference !important;
       }
 
       #fullscreen-btn::after {
@@ -1032,7 +1036,7 @@
       #theme-toggle {
         font-size: 1.0rem !important;
       }
-
+    }
       /* サークルナビバー本体 */
       #mobile-nav-bar {
         display: flex;
@@ -1110,6 +1114,13 @@
         
         /* 境界線グラデーション (baseGridをJSで定義するのでここでは背景色のみ) */
       }
+      
+      #circle-trigger-btn span {
+  color: white !important;
+  mix-blend-mode: difference !important; /* 文字だけ反転 */
+  position: relative;
+  z-index: 9;
+}
 
       /* 表示時のクラス */
       #circle-menu-ring.active {
@@ -1167,39 +1178,55 @@
         z-index: 9999;
       }
       
+      /* --- TOPへ戻るガイドライン --- */
       #drag-guideline {
         position: fixed;
         top: 0;
         left: 0;
         width: 100%;
-        height: 30%; /* 画面の上半分 */
-        background-color: rgba(9, 5, 5, 0.939); /* 半透明の赤 */
-        z-index: 10001; /* ボタンのすぐ下 */
-        display: flex;
+        height: 15%; /* 画面の上30% */
+        background-color :#444;
+        z-index: 10001;
+        display: none; 
         align-items: center;
         justify-content: center;
         color: white;
         font-weight: bold;
         font-size: 1.2rem;
         letter-spacing: 0.1em;
-        opacity: 0; /* 初期状態は透明 */
-        visibility: hidden; /* クリック判定もなくす */
-        transform: scale(0.95); /* 少し小さくしておく（アニメーション用） */
+        opacity: 0;
+        visibility: hidden;
+        transform: scale(0.95);
         transition: opacity 0.3s ease, transform 0.3s ease, background-color 0.2s ease, visibility 0.3s;
-        pointer-events: none; /* ガイド自体はタッチをスルーさせる */
-      }
-
-      /* ガイドライン表示時 */
-      #drag-guideline.active {
-        opacity: 1;
-        visibility: visible;
-        transform: scale(1);
+        pointer-events: none;
       }
       
-      /* 指が上半分のエリアに入った時の強調状態 */
-      #drag-guideline.highlight {
-        background-color: rgba(21, 141, 69, 0.589); /* 赤を濃くする */
-        box-shadow: 0 0 30px rgba(64, 152, 176, 0.555);
+      /* スマホサイズ（480px以下）の場合の挙動 */
+      @media screen and (max-width: 480px) {
+        /* JSでactiveがついた時だけ表示 */
+        #drag-guideline.active {
+          display: flex; /* ここで初めて要素を生成 */
+          opacity: 1;
+          visibility: visible;
+          transform: scale(1);
+        }
+        
+        /* 指がエリアに入った時（緑色のハイライト） */
+        #drag-guideline.highlight {
+          background-color: rgba(57, 143, 91, 0.589);
+          box-shadow: 0 0 30px rgba(64, 152, 176, 0.555);
+        }
+      }
+      
+      #drag-guideline::after {
+        content: "TOPへ戻る";
+      }
+      
+      /* PC・タブレット（481px以上）では強制的に存在を消す */
+      @media screen and (min-width: 481px) {
+        #drag-guideline {
+          display: none !important;
+        }
       }
   </style>
 </head>
@@ -1218,7 +1245,7 @@
         <button class="header-btn dummy-btn" title="ヘッダー色変更">🎨</button>
       </div>
 
-      <button id="theme-toggle" class="header-btn">🌙</button>
+      <button id="theme-toggle" class="header-btn"><span>🌙</span></button>
       <button id="clock-portal-btn" class="header-btn" title="時計モード" onclick="openClockMode()">🕒</button>
 
       <script>
@@ -1231,66 +1258,46 @@
     </div>
 
     <script>
-      (function() {
-        const html = document.documentElement;
-        const toggleBtn = document.getElementById("theme-toggle");
+  (function() {
+    const html = document.documentElement;
+    const toggleBtn = document.getElementById("theme-toggle");
 
-        // --- ヘッダー色変更ロジック ---
-        const colorPicker = document.getElementById("header-color-picker");
-        const STORAGE_KEY_COLOR = "portalHeaderColor";
+    // --- ヘッダー色変更ロジック ---
+    const colorPicker = document.getElementById("header-color-picker");
+    const STORAGE_KEY_COLOR = "portalHeaderColor";
 
-        // 1. 保存された色があれば適用
-        const savedColor = localStorage.getItem(STORAGE_KEY_COLOR);
-        if (savedColor) {
-          applyHeaderColor(savedColor);
-          colorPicker.value = savedColor;
-        }
+    const applyHeaderColor = (color) => {
+      document.documentElement.style.setProperty('--header-gradient', `linear-gradient(90deg, ${color}, ${color})`);
+      localStorage.setItem(STORAGE_KEY_COLOR, color);
+    };
 
-        // 2. 色変更時
-        colorPicker.addEventListener("input", (e) => {
-          const color = e.target.value;
-          applyHeaderColor(color);
-          localStorage.setItem(STORAGE_KEY_COLOR, color);
-        });
+    const savedColor = localStorage.getItem(STORAGE_KEY_COLOR);
+    if (savedColor) {
+      applyHeaderColor(savedColor);
+      colorPicker.value = savedColor;
+    }
 
-        function applyHeaderColor(color) {
-          document.documentElement.style.setProperty('--header-gradient', `linear-gradient(90deg, ${color}, ${color})`);
-        }
-        // ---------------------------
+    colorPicker.addEventListener("input", (e) => applyHeaderColor(e.target.value));
 
-        // --- テーマ切り替えロジック ---
-        let androidTheme = null;
-        try {
-          if (window.AndroidTheme && window.AndroidTheme.getThemeMode) {
-            androidTheme = window.AndroidTheme.getThemeMode();
-          }
-        } catch (e) {}
+    // --- テーマ切り替えロジック ---
+    /* 315行目付近：applyTheme 関数を修正 */
+const applyTheme = (theme) => {
+    html.setAttribute("data-theme", theme);
+    // ボタン全体（innerHTML）を書き換えず、中の絵文字部分だけを対象にします
+    // これにより ::after（モードの文字）への影響を最小限にします
+    toggleBtn.innerHTML = `<span>${theme === "dark" ? "☀️" : "🌙"}</span>`;
+};
 
-        const savedTheme = localStorage.getItem("theme");
-        const prefersDark = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
-        const initialTheme = savedTheme || androidTheme || (prefersDark ? "dark" : "light");
+    const savedTheme = localStorage.getItem("theme") || "light";
+    applyTheme(savedTheme);
 
-        applyTheme(initialTheme);
-
-        toggleBtn.addEventListener("click", () => {
-          const current = html.getAttribute("data-theme") === "dark" ? "light" : "dark";
-          applyTheme(current);
-          localStorage.setItem("theme", current);
-          if (window.AndroidTheme && window.AndroidTheme.setThemeMode) {
-            window.AndroidTheme.setThemeMode(current);
-          }
-        });
-
-        function applyTheme(theme) {
-          html.setAttribute("data-theme", theme);
-          toggleBtn.textContent = theme === "dark" ? "☀️" : "🌙";
-        }
-
-        if (androidTheme) {
-          applyTheme(androidTheme);
-        }
-      })();
-    </script>
+    toggleBtn.addEventListener("click", () => {
+      const current = html.getAttribute("data-theme") === "dark" ? "light" : "dark";
+      applyTheme(current);
+      localStorage.setItem("theme", current);
+    });
+  })();
+</script>
   </header>
 
   <div class="main-container">
@@ -1519,7 +1526,7 @@
     <div class="ring-item" data-target="sun-card" style="transform: rotate(300deg)"><span>🌅</span><label>日の出</label></div>
     <div class="ring-item" data-target="campus-sites-card" style="transform: rotate(330deg)"><span>🏫</span><label>学内</label></div>
   </div>
-    <div id="circle-trigger-btn">◎</div>
+    <div id="circle-trigger-btn"><span>◎</span></div>
   </div>
 
   <button id="edit-btn">編集モード</button>
@@ -3214,14 +3221,15 @@ observer.observe(document.querySelector(".widgets"), {
     const overlay = document.getElementById('circle-overlay');
     const items = document.querySelectorAll('.ring-item');
 
-    // 赤いガイドライン要素を動的に作成
-    const guideline = document.createElement('div');
-    guideline.id = 'drag-guideline';
-    guideline.innerHTML = '<span>TOPへ戻る</span>';
-    document.body.appendChild(guideline);
+    // ガイドライン要素の作成
+    let guideline = document.getElementById('drag-guideline');
+    if (!guideline) {
+      guideline = document.createElement('div');
+      guideline.id = 'drag-guideline';
+      document.body.appendChild(guideline);
+    }
 
     let isDragging = false;
-    const halfHeight = window.innerHeight / 2;
     const baseGrid = "transparent 0deg 29.5deg, rgba(255, 255, 255, 0.2) 29.5deg 30deg, transparent 30deg 59.5deg, rgba(255, 255, 255, 0.2) 59.5deg 60deg, transparent 60deg 89.5deg, rgba(255, 255, 255, 0.2) 89.5deg 90deg, transparent 90deg 119.5deg, rgba(255, 255, 255, 0.2) 119.5deg 120deg, transparent 120deg 149.5deg, rgba(255, 255, 255, 0.2) 149.5deg 150deg, transparent 150deg 179.5deg, rgba(255, 255, 255, 0.2) 179.5deg 180deg, transparent 180deg 209.5deg, rgba(255, 255, 255, 0.2) 209.5deg 210deg, transparent 210deg 239.5deg, rgba(255, 255, 255, 0.2) 239.5deg 240deg, transparent 240deg 269.5deg, rgba(255, 255, 255, 0.2) 269.5deg 270deg, transparent 270deg 299.5deg, rgba(255, 255, 255, 0.2) 299.5deg 300deg, transparent 300deg 329.5deg, rgba(255, 255, 255, 0.2) 329.5deg 330deg, transparent 330deg 359.5deg, rgba(255, 255, 255, 0.2) 359.5deg 360deg";
 
     let currentSelected = null;
@@ -3238,9 +3246,7 @@ observer.observe(document.querySelector(".widgets"), {
         if (diff > 180) diff = 360 - diff;
         if (diff < 15) {
           if (diff < minDiff) {
-            minDiff = diff;
-            closest = item;
-            selectedIdx = idx;
+            minDiff = diff; closest = item; selectedIdx = idx;
           }
         }
         item.classList.remove('selected');
@@ -3262,6 +3268,24 @@ observer.observe(document.querySelector(".widgets"), {
       }
     }
 
+    function resetAll() {
+      isDragging = false;
+      ring.style.transition = 'transform 0.3s ease-in, opacity 0.2s';
+      ring.style.transform = `translateX(-50%) scale(0) rotate(0deg)`;
+      ring.classList.remove('active');
+      overlay.style.display = 'none';
+      
+      // クラスを剥がす（これでCSSのdisplay: noneが効くようになる）
+      guideline.classList.remove('active');
+      guideline.classList.remove('highlight');
+
+      setTimeout(() => {
+        items.forEach(i => { i.classList.remove('selected'); i.style.color = ''; });
+        currentSelected = null;
+        ring.style.backgroundImage = `conic-gradient(from -15deg, ${baseGrid})`;
+      }, 300);
+    }
+
     trigger.addEventListener('touchstart', (e) => {
       if (e.cancelable) e.preventDefault();
       isDragging = true;
@@ -3272,7 +3296,11 @@ observer.observe(document.querySelector(".widgets"), {
       
       ring.classList.add('active');
       overlay.style.display = 'block';
-      guideline.classList.add('active'); // ガイド表示
+
+      // 【修正】スマホサイズでのみクラスを付与（CSS側でdisplayを切り替える）
+      if (window.innerWidth <= 480) {
+        guideline.classList.add('active');
+      }
       
       if (window.navigator.vibrate) window.navigator.vibrate(15);
     }, { passive: false });
@@ -3285,15 +3313,17 @@ observer.observe(document.querySelector(".widgets"), {
       const rect = trigger.getBoundingClientRect();
       const centerX = rect.left + rect.width / 2;
       const centerY = rect.top + rect.height / 2;
+      const halfHeight = window.innerHeight / 2;
 
-      // ガイド強調判定
-      if (touch.clientY < halfHeight) {
-        guideline.classList.add('highlight');
-      } else {
-        guideline.classList.remove('highlight');
+      // スマホサイズでのみハイライト判定
+      if (window.innerWidth <= 480) {
+        if (touch.clientY < halfHeight) {
+          guideline.classList.add('highlight');
+        } else {
+          guideline.classList.remove('highlight');
+        }
       }
 
-      // サークル回転計算
       const angle = Math.atan2(touch.clientY - centerY, touch.clientX - centerX);
       const degree = angle * (180 / Math.PI) + 90;
       ring.style.transform = `translateX(-50%) scale(1) rotate(${degree}deg)`;
@@ -3304,37 +3334,24 @@ observer.observe(document.querySelector(".widgets"), {
 
     document.addEventListener('touchend', (e) => {
       if (!isDragging) return;
-      isDragging = false;
-
       const touchY = e.changedTouches[0].clientY;
+      const halfHeight = window.innerHeight / 2;
 
-      // TOPスクロール判定
-      if (touchY < halfHeight) {
+      if (window.innerWidth <= 480 && touchY < halfHeight) {
         window.scrollTo({ top: 0, behavior: 'smooth' });
         if (window.navigator.vibrate) window.navigator.vibrate([20, 50, 20]);
       } else if (currentSelected) {
-        // 通常の項目遷移判定
         const targetId = currentSelected.getAttribute('data-target');
         const targetEl = document.getElementById(targetId);
         if (targetEl) {
-          window.scrollTo({ top: targetEl.getBoundingClientRect().top + window.pageYOffset - 80, behavior: 'smooth' });
+          const offset = 80;
+          window.scrollTo({ top: targetEl.getBoundingClientRect().top + window.pageYOffset - offset, behavior: 'smooth' });
         }
       }
-
-      // リセット処理
-      ring.style.transition = 'transform 0.3s ease-in, opacity 0.2s';
-      ring.style.transform = `translateX(-50%) scale(0) rotate(0deg)`;
-      ring.classList.remove('active');
-      overlay.style.display = 'none';
-      guideline.classList.remove('active', 'highlight');
-
-      setTimeout(() => {
-        items.forEach(i => { i.classList.remove('selected'); i.style.color = ''; });
-        currentSelected = null;
-        ring.style.backgroundImage = `conic-gradient(from -15deg, ${baseGrid})`;
-      }, 300);
+      resetAll();
     });
 
+    document.addEventListener('touchcancel', resetAll);
     trigger.addEventListener('contextmenu', (e) => e.preventDefault());
   })();
 </script>
