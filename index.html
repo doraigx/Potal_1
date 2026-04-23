@@ -72,6 +72,12 @@
       font-weight: 700;
     }
 
+    .logo-img {
+  height: 120px;   
+  object-fit: contain;
+  display: block;
+}
+
     nav {
       display: flex;
       gap: 1rem;
@@ -1223,12 +1229,24 @@
           display: none !important;
         }
       }
+
+    .logo-img {
+      height: 20%;    /* 親要素(aタグやh1)の高さに合わせる */
+      width: auto;      /* 横幅は自動計算して比率を維持 */
+      object-fit: contain; /* 枠内に収まるようにリサイズ（はみ出さない） */
+    }
+
+    
   </style>
 </head>
 
 <body>
   <header>
-    <h1><a href="#" onclick="location.reload(); return false;">Portal_1</a></h1>
+    <h1>
+  <a href="#" onclick="location.reload(); return false;">
+    <img src="logo.png" alt="Portal_1" class="logo-img">
+  </a>
+</h1>
     <nav></nav>
     <div id="clock"></div>
 
