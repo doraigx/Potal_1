@@ -66,8 +66,7 @@
     }
 
     header h1 a {
-      color: white;
-      mix-blend-mode: difference;
+      color: var(--text-color);
       text-decoration: none;
       font-size: 1.8rem;
       font-weight: 700;
@@ -614,8 +613,7 @@
     }
 
     #clock {
-      color: white;
-      mix-blend-mode: difference;
+      color: var(--text-color);
       /* 文字色を白に */
       font-weight: bold;
       /* 太文字に */
@@ -967,8 +965,7 @@
         line-height: 1.2; 
         font-size: 1.2rem !important;
         white-space: nowrap;
-        mix-blend-mode: difference;
-        color: white;
+        color: var(--text-color);
         /* 垂直中央を完璧にするための設定 */
         display: flex;
         align-items: center;
@@ -1013,8 +1010,7 @@
         margin-left: 4px;
         font-weight: bold;
         white-space: nowrap;
-        color: white;
-        mix-blend-mode: difference !important;
+        color: var(--text-color);
       }
 
       #fullscreen-btn::after {
@@ -1115,8 +1111,8 @@
       }
       
       #circle-trigger-btn span {
-  color: white !important;
-  mix-blend-mode: difference !important; /* 文字だけ反転 */
+  color: var(--text-color);
+   /* 文字だけ反転 */
   position: relative;
   z-index: 9;
 }
