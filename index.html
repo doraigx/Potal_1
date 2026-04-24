@@ -1364,6 +1364,16 @@ body:has(#settings-modal[style*="display: flex"]) #edit-btn,
 body:has(#settings-modal[style*="display: flex"]) button[style*="position: fixed"] {
     display: none !important;
 }
+
+/*文字サイズ*/
+.card {
+  font-size: var(--base-font-size);
+}
+
+/* ついでにカード内の見出し（h2など）も連動させたい場合 */
+.card h2 {
+  font-size: calc(var(--base-font-size) * 1.2);
+}
   </style>
 </head>
 
@@ -1409,6 +1419,17 @@ body:has(#settings-modal[style*="display: flex"]) button[style*="position: fixed
           <span>オフ</span>
           <span>5分</span>
         </div>
+        <div class="setting-item-column">
+  <div class="setting-label">
+    <span>文字サイズ（カード内）</span>
+    <span id="font-size-value">100%</span>
+  </div>
+  <input type="range" id="font-size-range" min="80" max="100" step="5" value="100">
+  <div class="range-labels">
+    <span>小さめ</span>
+    <span>大きめ</span>
+  </div>
+</div>
         <div class="modal-body">
   <div class="setting-item-column" style="border-bottom: none; margin-top: 10px;">
     <div style="text-align: center; opacity: 0.9;">
@@ -3677,6 +3698,37 @@ if (resetBtn) {
     }
   });
 }
+</script>
+
+<script>
+  const fontSizeRange = document.getElementById('font-size-range');
+const fontSizeValue = document.getElementById('font-size-value');
+
+// サイズを適用する関数
+function applyFontSize(percent) {
+  const root = document.documentElement;
+  // 100% = 16px として計算
+  const pxValue = (percent / 100) * 16;
+  root.style.setProperty('--base-font-size', pxValue + 'px');
+  fontSizeValue.textContent = percent + '%';
+  
+  // 設定を保存
+  localStorage.setItem('userFontSizePercent', percent);
+}
+
+// スライダーを動かした時
+fontSizeRange.addEventListener('input', (e) => {
+  applyFontSize(e.target.value);
+});
+
+// ページ読み込み時に保存した設定を復元
+window.addEventListener('load', () => {
+  const savedSize = localStorage.getItem('userFontSizePercent');
+  if (savedSize) {
+    fontSizeRange.value = savedSize;
+    applyFontSize(savedSize);
+  }
+});
 </script>
 </body>
 
