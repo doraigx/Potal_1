@@ -1749,6 +1749,8 @@ const clockWindow = window.open('clock.html', '_blank');
     let editMode = false;
     const widgets = document.querySelector(".widgets");
     const editBtn = document.getElementById("edit-btn");
+    let resizeTimeout = null; 
+    let isResizing = false; // ★無限ループ防止用のロック変数
 
     // 非表示カード情報
     const hiddenCardsKey = "hiddenCards";
@@ -1787,15 +1789,12 @@ const clockWindow = window.open('clock.html', '_blank');
     // ボタン位置（縦にきれいに整列）
     function updateButtonPositions() {
       const rect = editBtn.getBoundingClientRect();
-      const spacing = 10; // ボタン間隔（px）
+      const spacing = 10; 
       const btnHeight = rect.height;
 
-      // 📌 editBtn（保存/終了）が一番下 → それを基準に縦に上へ積む
-      // 再表示ボタン
       addBtn.style.left = rect.left + "px";
       addBtn.style.bottom = (window.innerHeight - rect.bottom + btnHeight + spacing) + "px";
 
-      // 順序変更ボタン（再表示ボタンのさらに上）
       sortBtn.style.left = rect.left + "px";
       sortBtn.style.bottom = (window.innerHeight - rect.bottom + btnHeight * 2 + spacing * 2) + "px";
     }
@@ -1803,7 +1802,6 @@ const clockWindow = window.open('clock.html', '_blank');
     updateButtonPositions();
     window.addEventListener("resize", updateButtonPositions);
 
-    // 初回ロードで並び順復元
     window.addEventListener("DOMContentLoaded", () => {
       const savedOrder = JSON.parse(localStorage.getItem("widgetOrder") || "[]");
       savedOrder.forEach(id => {
@@ -1813,7 +1811,6 @@ const clockWindow = window.open('clock.html', '_blank');
       updateHiddenCardsUI();
     });
 
-    // 編集モード切替
     editBtn.addEventListener("click", () => {
       editMode = !editMode;
 
@@ -1824,26 +1821,19 @@ const clockWindow = window.open('clock.html', '_blank');
 
       editBtn.textContent = editMode ? "保存 / 終了" : "編集モード";
       editBtn.style.backgroundColor = "#4caf50";
-      editBtn.style.color = "#fff";
-      editBtn.style.border = "none";
-      editBtn.style.borderRadius = "8px";
-      editBtn.style.padding = "0.6rem 1rem";
-      editBtn.style.cursor = "pointer";
-      editBtn.style.fontWeight = "bold";
-      editBtn.style.boxSizing = "border-box";
-
+      
       addBtn.style.display = editMode ? "block" : "none";
       sortBtn.style.display = editMode ? "block" : "none";
 
       if (!editMode) {
         const order = Array.from(widgets.children).map(el => el.id).filter(Boolean);
         localStorage.setItem("widgetOrder", JSON.stringify(order));
+        if (typeof resizeAllGridItems === 'function') resizeAllGridItems();
       }
 
       updateHiddenCardsUI();
     });
 
-    // 非表示ボタンと復活用UI
     function updateHiddenCardsUI() {
       const hiddenCards = JSON.parse(localStorage.getItem(hiddenCardsKey) || "[]");
 
@@ -1874,7 +1864,6 @@ const clockWindow = window.open('clock.html', '_blank');
       });
     }
 
-    // カード非表示
     function hideCard(card) {
       card.style.display = "none";
       if (!card.id) card.id = "card-" + Math.random().toString(36).substr(2, 9);
@@ -1882,9 +1871,9 @@ const clockWindow = window.open('clock.html', '_blank');
       const hiddenCards = JSON.parse(localStorage.getItem(hiddenCardsKey) || "[]");
       if (!hiddenCards.includes(card.id)) hiddenCards.push(card.id);
       localStorage.setItem(hiddenCardsKey, JSON.stringify(hiddenCards));
+      if (typeof resizeAllGridItems === 'function') resizeAllGridItems();
     }
 
-    // 「＋カード追加」モーダル（修正版）
     addBtn.addEventListener("click", () => {
       const hiddenCards = JSON.parse(localStorage.getItem(hiddenCardsKey) || "[]");
       if (hiddenCards.length === 0) {
@@ -1908,7 +1897,6 @@ const clockWindow = window.open('clock.html', '_blank');
       hiddenCards.forEach(id => {
         const card = document.getElementById(id);
         if (!card) return;
-        // ← offsetHeight チェックは削除
         const label = document.createElement("label");
         label.style.display = "block";
         label.style.marginBottom = "0.4rem";
@@ -1947,6 +1935,7 @@ const clockWindow = window.open('clock.html', '_blank');
         localStorage.setItem(hiddenCardsKey, JSON.stringify(updatedHidden));
         localStorage.setItem("widgetOrder", JSON.stringify(order));
         document.body.removeChild(modal);
+        if (typeof resizeAllGridItems === 'function') resizeAllGridItems();
       };
 
       const closeBtn = document.createElement("button");
@@ -1960,14 +1949,10 @@ const clockWindow = window.open('clock.html', '_blank');
       document.body.appendChild(modal);
     });
 
-    // 「カード順序変更」モーダル
     sortBtn.addEventListener("click", () => {
       const visibleCards = Array.from(widgets.children)
-        .filter(c => c.style.display !== "none" && c.offsetHeight > 0);
-      if (visibleCards.length === 0) {
-        alert("カードがありません");
-        return;
-      }
+        .filter(c => c.style.display !== "none");
+      if (visibleCards.length === 0) return;
 
       const modal = document.createElement("div");
       modal.style.cssText = "position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;z-index:10000;";
@@ -1989,37 +1974,20 @@ const clockWindow = window.open('clock.html', '_blank');
       box.appendChild(list);
 
       visibleCards.forEach(card => {
-        if (card.offsetHeight === 0) return;
         const item = document.createElement("div");
         item.style.cssText = "display:flex;align-items:center;justify-content:space-between;padding:4px 6px;border:1px solid #ccc;border-radius:4px;";
         item.dataset.id = card.id;
+        item.innerHTML = `<span>${card.querySelector("h2")?.textContent || card.id}</span>
+                          <div><button class="up">↑</button><button class="down">↓</button></div>`;
 
-        const label = document.createElement("span");
-        label.textContent = card.querySelector("h2")?.textContent || card.id;
-        item.appendChild(label);
-
-        const btns = document.createElement("div");
-        btns.style.display = "flex";
-        btns.style.gap = "2px";
-
-        const upBtn = document.createElement("button");
-        upBtn.textContent = "↑";
-        upBtn.style.cursor = "pointer";
-        upBtn.onclick = () => {
+        item.querySelector(".up").onclick = () => {
           const prev = item.previousElementSibling;
           if (prev) list.insertBefore(item, prev);
         };
-        const downBtn = document.createElement("button");
-        downBtn.textContent = "↓";
-        downBtn.style.cursor = "pointer";
-        downBtn.onclick = () => {
+        item.querySelector(".down").onclick = () => {
           const next = item.nextElementSibling;
           if (next) list.insertBefore(next, item);
         };
-        btns.appendChild(upBtn);
-        btns.appendChild(downBtn);
-
-        item.appendChild(btns);
         list.appendChild(item);
       });
 
@@ -2027,14 +1995,14 @@ const clockWindow = window.open('clock.html', '_blank');
       saveBtn.textContent = "保存";
       saveBtn.style.cssText = "margin-top:0.5rem;padding:0.5rem 1rem;background:#4caf50;color:#fff;border:none;border-radius:6px;cursor:pointer;";
       saveBtn.onclick = () => {
-        const newOrder = [];
-        list.querySelectorAll("div[data-id]").forEach(item => newOrder.push(item.dataset.id));
+        const newOrder = Array.from(list.children).map(item => item.dataset.id);
         newOrder.forEach(id => {
           const card = document.getElementById(id);
-          if (card && card.style.display !== "none") widgets.appendChild(card);
+          if (card) widgets.appendChild(card);
         });
         localStorage.setItem("widgetOrder", JSON.stringify(newOrder));
         document.body.removeChild(modal);
+        if (typeof resizeAllGridItems === 'function') resizeAllGridItems();
       };
 
       const closeBtnSort = document.createElement("button");
@@ -2048,15 +2016,20 @@ const clockWindow = window.open('clock.html', '_blank');
       document.body.appendChild(modal);
     });
 
-    // ドラッグ＆ドロップ
+    // --- ドラッグ＆ドロップ（軽量化・フリーズ防止版） ---
     let dragSrcEl = null;
+
     widgets.addEventListener("dragstart", e => {
-      if (!editMode || !e.target.classList.contains("card")) return;
-      dragSrcEl = e.target;
-      e.dataTransfer.effectAllowed = "move";
-    });
-    widgets.addEventListener("dragover", e => {
       if (!editMode) return;
+      const card = e.target.closest(".card");
+      if (!card) return;
+      dragSrcEl = card;
+      e.dataTransfer.effectAllowed = "move";
+      card.style.opacity = "0.5";
+    });
+
+    widgets.addEventListener("dragover", e => {
+      if (!editMode || !dragSrcEl) return;
       e.preventDefault();
       const target = e.target.closest(".card");
       if (target && target !== dragSrcEl) {
@@ -2065,23 +2038,35 @@ const clockWindow = window.open('clock.html', '_blank');
         widgets.insertBefore(dragSrcEl, next ? target.nextSibling : target);
       }
     });
-  </script>
 
+    widgets.addEventListener("dragend", () => {
+      if (!dragSrcEl) return;
+      dragSrcEl.style.opacity = "1";
+      dragSrcEl = null;
 
-  <script>
-    /* --- グリッドレイアウトの再計算ロジック --- */
+      // 【フリーズ対策】ロックをかけてから一度だけ再計算を実行
+      if (resizeTimeout) clearTimeout(resizeTimeout);
+      resizeTimeout = setTimeout(() => {
+        isResizing = true; // 監視を一時停止
+        if (typeof resizeAllGridItems === 'function') {
+          resizeAllGridItems();
+        }
+        setTimeout(() => { isResizing = false; }, 200); // 計算後に解除
+      }, 100);
+    });
+
+    widgets.addEventListener("drop", e => { e.preventDefault(); });
+</script>
+
+<script>
+    /* --- グリッドレイアウトの再計算ロジック（修正版） --- */
 function resizeGridItem(item) {
   const grid = document.querySelector(".widgets");
   if (!grid) return;
 
-  // grid-auto-rows(10px) と gap を取得
   const rowHeight = 10;
   const rowGap = parseInt(window.getComputedStyle(grid).getPropertyValue('row-gap'));
-
-  // カードの実際の高さを取得
   const itemHeight = item.getBoundingClientRect().height;
-
-  // 正確なスパン数を計算（余白のズレを最小限にする）
   const rowSpan = Math.ceil((itemHeight + rowGap) / (rowHeight + rowGap));
   item.style.gridRowEnd = "span " + rowSpan;
 }
@@ -2090,31 +2075,21 @@ function resizeAllGridItems() {
   document.querySelectorAll(".widgets .card").forEach(resizeGridItem);
 }
 
-// ページ読み込み完了時とリサイズ時に実行
 window.addEventListener("load", resizeAllGridItems);
 window.addEventListener("resize", resizeAllGridItems);
 
-// 中身が書き換わったのを検知して自動で再計算
+// ★無限ループ防止：isResizingがtrueの時は監視内容を無視する
 const observer = new MutationObserver(() => {
+  if (isResizing) return; 
   resizeAllGridItems();
 });
+
 observer.observe(document.querySelector(".widgets"), {
   childList: true,
   subtree: true,
   characterData: true
 });
-
-/* --- API取得後に個別に再計算を叩く（ここが重要） --- */
-// 天気、トレンド、ニュース、為替などの各 fetch 関数内の
-// container.innerHTML = ... もしくは appendChild の直後に、
-// 以下の1行をそれぞれ追加してください。
-
-// 例：天気の場合
-// resizeGridItem(document.getElementById('weather-card'));
-
-// 例：トレンドの場合
-// resizeGridItem(document.getElementById('trend-card'));
-  </script>
+</script>
 
   <script>
     async function fetchWeather() {
