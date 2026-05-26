@@ -1375,6 +1375,75 @@ body:has(#settings-modal[style*="display: flex"]) button[style*="position: fixed
 .card h2 {
   font-size: calc(var(--base-font-size) * 1.2);
 }
+
+/* --- アプリダウンロードカード全体のコンテナ（縦並び） --- */
+/* アプリダウンロードカード内のレイアウト設定 */
+.app-dl-container {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  margin-top: 0.5rem;
+  text-align: center;
+}
+
+.app-dl-help {
+  font-size: 0.85rem;
+  margin: 4px 0 8px;
+  opacity: 0.8;
+  line-height: 1.4;
+}
+
+/* 3件のリストを包む枠 */
+.app-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+}
+
+/* 1件ごとの横並びの行 */
+.app-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: rgba(0, 0, 0, 0.03);
+  padding: 8px 12px;
+  border-radius: 8px;
+}
+
+.app-icon {
+  font-size: 1rem;
+}
+
+.app-link {
+  text-decoration: none;
+  width: 120px;
+}
+
+/* ボタン本体（0.7秒のアニメーションを維持） */
+.app-dl-btn {
+  width: 100%;
+  padding: 12px;
+  font-size: 0.95rem;
+  font-weight: bold;
+  color: var(--text-color);
+  background: linear-gradient(135deg, rgba(76, 175, 80, 0.4), rgba(33, 150, 243, 0.4));
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  box-shadow: 0 2px 6px var(--card-shadow);
+  transition: background 0.7s ease, transform 0.7s cubic-bezier(0.25, 1, 0.5, 1);
+}
+
+.app-dl-btn:hover {
+  background: linear-gradient(135deg, rgba(76, 175, 80, 0.7), rgba(33, 150, 243, 0.7));
+  transform: translateY(-4px);
+}
+
+.app-dl-btn:active {
+  transform: translateY(1px);
+  transition: transform 0.05s;
+}
   </style>
 </head>
 
@@ -1701,6 +1770,40 @@ const clockWindow = window.open('clock.html', '_blank');
         <p id="fortune-result">ボタンを押してね↓</p>
         <button class="Fort-btn" onclick="showFortune()">占う</button>
       </div>
+
+      <div class="card" id="app-download-card">
+  <h2>アプリダウンロード</h2>
+  <div class="app-dl-container">
+    <p class="app-dl-help">
+      作者が作ったアプリを、ここから直接ダウンロードできます。
+    </p>
+
+    <div class="app-list">
+      
+      <div class="app-item">
+        <span class="app-icon">画面録画アプリ</span>
+        <a href="app1.apk" download=".apk" class="app-link">
+          <button class="app-dl-btn">DL ↓</button>
+        </a>
+      </div>
+
+      <div class="app-item">
+        <span class="app-icon">🎨</span>
+        <a href="app2.apk" download="app2.apk" class="app-link">
+          <button class="app-dl-btn">DL ↓</button>
+        </a>
+      </div>
+
+      <div class="app-item">
+        <span class="app-icon">🛠️</span>
+        <a href="app3.apk" download="app3.apk" class="app-link">
+          <button class="app-dl-btn">DL ↓</button>
+        </a>
+      </div>
+
+    </div>
+  </div>
+</div>
 
     </div>
   </div>
