@@ -2416,6 +2416,73 @@ observer.observe(document.querySelector(".widgets"), {
             window.location.href = "./login.html";
         });
     };
+
+  // ==========================================
+    // 💡 既存のコードを書き換えずに一括で同期させる全自動センサー
+    // ==========================================
+
+    // 1. メモ帳の入力を監視
+    const memoElement = document.getElementById('simple-memo');
+    if (memoElement) {
+        memoElement.addEventListener('input', () => {
+            // 入力が終わってから少し間を置いて自動保存（負荷軽減）
+            if (window.saveTimeout) clearTimeout(window.saveTimeout);
+            window.saveTimeout = setTimeout(() => {
+                window.saveWidgetDataToCloud();
+            }, 1000); // 1秒間入力が止まったらクラウドに送信
+        });
+    }
+
+    // 2. 詳細設定のスライダー（自動更新・文字サイズ）を監視
+    ['refresh-range', 'font-size-range'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) {
+            el.addEventListener('change', () => {
+                window.saveWidgetDataToCloud();
+            });
+        }
+    });
+
+    // 3. テーマ（🌙/☀️）切り替えボタンを監視
+    const themeBtn = document.getElementById('theme-toggle');
+    if (themeBtn) {
+        themeBtn.addEventListener('click', () => {
+            // テーマ切り替えの処理（0.1秒後）を待ってから同期
+            setTimeout(() => {
+                window.saveWidgetDataToCloud();
+            }, 100);
+        });
+    }
+
+    // 4. カウントダウン（あと何日）の保存ボタンを監視
+    const cntSaveBtn = document.getElementById('cnt-save');
+    if (cntSaveBtn) {
+        cntSaveBtn.addEventListener('click', () => {
+            setTimeout(() => {
+                window.saveWidgetDataToCloud();
+            }, 200);
+        });
+    }
+
+    // 5. カラーピッカー（ヘッダー色）を監視
+    const colorPickerEl = document.getElementById('color-picker');
+    if (colorPickerEl) {
+        colorPickerEl.addEventListener('change', () => {
+            window.saveWidgetDataToCloud();
+        });
+    }
+
+    // 6. 占い・おみくじが引かれたときにLocalStorageの変更を検知して同期
+    ['draw-horoscope', 'fortune-card'].forEach(id => {
+        const btn = document.getElementById(id) || (id === 'fortune-card' ? document.querySelector('#fortune-card button') : null);
+        if (btn) {
+            btn.addEventListener('click', () => {
+                setTimeout(() => {
+                    window.saveWidgetDataToCloud();
+                }, 200);
+            });
+        }
+    });
 </script>
 
   <script>
