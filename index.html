@@ -2215,7 +2215,7 @@ observer.observe(document.querySelector(".widgets"), {
 });
 </script>
 
-<!--アカウントスクリプ-->
+<!--アカウントスクリプト-->
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
     import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
@@ -2241,13 +2241,32 @@ observer.observe(document.querySelector(".widgets"), {
     // 🔒 認証状態の監視（最優先で実行）
     onAuthStateChanged(auth, async (user) => {
         if (!user) {
-            // ログインしていない場合はログインページへ強制送還
-            window.location.href = "./login.html";
+            // 💡 ログインしていない、かつ「スキップの旗」も立っていない場合だけログイン画面へ強制送還
+            if (!sessionStorage.getItem('skipLogin')) {
+                window.location.href = "./login.html";
+            } else {
+                console.log("アカウントなしモードでポータルを利用中（端末内保存）");
+                currentUser = null;
+                
+                // 詳細設定内のボタンを「同期用ボタン」に切り替える
+                const authBtn = document.getElementById('logout-btn');
+                if (authBtn) {
+                    authBtn.textContent = "🚀 クラウドと同期する（ログイン）";
+                    authBtn.style.background = "#2196f3"; // 同期は親しみやすい青色
+                }
+            }
         } else {
             currentUser = user;
-            console.log("ユーザー検証成功:", user.uid);
+            console.log("ユーザー検証成功 (クラウド同期ON):", user.uid);
             
-            // ログイン完了後にユーザー固有のすべてのデータをクラウドからロード
+            // ログイン済みの場合はボタンを「ログアウトする」にする
+            const authBtn = document.getElementById('logout-btn');
+            if (authBtn) {
+                authBtn.textContent = "🚪 ログアウトする";
+                authBtn.style.background = "#ff5722"; // ログアウトはオレンジ
+            }
+
+            // ログイン完了後にユーザー固有のすべての設定・メモをクラウドからロード
             await loadUserDataFromServer(user.uid);
         }
     });
@@ -2304,7 +2323,6 @@ observer.observe(document.querySelector(".widgets"), {
                     localStorage.setItem('autoRefreshIdx', data.autoRefreshIdx);
                     const refreshRange = document.getElementById('refresh-range');
                     if (refreshRange) refreshRange.value = data.autoRefreshIdx;
-                    // グローバルに定義されている自動更新関数を実行
                     if (typeof setAutoRefresh === 'function') setAutoRefresh(data.autoRefreshIdx);
                 }
 
@@ -2319,7 +2337,6 @@ observer.observe(document.querySelector(".widgets"), {
                 // 7. あと何日カウンター（カウントダウンイベント）の復元
                 if (data.portalCountdown) {
                     localStorage.setItem('portalCountdown', JSON.stringify(data.portalCountdown));
-                    // カウンターモジュールがあれば再描画
                     if (typeof loadAndRender === 'function') loadAndRender();
                 }
 
@@ -2345,6 +2362,7 @@ observer.observe(document.querySelector(".widgets"), {
 
     // 📤 アプリ内の変更（並び順・メモ・各種設定）をまとめてクラウドに同期する超強力な関数
     window.saveWidgetDataToCloud = async function() {
+        // 💡 ゲスト利用時（currentUserがnull）は、クラウドに送信せずローカル保存のみで終了
         if (!currentUser) return;
         
         // 保存データの収集
@@ -2362,7 +2380,6 @@ observer.observe(document.querySelector(".widgets"), {
             countdownData = JSON.parse(localStorage.getItem('portalCountdown') || '{}');
         } catch(e){}
 
-        // 今日の占いなど、ローカルストレージにある一時キャッシュ（キー名が特定的なもの）をまとめる
         const horoscopeCache = {};
         for (let i = 0; i < localStorage.length; i++) {
             const key = localStorage.key(i);
@@ -2384,40 +2401,49 @@ observer.observe(document.querySelector(".widgets"), {
                 hiddenCards: hiddenList,
                 horoscopeCache: horoscopeCache,
                 updatedAt: new Date()
-            }, { merge: true }); // 既存のフィールドを壊さない安全設計
+            }, { merge: true });
             console.log("全設定がクラウドへ同期されました");
         } catch (e) {
             console.error("クラウドへの一括同期に失敗:", e);
         }
     };
 
-    // 🚪 ログアウトボタンのクリックイベント制御
+    // 🚪 詳細設定内のボタン（ログアウト / 同期）が押された時の挙動
     const logoutBtn = document.getElementById('logout-btn');
     if (logoutBtn) {
         logoutBtn.addEventListener('click', async () => {
-            if (confirm("ポータルからログアウトしますか？")) {
-                try {
-                    // クラウドへの最終同期を実行してからログアウト
-                    await window.saveWidgetDataToCloud();
-                    await signOut(auth);
-                    console.log("ログアウト成功");
-                    window.location.href = "./login.html";
-                } catch (error) {
-                    console.error("ログアウトエラー:", error);
-                    alert("ログアウトに失敗しました。");
+            // スキップの旗をクリアして次回のガードを有効化する
+            sessionStorage.removeItem('skipLogin');
+
+            if (currentUser) {
+                // 【ログイン済みの人】 ➡️ 最終同期をして安全にログアウト
+                if (confirm("ポータルからログアウトしますか？")) {
+                    try {
+                        await window.saveWidgetDataToCloud();
+                        await signOut(auth);
+                        console.log("ログアウト成功");
+                        window.location.href = "./login.html";
+                    } catch (error) {
+                        console.error("ログアウトエラー:", error);
+                        alert("ログアウトに失敗しました。");
+                    }
                 }
+            } else {
+                // 【未ログイン（アカウントなし）の人】 ➡️ そのままゲートに送ってログインを促す
+                window.location.href = "./login.html";
             }
         });
     }
 
     // 古い形式の互換用グローバル関数
     window.logoutPortal = function() {
+        sessionStorage.removeItem('skipLogin');
         signOut(auth).then(() => {
             window.location.href = "./login.html";
         });
     };
 
-  // ==========================================
+    // ==========================================
     // 💡 既存のコードを書き換えずに一括で同期させる全自動センサー
     // ==========================================
 
@@ -2425,11 +2451,10 @@ observer.observe(document.querySelector(".widgets"), {
     const memoElement = document.getElementById('simple-memo');
     if (memoElement) {
         memoElement.addEventListener('input', () => {
-            // 入力が終わってから少し間を置いて自動保存（負荷軽減）
             if (window.saveTimeout) clearTimeout(window.saveTimeout);
             window.saveTimeout = setTimeout(() => {
                 window.saveWidgetDataToCloud();
-            }, 1000); // 1秒間入力が止まったらクラウドに送信
+            }, 1000);
         });
     }
 
@@ -2447,7 +2472,6 @@ observer.observe(document.querySelector(".widgets"), {
     const themeBtn = document.getElementById('theme-toggle');
     if (themeBtn) {
         themeBtn.addEventListener('click', () => {
-            // テーマ切り替えの処理（0.1秒後）を待ってから同期
             setTimeout(() => {
                 window.saveWidgetDataToCloud();
             }, 100);
