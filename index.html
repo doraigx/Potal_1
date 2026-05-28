@@ -2223,14 +2223,14 @@ observer.observe(document.querySelector(".widgets"), {
 
     // 同一のFirebase設定
     const firebaseConfig = {
-  apiKey: "AIzaSyBCNywQHj5fXQTm5_9GlM5csQSIjD7hnwE",
-  authDomain: "mypotal.firebaseapp.com",
-  projectId: "mypotal",
-  storageBucket: "mypotal.firebasestorage.app",
-  messagingSenderId: "743769639086",
-  appId: "1:743769639086:web:058ba51de8eeba2e35c53f",
-  measurementId: "G-19BLW978LJ"
-};
+        apiKey: "AIzaSyBCNywQHj5fXQTm5_9GlM5csQSIjD7hnwE",
+        authDomain: "mypotal.firebaseapp.com",
+        projectId: "mypotal",
+        storageBucket: "mypotal.firebasestorage.app",
+        messagingSenderId: "743769639086",
+        appId: "1:743769639086:web:058ba51de8eeba2e35c53f",
+        measurementId: "G-19BLW978LJ"
+    };
 
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
@@ -2247,12 +2247,12 @@ observer.observe(document.querySelector(".widgets"), {
             currentUser = user;
             console.log("ユーザー検証成功:", user.uid);
             
-            // ログイン完了後にユーザー固有のデータをクラウドからロード
+            // ログイン完了後にユーザー固有のすべてのデータをクラウドからロード
             await loadUserDataFromServer(user.uid);
         }
     });
 
-    // クラウドから個人情報をロードしてUIに反映する関数
+    // 📥 クラウドから個人情報・全キャッシュ設定をロードしてUIとLocalStorageに反映する関数
     async function loadUserDataFromServer(uid) {
         try {
             const userDocRef = doc(db, "users", uid);
@@ -2268,6 +2268,7 @@ observer.observe(document.querySelector(".widgets"), {
                         const card = document.getElementById(id);
                         if (card) widgetsContainer.appendChild(card);
                     });
+                    localStorage.setItem("widgetOrder", JSON.stringify(data.widgetOrder));
                 }
 
                 // 2. 簡易メモ帳の復元
@@ -2277,12 +2278,64 @@ observer.observe(document.querySelector(".widgets"), {
                         memoArea.value = data.portalMemo;
                         if (typeof updateCharCount === 'function') updateCharCount();
                     }
+                    localStorage.setItem('portalMemo', data.portalMemo);
                 }
 
-                // 💡 今後、時間割や記念日のカードを自作した際も、ここへ data.timetable などの復元ロジックを追加すれば周りに見られず同期できます
+                // 3. テーマ（ダーク/ライト）の復元
+                if (data.theme) {
+                    localStorage.setItem("theme", data.theme);
+                    if (typeof applyTheme === 'function') {
+                        applyTheme(data.theme);
+                    } else {
+                        document.documentElement.setAttribute("data-theme", data.theme);
+                    }
+                }
+
+                // 4. ヘッダーグラデーション色の復元
+                if (data.portalHeaderColor) {
+                    localStorage.setItem("portalHeaderColor", data.portalHeaderColor);
+                    document.documentElement.style.setProperty('--header-gradient', `linear-gradient(90deg, ${data.portalHeaderColor}, ${data.portalHeaderColor})`);
+                    const picker = document.getElementById('color-picker');
+                    if (picker) picker.value = data.portalHeaderColor;
+                }
+
+                // 5. 自動更新頻度の復元
+                if (data.autoRefreshIdx !== undefined) {
+                    localStorage.setItem('autoRefreshIdx', data.autoRefreshIdx);
+                    const refreshRange = document.getElementById('refresh-range');
+                    if (refreshRange) refreshRange.value = data.autoRefreshIdx;
+                    // グローバルに定義されている自動更新関数を実行
+                    if (typeof setAutoRefresh === 'function') setAutoRefresh(data.autoRefreshIdx);
+                }
+
+                // 6. 文字サイズ設定の復元
+                if (data.userFontSizePercent !== undefined) {
+                    localStorage.setItem('userFontSizePercent', data.userFontSizePercent);
+                    const sizeRange = document.getElementById('font-size-range');
+                    if (sizeRange) sizeRange.value = data.userFontSizePercent;
+                    if (typeof applyFontSize === 'function') applyFontSize(data.userFontSizePercent);
+                }
+
+                // 7. あと何日カウンター（カウントダウンイベント）の復元
+                if (data.portalCountdown) {
+                    localStorage.setItem('portalCountdown', JSON.stringify(data.portalCountdown));
+                    // カウンターモジュールがあれば再描画
+                    if (typeof loadAndRender === 'function') loadAndRender();
+                }
+
+                // 8. 今日の占い・おみくじ・非表示カード情報の復元
+                if (data.horoscopeCache) {
+                    Object.keys(data.horoscopeCache).forEach(key => {
+                        localStorage.setItem(key, data.horoscopeCache[key]);
+                    });
+                }
+                if (data.hiddenCards) {
+                    localStorage.setItem("hiddenCards", JSON.stringify(data.hiddenCards));
+                    if (typeof updateHiddenCardsUI === 'function') updateHiddenCardsUI();
+                }
             }
             
-            // レイアウト再計算（既存のMutationObserver用）
+            // 全体のレイアウト再計算
             if (typeof resizeAllGridItems === 'function') resizeAllGridItems();
             
         } catch (error) {
@@ -2290,29 +2343,74 @@ observer.observe(document.querySelector(".widgets"), {
         }
     }
 
-    // 既存の「編集モード終了（保存）」の処理を上書き・拡張
-    // 既存コードの localStorage.setItem("widgetOrder", ...) の直後に以下を挿入
+    // 📤 アプリ内の変更（並び順・メモ・各種設定）をまとめてクラウドに同期する超強力な関数
     window.saveWidgetDataToCloud = async function() {
         if (!currentUser) return;
         
+        // 保存データの収集
         const widgetsContainer = document.querySelector(".widgets");
         const order = Array.from(widgetsContainer.children).map(el => el.id).filter(Boolean);
         const memoValue = document.getElementById('simple-memo')?.value || "";
+        const themeValue = localStorage.getItem("theme") || "light";
+        const colorValue = localStorage.getItem("portalHeaderColor") || "";
+        const refreshIdx = localStorage.getItem('autoRefreshIdx') || "0";
+        const fontSizePct = localStorage.getItem('userFontSizePercent') || "100";
+        const hiddenList = JSON.parse(localStorage.getItem("hiddenCards") || "[]");
+        
+        let countdownData = null;
+        try {
+            countdownData = JSON.parse(localStorage.getItem('portalCountdown') || '{}');
+        } catch(e){}
+
+        // 今日の占いなど、ローカルストレージにある一時キャッシュ（キー名が特定的なもの）をまとめる
+        const horoscopeCache = {};
+        for (let i = 0; i < localStorage.length; i++) {
+            const key = localStorage.key(i);
+            if (key.startsWith('horoscope_') || key.startsWith('fortune_')) {
+                horoscopeCache[key] = localStorage.getItem(key);
+            }
+        }
 
         try {
-            // Firestoreの「users/{ログインした人のUID}」ドキュメントに保存
+            // Firestoreの「users/{ログインした人のUID}」ドキュメントにすべての環境を統合保存
             await setDoc(doc(db, "users", currentUser.uid), {
                 widgetOrder: order,
                 portalMemo: memoValue,
+                theme: themeValue,
+                portalHeaderColor: colorValue,
+                autoRefreshIdx: parseInt(refreshIdx),
+                userFontSizePercent: parseInt(fontSizePct),
+                portalCountdown: countdownData,
+                hiddenCards: hiddenList,
+                horoscopeCache: horoscopeCache,
                 updatedAt: new Date()
-            }, { merge: true }); // 他のデータを消さないようにマージ
-            console.log("クラウドへの同期完了");
+            }, { merge: true }); // 既存のフィールドを壊さない安全設計
+            console.log("全設定がクラウドへ同期されました");
         } catch (e) {
-            console.error("クラウドへの同期に失敗:", e);
+            console.error("クラウドへの一括同期に失敗:", e);
         }
     };
 
-    // 🔧 詳細設定モーダル等に「ログアウト」ボタンを作りたい場合用の関数
+    // 🚪 ログアウトボタンのクリックイベント制御
+    const logoutBtn = document.getElementById('logout-btn');
+    if (logoutBtn) {
+        logoutBtn.addEventListener('click', async () => {
+            if (confirm("ポータルからログアウトしますか？")) {
+                try {
+                    // クラウドへの最終同期を実行してからログアウト
+                    await window.saveWidgetDataToCloud();
+                    await signOut(auth);
+                    console.log("ログアウト成功");
+                    window.location.href = "./login.html";
+                } catch (error) {
+                    console.error("ログアウトエラー:", error);
+                    alert("ログアウトに失敗しました。");
+                }
+            }
+        });
+    }
+
+    // 古い形式の互換用グローバル関数
     window.logoutPortal = function() {
         signOut(auth).then(() => {
             window.location.href = "./login.html";
