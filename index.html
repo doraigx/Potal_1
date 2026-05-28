@@ -1489,29 +1489,39 @@ body:has(#settings-modal[style*="display: flex"]) button[style*="position: fixed
           <span>オフ</span>
           <span>5分</span>
         </div>
-        <div class="setting-item-column">
-  <div class="setting-label">
-    <span>文字サイズ（カード内）</span>
-    <span id="font-size-value">100%</span>
-  </div>
-  <input type="range" id="font-size-range" min="80" max="100" step="5" value="100">
-  <div class="range-labels">
-    <span>小さめ</span>
-    <span>大きめ</span>
-  </div>
-</div>
-        <div class="modal-body">
-  <div class="setting-item-column" style="border-bottom: none; margin-top: 10px;">
-    <div style="text-align: center; opacity: 0.9;">
-      <p style="font-size: 0.75rem; color: #888; margin-bottom: 8px; line-height: 1.4;">
-        アプリの調子が悪い時やデータを消したい時に
-      </p>
-      <button id="factory-reset-btn" style="background: #ff4444; color: white; border: none; padding: 10px 16px; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 0.85rem; width: 100%;">
-        ⚠️ 初期設定に戻す
-      </button>
-    </div>
-  </div>
-</div>
+      </div>
+
+      <div class="setting-item-column">
+        <div class="setting-label">
+          <span>文字サイズ（カード内）</span>
+          <span id="font-size-value">100%</span>
+        </div>
+        <input type="range" id="font-size-range" min="80" max="100" step="5" value="100">
+        <div class="range-labels">
+          <span>小さめ</span>
+          <span>大きめ</span>
+        </div>
+      </div>
+
+      <div class="modal-body">
+        <div class="setting-item-column" style="border-bottom: none; margin-top: 10px; gap: 10px;">
+          
+          <button id="logout-btn" style="background: #ff5722; color: white; border: none; padding: 10px 16px; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 0.85rem; width: 100%;">
+            🚪 ログアウトする
+          </button>
+
+          <div style="text-align: center; opacity: 0.9; margin-top: 5px;">
+            <p style="font-size: 0.75rem; color: #888; margin-bottom: 8px; line-height: 1.4;">
+              アプリの調子が悪い時やデータを消したい時に
+            </p>
+            <button id="factory-reset-btn" style="background: #ff4444; color: white; border: none; padding: 10px 16px; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 0.85rem; width: 100%;">
+              ⚠️ 初期設定に戻す
+            </button>
+          </div>
+
+        </div>
+      </div>
+      
       </div>
     </div>
   </div>
