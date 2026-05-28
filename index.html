@@ -2437,32 +2437,17 @@ observer.observe(document.querySelector(".widgets"), {
                 // 【ログイン済みの人】 ➡️ 最終同期をして安全にログアウト ＆ ローカル完全初期化
                 if (confirm("ポータルからログアウトしますか？\n（この端末に保存されているメモや設定もすべて初期化されます）")) {
                     try {
-                        await window.saveWidgetDataToCloud();
+                        // 1. サインアウト通信を完全に完了させる
                         await signOut(auth);
                         console.log("ログアウト成功");
 
-                        // 🚨 ローカルのキャッシュ（LocalStorage）をすべて完全消去
+                        // 2. 🚨 メモリ書き戻しを防ぐため、通信完了後にLocalStorageを完全クリア
                         localStorage.clear();
 
-                        // 表示の見た目を初期状態に強制リセット
-                        const refreshRange = document.getElementById('refresh-range');
-                        const refreshValue = document.getElementById('refresh-value');
-                        const fontSizeRange = document.getElementById('font-size-range');
-                        const fontSizeValue = document.getElementById('font-size-value');
-                        const memoArea = document.getElementById('simple-memo');
-
-                        if (refreshRange) refreshRange.value = 0;
-                        if (refreshValue) refreshValue.textContent = "オフ";
-                        if (fontSizeRange) fontSizeRange.value = 100;
-                        if (fontSizeValue) fontSizeValue.textContent = "100%";
-                        if (memoArea) memoArea.value = "";
-                        
-                        if (typeof refreshTimer !== 'undefined' && refreshTimer) {
-                            clearInterval(refreshTimer);
-                        }
-
                         alert("ログアウトしました。ローカルデータを初期化します。");
-                        window.location.href = "./login.html";
+
+                        // 3. 🚨 履歴を上書きし、全スクリプトの実行を完全停止させて強制遷移
+                        window.location.replace("./login.html");
                     } catch (error) {
                         console.error("ログアウトエラー:", error);
                         alert("ログアウトに失敗しました。");
@@ -2478,9 +2463,9 @@ observer.observe(document.querySelector(".widgets"), {
     // 古い形式の互換用グローバル関数
     window.logoutPortal = function() {
         sessionStorage.removeItem('skipLogin');
-        localStorage.clear(); // 互換用関数でもクリアを実行
+        localStorage.clear();
         signOut(auth).then(() => {
-            window.location.href = "./login.html";
+            window.location.replace("./login.html");
         });
     };
 
