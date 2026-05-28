@@ -2507,6 +2507,55 @@ observer.observe(document.querySelector(".widgets"), {
             });
         }
     });
+  // ==========================================
+    // 💡 遅れて読み込まれるカード（天気・地震等）の非表示バグを修正するセンサー
+    // ==========================================
+    
+    // ページ読み込み完了時、およびデータロード後に非表示状態を強制適用する関数
+    window.enforceHiddenCards = function() {
+        try {
+            const hiddenCards = JSON.parse(localStorage.getItem("hiddenCards") || "[]");
+            hiddenCards.forEach(id => {
+                const card = document.getElementById(id);
+                if (card) {
+                    card.style.display = "none";
+                }
+            });
+        } catch(e) {
+            console.error("非表示の強制適用に失敗:", e);
+        }
+    };
+
+    // 1. 各種API通信（天気・地震・猫・トレンド）が完了するだろうタイミングを見計らって複数回実行
+    // (通信ラグを考慮して、起動直後から数秒間定期的に非表示を上書きします)
+    [100, 500, 1000, 2000, 3000, 5000].forEach(delay => {
+        setTimeout(() => {
+            window.enforceHiddenCards();
+            if (typeof resizeAllGridItems === 'function') resizeAllGridItems();
+        }, delay);
+    });
+
+    // 2. 既存の「追加（再表示）」ボタンや「非表示」ボタンが押されたときも、最新の非表示リストをクラウドに同期する
+    document.addEventListener('click', (e) => {
+        // 非表示ボタン（.edit-delete）または追加モーダル内のボタンが押された形跡がある場合
+        if (e.target.classList.contains('edit-delete') || e.target.innerText === '追加' || e.target.id === 'cnt-save') {
+            setTimeout(() => {
+                window.enforceHiddenCards();
+                window.saveWidgetDataToCloud();
+            }, 300);
+        }
+    });
+
+    // 3. 編集モードボタン自体にもフックをかける
+    const editBtnElement = document.getElementById("edit-btn");
+    if (editBtnElement) {
+        editBtnElement.addEventListener("click", () => {
+            // 編集モードを終了した瞬間に最新の非表示状態をクラウドに送信
+            setTimeout(() => {
+                window.saveWidgetDataToCloud();
+            }, 200);
+        });
+    }
 </script>
 
   <script>
