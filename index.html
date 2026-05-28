@@ -2205,6 +2205,110 @@ observer.observe(document.querySelector(".widgets"), {
 });
 </script>
 
+<!--アカウントスクリプ-->
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+    import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+    import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+    // 同一のFirebase設定
+    const firebaseConfig = {
+        apiKey: "YOUR_API_KEY",
+        authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
+        projectId: "YOUR_PROJECT_ID",
+        storageBucket: "YOUR_PROJECT_ID.appspot.com",
+        messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
+        appId: "YOUR_APP_ID"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+
+    let currentUser = null;
+
+    // 🔒 認証状態の監視（最優先で実行）
+    onAuthStateChanged(auth, async (user) => {
+        if (!user) {
+            // ログインしていない場合はログインページへ強制送還
+            window.location.href = "./login.html";
+        } else {
+            currentUser = user;
+            console.log("ユーザー検証成功:", user.uid);
+            
+            // ログイン完了後にユーザー固有のデータをクラウドからロード
+            await loadUserDataFromServer(user.uid);
+        }
+    });
+
+    // クラウドから個人情報をロードしてUIに反映する関数
+    async function loadUserDataFromServer(uid) {
+        try {
+            const userDocRef = doc(db, "users", uid);
+            const docSnap = await getDoc(userDocRef);
+
+            if (docSnap.exists()) {
+                const data = docSnap.data();
+
+                // 1. カードの並び順を復元
+                if (data.widgetOrder) {
+                    const widgetsContainer = document.querySelector(".widgets");
+                    data.widgetOrder.forEach(id => {
+                        const card = document.getElementById(id);
+                        if (card) widgetsContainer.appendChild(card);
+                    });
+                }
+
+                // 2. 簡易メモ帳の復元
+                if (data.portalMemo !== undefined) {
+                    const memoArea = document.getElementById('simple-memo');
+                    if (memoArea) {
+                        memoArea.value = data.portalMemo;
+                        if (typeof updateCharCount === 'function') updateCharCount();
+                    }
+                }
+
+                // 💡 今後、時間割や記念日のカードを自作した際も、ここへ data.timetable などの復元ロジックを追加すれば周りに見られず同期できます
+            }
+            
+            // レイアウト再計算（既存のMutationObserver用）
+            if (typeof resizeAllGridItems === 'function') resizeAllGridItems();
+            
+        } catch (error) {
+            console.error("データロード失敗:", error);
+        }
+    }
+
+    // 既存の「編集モード終了（保存）」の処理を上書き・拡張
+    // 既存コードの localStorage.setItem("widgetOrder", ...) の直後に以下を挿入
+    window.saveWidgetDataToCloud = async function() {
+        if (!currentUser) return;
+        
+        const widgetsContainer = document.querySelector(".widgets");
+        const order = Array.from(widgetsContainer.children).map(el => el.id).filter(Boolean);
+        const memoValue = document.getElementById('simple-memo')?.value || "";
+
+        try {
+            // Firestoreの「users/{ログインした人のUID}」ドキュメントに保存
+            await setDoc(doc(db, "users", currentUser.uid), {
+                widgetOrder: order,
+                portalMemo: memoValue,
+                updatedAt: new Date()
+            }, { merge: true }); // 他のデータを消さないようにマージ
+            console.log("クラウドへの同期完了");
+        } catch (e) {
+            console.error("クラウドへの同期に失敗:", e);
+        }
+    };
+
+    // 🔧 詳細設定モーダル等に「ログアウト」ボタンを作りたい場合用の関数
+    window.logoutPortal = function() {
+        signOut(auth).then(() => {
+            window.location.href = "./login.html";
+        });
+    };
+</script>
+
   <script>
     async function fetchWeather() {
       const container = document.getElementById('weather');
