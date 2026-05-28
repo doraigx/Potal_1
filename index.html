@@ -2335,10 +2335,29 @@ observer.observe(document.querySelector(".widgets"), {
                 }
 
                 // 7. あと何日カウンター（カウントダウンイベント）の復元
-                if (data.portalCountdown) {
-                    localStorage.setItem('portalCountdown', JSON.stringify(data.portalCountdown));
-                    if (typeof loadAndRender === 'function') loadAndRender();
-                }
+if (data.portalCountdown) {
+    localStorage.setItem('portalCountdown', JSON.stringify(data.portalCountdown));
+    
+    // 💡 修正：インプット欄に直接文字を流し込み、ボタンをクリックさせて無理やり画面を更新する
+    const nameInput = document.getElementById('cnt-name');
+    const dateInput = document.getElementById('cnt-date');
+    const saveBtn = document.getElementById('cnt-save');
+    
+    if (nameInput && data.portalCountdown.name) nameInput.value = data.portalCountdown.name;
+    if (dateInput && data.portalCountdown.date) dateInput.value = data.portalCountdown.date;
+    
+    // カウンターの保存処理（内部の計算と画面の書き換え）を強制実行
+    if (saveBtn) {
+        // 設定エリアが開きっぱなしになるのを防ぐため、一瞬だけクリックイベントをトリガー
+        saveBtn.click();
+        
+        // 💡 編集モード以外なら設定エリアを自動的に閉じる
+        const settingsArea = document.getElementById('cnt-settings');
+        if (settingsArea && (typeof editMode === 'undefined' || !editMode)) {
+            settingsArea.style.display = 'none';
+        }
+    }
+}
 
                 // 8. 今日の占い・おみくじ・非表示カード情報の復元
                 if (data.horoscopeCache) {
