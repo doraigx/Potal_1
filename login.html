@@ -24,8 +24,13 @@
             text-align: center;
             max-width: 360px;
             width: 90%;
+            display: flex;
+            flex-direction: column;
+            gap: 12px; /* ボタン同士の隙間 */
         }
-        h2 { margin-bottom: 20px; font-size: 1.5rem; }
+        h2 { margin-bottom: 10px; font-size: 1.5rem; }
+        p { color: #aaa; font-size: 0.9rem; margin-bottom: 20px; line-height: 1.4; }
+        
         .btn-google {
             background: #ffffff;
             color: #000000;
@@ -37,39 +42,62 @@
             font-size: 1rem;
             display: inline-flex;
             align-items: center;
+            justify-content: center;
             gap: 10px;
             transition: 0.2s;
         }
         .btn-google:hover { background: #e5e5e5; }
-        .error-msg { color: #ff4444; margin-top: 15px; font-size: 0.9rem; }
+
+        /* 💡 新設：アカウントなしで続けるボタンのスタイル */
+        .btn-guest {
+            background: rgba(255, 255, 255, 0.1);
+            color: #ffffff;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-weight: bold;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: 0.2s;
+        }
+        .btn-guest:hover { 
+            background: rgba(255, 255, 255, 0.2); 
+            border-color: #ffffff;
+        }
+
+        .error-msg { color: #ff4444; margin-top: 5px; font-size: 0.9rem; }
     </style>
 </head>
 <body>
 
 <div class="login-card">
     <h2>Portal へログイン</h2>
-    <p style="color: #aaa; font-size: 0.9rem; margin-bottom: 30px;">時間割や記念日などの個人情報を同期するため、Googleアカウントでログインしてください。</p>
+    <p>時間割や記念日などの個人情報を同期するため、Googleアカウントでログインしてください。</p>
+    
     <button class="btn-google" id="login-btn">
         Googleアカウントでログイン
     </button>
+
+    <button class="btn-guest" id="guest-btn">
+        アカウントなしで続ける (端末内保存)
+    </button>
+
     <div id="error" class="error-msg"></div>
 </div>
 
 <script type="module">
-    // Firebase SDKのインポート
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
     import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 
-    // 💡 あなたのFirebaseプロジェクトのコンソールからコピーした設定に置き換えてください
-   const firebaseConfig = {
-  apiKey: "AIzaSyBCNywQHj5fXQTm5_9GlM5csQSIjD7hnwE",
-  authDomain: "mypotal.firebaseapp.com",
-  projectId: "mypotal",
-  storageBucket: "mypotal.firebasestorage.app",
-  messagingSenderId: "743769639086",
-  appId: "1:743769639086:web:058ba51de8eeba2e35c53f",
-  measurementId: "G-19BLW978LJ"
-};
+    const firebaseConfig = {
+        apiKey: "AIzaSyBCNywQHj5fXQTm5_9GlM5csQSIjD7hnwE",
+        authDomain: "mypotal.firebaseapp.com",
+        projectId: "mypotal",
+        storageBucket: "mypotal.firebasestorage.app",
+        messagingSenderId: "743769639086",
+        appId: "1:743769639086:web:058ba51de8eeba2e35c53f",
+        measurementId: "G-19BLW978LJ"
+    };
 
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
@@ -77,20 +105,30 @@
 
     // すでにログイン済みなら自動でインデックスへリダイレクト
     onAuthStateChanged(auth, (user) => {
-        if (user) {
+        // 💡 セッションストレージに「ゲストとして進んだ旗」がない場合のみ、自動リダイレクトを行う
+        if (user && !sessionStorage.getItem('skipLogin')) {
             window.location.href = "./index.html";
         }
     });
 
-    // ログインボタンのイベントリスナー
+    // Googleログインボタン
     document.getElementById("login-btn").addEventListener("click", async () => {
         try {
+            // ログインする時は「スキップの旗」を消す
+            sessionStorage.removeItem('skipLogin');
             await signInWithPopup(auth, provider);
-            // 成功すれば上の onAuthStateChanged が検知してリダイレクトされます
         } catch (error) {
             console.error(error);
             document.getElementById("error").textContent = "ログインに失敗しました。";
         }
+    });
+
+    // 💡 新設：アカウントなしで続けるボタンのイベント
+    document.getElementById("guest-btn").addEventListener("click", () => {
+        // 「このセッション中はログインをスキップする」という目印（旗）をブラウザに立てる
+        sessionStorage.setItem('skipLogin', 'true');
+        // そのままポータル本体へ移動
+        window.location.href = "./index.html";
     });
 </script>
 </body>
