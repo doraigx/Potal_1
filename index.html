@@ -2335,29 +2335,28 @@ observer.observe(document.querySelector(".widgets"), {
                 }
 
                 // 7. あと何日カウンター（カウントダウンイベント）の復元
-if (data.portalCountdown) {
-    localStorage.setItem('portalCountdown', JSON.stringify(data.portalCountdown));
-    
-    // 💡 修正：インプット欄に直接文字を流し込み、ボタンをクリックさせて無理やり画面を更新する
-    const nameInput = document.getElementById('cnt-name');
-    const dateInput = document.getElementById('cnt-date');
-    const saveBtn = document.getElementById('cnt-save');
-    
-    if (nameInput && data.portalCountdown.name) nameInput.value = data.portalCountdown.name;
-    if (dateInput && data.portalCountdown.date) dateInput.value = data.portalCountdown.date;
-    
-    // カウンターの保存処理（内部の計算と画面の書き換え）を強制実行
-    if (saveBtn) {
-        // 設定エリアが開きっぱなしになるのを防ぐため、一瞬だけクリックイベントをトリガー
-        saveBtn.click();
-        
-        // 💡 編集モード以外なら設定エリアを自動的に閉じる
-        const settingsArea = document.getElementById('cnt-settings');
-        if (settingsArea && (typeof editMode === 'undefined' || !editMode)) {
-            settingsArea.style.display = 'none';
-        }
-    }
-}
+                if (data.portalCountdown) {
+                    localStorage.setItem('portalCountdown', JSON.stringify(data.portalCountdown));
+                    
+                    // 💡 インプット欄に直接文字を流し込み、ボタンをクリックさせて無理やり画面を更新する
+                    const nameInput = document.getElementById('cnt-name');
+                    const dateInput = document.getElementById('cnt-date');
+                    const saveBtn = document.getElementById('cnt-save');
+                    
+                    if (nameInput && data.portalCountdown.name) nameInput.value = data.portalCountdown.name;
+                    if (dateInput && data.portalCountdown.date) dateInput.value = data.portalCountdown.date;
+                    
+                    // カウンターの保存処理（内部の計算と画面の書き換え）を強制実行
+                    if (saveBtn) {
+                        saveBtn.click();
+                        
+                        // 💡 編集モード以外なら設定エリアを自動的に閉じる
+                        const settingsArea = document.getElementById('cnt-settings');
+                        if (settingsArea && (typeof editMode === 'undefined' || !editMode)) {
+                            settingsArea.style.display = 'none';
+                        }
+                    }
+                }
 
                 // 8. 今日の占い・おみくじ・非表示カード情報の復元
                 if (data.horoscopeCache) {
@@ -2435,12 +2434,34 @@ if (data.portalCountdown) {
             sessionStorage.removeItem('skipLogin');
 
             if (currentUser) {
-                // 【ログイン済みの人】 ➡️ 最終同期をして安全にログアウト
-                if (confirm("ポータルからログアウトしますか？")) {
+                // 【ログイン済みの人】 ➡️ 最終同期をして安全にログアウト ＆ ローカル完全初期化
+                if (confirm("ポータルからログアウトしますか？\n（この端末に保存されているメモや設定もすべて初期化されます）")) {
                     try {
                         await window.saveWidgetDataToCloud();
                         await signOut(auth);
                         console.log("ログアウト成功");
+
+                        // 🚨 ローカルのキャッシュ（LocalStorage）をすべて完全消去
+                        localStorage.clear();
+
+                        // 表示の見た目を初期状態に強制リセット
+                        const refreshRange = document.getElementById('refresh-range');
+                        const refreshValue = document.getElementById('refresh-value');
+                        const fontSizeRange = document.getElementById('font-size-range');
+                        const fontSizeValue = document.getElementById('font-size-value');
+                        const memoArea = document.getElementById('simple-memo');
+
+                        if (refreshRange) refreshRange.value = 0;
+                        if (refreshValue) refreshValue.textContent = "オフ";
+                        if (fontSizeRange) fontSizeRange.value = 100;
+                        if (fontSizeValue) fontSizeValue.textContent = "100%";
+                        if (memoArea) memoArea.value = "";
+                        
+                        if (typeof refreshTimer !== 'undefined' && refreshTimer) {
+                            clearInterval(refreshTimer);
+                        }
+
+                        alert("ログアウトしました。ローカルデータを初期化します。");
                         window.location.href = "./login.html";
                     } catch (error) {
                         console.error("ログアウトエラー:", error);
@@ -2457,6 +2478,7 @@ if (data.portalCountdown) {
     // 古い形式の互換用グローバル関数
     window.logoutPortal = function() {
         sessionStorage.removeItem('skipLogin');
+        localStorage.clear(); // 互換用関数でもクリアを実行
         signOut(auth).then(() => {
             window.location.href = "./login.html";
         });
@@ -2526,7 +2548,8 @@ if (data.portalCountdown) {
             });
         }
     });
-  // ==========================================
+
+    // ==========================================
     // 💡 遅れて読み込まれるカード（天気・地震等）の非表示バグを修正するセンサー
     // ==========================================
     
@@ -2546,7 +2569,6 @@ if (data.portalCountdown) {
     };
 
     // 1. 各種API通信（天気・地震・猫・トレンド）が完了するだろうタイミングを見計らって複数回実行
-    // (通信ラグを考慮して、起動直後から数秒間定期的に非表示を上書きします)
     [100, 500, 1000, 2000, 3000, 5000].forEach(delay => {
         setTimeout(() => {
             window.enforceHiddenCards();
@@ -2556,7 +2578,6 @@ if (data.portalCountdown) {
 
     // 2. 既存の「追加（再表示）」ボタンや「非表示」ボタンが押されたときも、最新の非表示リストをクラウドに同期する
     document.addEventListener('click', (e) => {
-        // 非表示ボタン（.edit-delete）または追加モーダル内のボタンが押された形跡がある場合
         if (e.target.classList.contains('edit-delete') || e.target.innerText === '追加' || e.target.id === 'cnt-save') {
             setTimeout(() => {
                 window.enforceHiddenCards();
@@ -2569,7 +2590,6 @@ if (data.portalCountdown) {
     const editBtnElement = document.getElementById("edit-btn");
     if (editBtnElement) {
         editBtnElement.addEventListener("click", () => {
-            // 編集モードを終了した瞬間に最新の非表示状態をクラウドに送信
             setTimeout(() => {
                 window.saveWidgetDataToCloud();
             }, 200);
