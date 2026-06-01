@@ -4014,8 +4014,6 @@ window.addEventListener('click', (e) => {
 </Script>
 
 <script>
-  //自動更新
-  // --- 【修正版】自動更新ロジック ---
   (function() {
   const refreshRange = document.getElementById('refresh-range');
   const refreshValue = document.getElementById('refresh-value');
@@ -4035,7 +4033,6 @@ window.addEventListener('click', (e) => {
   ];
 
   function setAutoRefresh(index) {
-    // 💡 ガード：インデックスが不正な場合は強制的に「オフ(0)」にする
     if (index === null || index === undefined || isNaN(index) || index < 0 || index >= refreshIntervals.length) {
       index = 0;
     }
@@ -4046,10 +4043,9 @@ window.addEventListener('click', (e) => {
 
     if (refreshValue) refreshValue.textContent = config.label;
 
-    // 💡 厳格なガード：秒数が本当に0より大きい時だけタイマーをセットする
     if (config.sec && config.sec > 0) {
       refreshTimer = setInterval(() => {
-        // 認証セッションの切断を防ぐため、安全にリロード
+        // 認証セッションの切断を防ぐため、リロード
         window.location.reload();
       }, config.sec * 1000);
     }
@@ -4062,8 +4058,7 @@ window.addEventListener('click', (e) => {
       setAutoRefresh(parseInt(e.target.value));
     });
   }
-
-  // 💡 windowの'load'ではなく、ドキュメントの準備ができたタイミングで安全に復元
+    
   document.addEventListener('DOMContentLoaded', () => {
     const savedIdx = localStorage.getItem('autoRefreshIdx');
     if (savedIdx !== null) {
@@ -4071,7 +4066,7 @@ window.addEventListener('click', (e) => {
       if (refreshRange) refreshRange.value = idx;
       setAutoRefresh(idx);
     } else {
-      setAutoRefresh(0); // 初期値は安全に「オフ」
+      setAutoRefresh(0); // 初期値
     }
   });
 })();
