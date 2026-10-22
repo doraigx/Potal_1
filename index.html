@@ -100,12 +100,12 @@
     }
 
     /* =====================================================
-       ★ Androidホームランチャー風 2次元グリッドシステム（偶数高さ統一版）
+       ★ Androidホームランチャー風 2次元グリッド（1マス単位ジャストフィット版）
     ===================================================== */
     .widgets {
       display: grid;
       grid-template-columns: repeat(var(--grid-cols, 4), minmax(0, 1fr));
-      grid-auto-rows: 80px; /* 1マスの縦基準サイズ (2マス=176px, 4マス=368px, 6マス=560px) */
+      grid-auto-rows: 64px; /* 1マスの縦基準サイズ（64px単位できめ細かくフィット） */
       gap: 16px;
       width: 100%;
       margin: 0 auto;
@@ -148,12 +148,12 @@
 
     .widgets .card {
       width: 100%;
-      /* ★ 偶数マス（2・4・6）の高さにカードの見た目をピタッと100%揃える */
+      /* ★ 割り当てられたグリッド枠に100%ピタッと合わせる */
       height: 100%;
       margin: 0;
       background: var(--card-bg);
       border-radius: 12px;
-      padding: 20px;
+      padding: 18px 20px;
       box-shadow: 0 2px 6px var(--card-shadow);
       box-sizing: border-box;
       transition: transform 0.25s ease, box-shadow 0.25s ease;
@@ -167,21 +167,21 @@
 
     .widgets .card h2 {
       margin-top: 0;
-      margin-bottom: 0.75rem;
+      margin-bottom: 0.6rem;
       flex-shrink: 0;
     }
 
-    /* 編集モード時に現在のマス数（2・4・6など）がわかるバッジ表示 */
+    /* 編集モード時に現在のマス数がわかるバッジ表示 */
     .size-badge {
       position: absolute;
-      bottom: 8px;
+      bottom: 6px;
       right: 10px;
       background: rgba(33, 150, 243, 0.15);
       color: var(--link-color);
       border: 1px solid rgba(33, 150, 243, 0.4);
       font-size: 11px;
       font-weight: bold;
-      padding: 2px 8px;
+      padding: 1px 7px;
       border-radius: 12px;
       pointer-events: none;
       z-index: 10;
@@ -695,12 +695,12 @@
     }
 
     #sun-card h2 {
-      margin-bottom: 0.5rem;
+      margin-bottom: 0.4rem;
     }
 
     #sun-info {
-      font-size: 1.05rem;
-      line-height: 1.8;
+      font-size: 1rem;
+      line-height: 1.6;
     }
 
     .Fort-btn {
@@ -721,7 +721,7 @@
     }
 
     #fortune-card p {
-      margin: 8px 0;
+      margin: 6px 0 10px;
       font-size: 1.05em;
       font-weight: bold;
     }
@@ -848,7 +848,7 @@
 
     .cat-frame {
       width: 100%;
-      height: 210px;
+      height: 200px;
       background: rgba(0, 0, 0, 0.05);
       border-radius: 8px;
       overflow: hidden;
@@ -856,7 +856,6 @@
       align-items: center;
       justify-content: center;
       position: relative;
-      flex-grow: 1;
     }
 
     .cat-loading {
@@ -1633,13 +1632,12 @@
         <h2>簡易メモ帳</h2>
         <textarea id="simple-memo" placeholder="ここにメモを入力... (自動保存されます)" style="
           width: 100%;
-          flex-grow: 1;
-          min-height: 140px;
+          height: 120px;
           padding: 10px;
           box-sizing: border-box;
           border-radius: 8px;
           border: 1px solid #ccc;
-          resize: none;
+          resize: vertical;
           background: var(--bg-color);
           color: var(--text-color);
           font-family: inherit;
@@ -1762,7 +1760,7 @@
   </script>
 
   <!-- ========================================================
-       ★ Androidホームランチャー型 2次元グリッドシステム（偶数マス統一版）
+       ★ Androidホームランチャー型 2次元グリッドシステム（1マス単位ジャストフィット版）
   ======================================================== -->
   <script>
     let editMode = false;
@@ -1772,26 +1770,8 @@
 
     const hiddenCardsKey = "hiddenCards";
     const GRID_POS_KEY = "widgetGridPositions";
-    const CELL_HEIGHT = 80; // 1マスの縦幅(px) -> 2マス=176px, 4マス=368px, 6マス=560px
+    const CELL_HEIGHT = 64; // 1マスの縦幅(px) -> 余白が出すぎない細やかな64px単位
     const CELL_GAP = 16;    // マス同士の隙間(px)
-
-    // 各カードのデフォルト最小偶数サイズ（2, 4, 6）
-    const DEFAULT_EVEN_SPANS = {
-      "campus-sites-card": 2,
-      "sun-card": 2,
-      "fortune-card": 2,
-      "horoscope-card": 2,
-      "kawase-card": 2,
-      "app-download-card": 2,
-      "countdown-card": 2,
-      "memo-card": 4,
-      "cat-card": 4,
-      "calendar-card": 4,
-      "news-card": 6,
-      "trend-card": 6,
-      "weather-card": 6,
-      "eq-card": 6
-    };
 
     // 現在の画面幅に応じたグリッド列数を計算（スマホは1列、タブレット・PCは2〜5列）
     function getGridCols() {
@@ -1812,25 +1792,18 @@
       localStorage.setItem(GRID_POS_KEY, JSON.stringify(pos));
     }
 
-    // ★ カードの高さが何マス分かを計測し、必ず「2・4・6…」の偶数マスに統一して返す
+    // ★ カードの実寸高さを測り、1マス単位（1, 2, 3, 4, 5...）で無駄なくグリッドに合わせる
     function calcCardSpan(card) {
-      if (!card || card.style.display === "none") return 2;
+      if (!card || card.style.display === "none") return 1;
 
-      // 実際の中身の高さを正確に測るため、一瞬だけ height: auto にする
+      // 一瞬だけ height: auto にしてコンテンツ本来の高さを正確に取得
       const prevHeight = card.style.height;
       card.style.height = "auto";
-      const h = card.scrollHeight || card.getBoundingClientRect().height || 150;
+      const h = card.offsetHeight || card.getBoundingClientRect().height || 100;
       card.style.height = prevHeight;
 
-      // 必要な生マス数を計算（少し余裕を持たせるため -8px 許容）
-      const rawSpan = Math.max(1, Math.ceil((h - 8 + CELL_GAP) / (CELL_HEIGHT + CELL_GAP)));
-
-      // ★ 必ず偶数（2, 4, 6, 8...）に切り上げる
-      let evenSpan = Math.max(2, Math.ceil(rawSpan / 2) * 2);
-
-      // カードごとの基本サイズより小さくならないように保証
-      const minDefault = DEFAULT_EVEN_SPANS[card.id] || 2;
-      return Math.max(evenSpan, minDefault);
+      // 1マス単位でジャストフィットするマス数を算出（数ピクセルのはみ出しで1マス増えないよう -6px 許容）
+      return Math.max(1, Math.ceil((h - 6 + CELL_GAP) / (CELL_HEIGHT + CELL_GAP)));
     }
 
     // 特定のマス領域が空いているかチェック
@@ -1854,8 +1827,7 @@
       widgets.querySelectorAll(".grid-cell-guide").forEach(el => el.remove());
       if (!editMode || cols <= 1) return;
 
-      // 偶数単位で綺麗に並ぶよう、ガイド行数も偶数に揃える
-      const totalRows = Math.ceil(Math.max(maxRow + 4, 12) / 2) * 2;
+      const totalRows = Math.max(maxRow + 4, 14);
       const frag = document.createDocumentFragment();
       for (let r = 1; r <= totalRows; r++) {
         for (let c = 1; c <= cols; c++) {
@@ -1869,7 +1841,7 @@
       widgets.appendChild(frag);
     }
 
-    // ★ メインの2Dグリッド配置計算関数（2, 4, 6 偶数スナップ対応）
+    // ★ メインの2Dグリッド配置計算関数（1マス単位でピタッと配置）
     function applyGridLayout(prioritizeCardId = null) {
       if (!widgets) return;
       isResizing = true;
@@ -1892,7 +1864,7 @@
 
       const posData = getSavedPositions();
       const occupied = {};
-      let maxRowUsed = 2;
+      let maxRowUsed = 1;
 
       // ドロップ直後のカードがあれば最優先でその座標を確保する
       const sortedCards = [...cards];
@@ -1903,12 +1875,12 @@
       const pendingCards = [];
 
       sortedCards.forEach(card => {
-        const span = calcCardSpan(card); // 必ず 2, 4, 6...
+        const span = calcCardSpan(card);
         card.dataset.span = span;
 
         // 編集モード中のサイズバッジ更新
         const badge = card.querySelector(".size-badge");
-        if (badge) badge.textContent = `高さ: ${span}マス`;
+        if (badge) badge.textContent = `${span}マス`;
 
         const saved = posData[card.id];
 
@@ -1937,10 +1909,9 @@
         const { card, span, prefCol, prefRow } = item;
         let placed = false;
 
-        // 1. 元の希望列の近く（奇数行スタート＝2マス単位の境界）から優先して探す
+        // 1. 希望列の近くから探す
         if (prefCol) {
-          const startOddRow = prefRow % 2 === 0 ? prefRow - 1 : prefRow;
-          for (let r = Math.max(1, startOddRow); r < 150 && !placed; r++) {
+          for (let r = prefRow; r < 200 && !placed; r++) {
             if (isAreaFree(occupied, prefCol, r, span, cols)) {
               markOccupied(occupied, prefCol, r, span, card.id);
               card.style.gridColumn = `${prefCol} / span 1`;
@@ -1952,22 +1923,8 @@
           }
         }
 
-        // 2. 左上から2マス単位の境界（1, 3, 5, 7行目...）で綺麗に揃う場所を探す
-        for (let r = 1; r < 150 && !placed; r += 2) {
-          for (let c = 1; c <= cols && !placed; c++) {
-            if (isAreaFree(occupied, c, r, span, cols)) {
-              markOccupied(occupied, c, r, span, card.id);
-              card.style.gridColumn = `${c} / span 1`;
-              card.style.gridRow = `${r} / span ${span}`;
-              posData[card.id] = { col: c, row: r };
-              maxRowUsed = Math.max(maxRowUsed, r + span - 1);
-              placed = true;
-            }
-          }
-        }
-
-        // 3. 万が一見つからなければ1行単位で空いている場所を探す
-        for (let r = 1; r < 150 && !placed; r++) {
+        // 2. 左上から1マス単位で最も浅い空きスペースを探す
+        for (let r = 1; r < 200 && !placed; r++) {
           for (let c = 1; c <= cols && !placed; c++) {
             if (isAreaFree(occupied, c, r, span, cols)) {
               markOccupied(occupied, c, r, span, card.id);
@@ -2094,7 +2051,7 @@
           if (!card.querySelector(".size-badge")) {
             const badge = document.createElement("span");
             badge.className = "size-badge";
-            badge.textContent = `高さ: ${card.dataset.span || 2}マス`;
+            badge.textContent = `${card.dataset.span || 1}マス`;
             card.appendChild(badge);
           }
         } else {
@@ -2228,7 +2185,7 @@
         const item = document.createElement("div");
         item.style.cssText = "display:flex;align-items:center;justify-content:space-between;padding:6px 8px;border:1px solid #ccc;border-radius:6px;";
         item.dataset.id = card.id;
-        item.innerHTML = `<span>${cardTitle || card.id} <small style="opacity:0.6;">(${card.dataset.span || 2}マス)</small></span>
+        item.innerHTML = `<span>${cardTitle || card.id} <small style="opacity:0.6;">(${card.dataset.span || 1}マス)</small></span>
                           <div><button class="up" style="cursor:pointer;padding:2px 8px;">↑</button> <button class="down" style="cursor:pointer;padding:2px 8px;">↓</button></div>`;
 
         item.querySelector(".up").onclick = () => {
@@ -3073,6 +3030,7 @@
         if (data && data.rates && data.rates[to]) {
           const result = amt * data.rates[to];
           document.getElementById('currency-result').textContent = `${amt} ${from} = ${result.toFixed(2)} ${to}`;
+          if (typeof resizeGridItem === 'function') resizeGridItem(document.getElementById('kawase-card'));
         } else {
           document.getElementById('currency-result').textContent = '換算できませんでした';
         }
@@ -3637,6 +3595,7 @@
         localStorage.setItem(storageKey, msg);
       }
       el.textContent = `${select.options[select.selectedIndex].text} — ${msg}`;
+      if (typeof resizeGridItem === 'function') resizeGridItem(document.getElementById('horoscope-card'));
     }
 
     document.getElementById('draw-horoscope').addEventListener('click', drawHoroscope);
@@ -3678,6 +3637,7 @@
             ☀️ 日の出：<strong>${sunriseTime}</strong><br>
             🌇 日の入：<strong>${sunsetTime}</strong>
           `;
+        if (typeof resizeGridItem === 'function') resizeGridItem(document.getElementById('sun-card'));
       } catch (err) {
         console.error(err);
         sunInfo.textContent = "日の出・日の入の取得に失敗しました。";
@@ -3759,6 +3719,7 @@
         resultEl.style.textShadow = "none";
         resultEl.style.transform = "scale(1.0)";
       }
+      if (typeof resizeGridItem === 'function') resizeGridItem(document.getElementById('fortune-card'));
     }
 
     window.addEventListener("DOMContentLoaded", () => {
