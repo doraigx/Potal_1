@@ -100,12 +100,12 @@
     }
 
     /* =====================================================
-       ★ Androidホームランチャー風 2次元グリッド（1マス単位ジャストフィット版）
+       ★ Androidホームランチャー風 2次元グリッドシステム
     ===================================================== */
     .widgets {
       display: grid;
       grid-template-columns: repeat(var(--grid-cols, 4), minmax(0, 1fr));
-      grid-auto-rows: 64px; /* 1マスの縦基準サイズ（64px単位） */
+      grid-auto-rows: 80px; /* 1マスの縦基準サイズ */
       gap: 16px;
       width: 100%;
       margin: 0 auto;
@@ -136,54 +136,28 @@
 
       /* 背景の空きマス目ガイド（編集モード時のみ表示） */
       .grid-cell-guide {
-        border: 1px dashed rgba(150, 150, 150, 0.25);
+        border: 1px dashed rgba(150, 150, 150, 0.22);
         border-radius: 10px;
         pointer-events: none;
         z-index: 0;
       }
       [data-theme="dark"] .grid-cell-guide {
-        border-color: rgba(255, 255, 255, 0.14);
+        border-color: rgba(255, 255, 255, 0.12);
       }
     }
 
     .widgets .card {
       width: 100%;
-      height: 100%;
+      height: fit-content;
       margin: 0;
       background: var(--card-bg);
       border-radius: 12px;
-      padding: 18px 20px;
+      padding: 20px;
       box-shadow: 0 2px 6px var(--card-shadow);
       box-sizing: border-box;
       transition: transform 0.25s ease, box-shadow 0.25s ease;
       z-index: 2;
       position: relative;
-      display: flex;
-      flex-direction: column;
-      justify-content: flex-start;
-      overflow: hidden;
-    }
-
-    .widgets .card h2 {
-      margin-top: 0;
-      margin-bottom: 0.6rem;
-      flex-shrink: 0;
-    }
-
-    /* 編集モード時に現在のマス数がわかるバッジ表示 */
-    .size-badge {
-      position: absolute;
-      bottom: 6px;
-      right: 10px;
-      background: rgba(33, 150, 243, 0.15);
-      color: var(--link-color);
-      border: 1px solid rgba(33, 150, 243, 0.4);
-      font-size: 11px;
-      font-weight: bold;
-      padding: 1px 7px;
-      border-radius: 12px;
-      pointer-events: none;
-      z-index: 10;
     }
 
     .widgets.edit-grid-active .card {
@@ -209,12 +183,8 @@
         min-height: auto;
       }
       .widgets .card {
-        height: auto !important;
         grid-column: auto !important;
         grid-row: auto !important;
-      }
-      .size-badge {
-        display: none !important;
       }
     }
 
@@ -385,23 +355,23 @@
       display: flex;
       flex-wrap: wrap;
       gap: 0.6rem;
-      margin-top: 0.5rem;
+      margin-top: 1rem;
       align-items: center;
     }
 
     .currency-input,
     #from,
     #to {
-      padding: 0.5rem;
+      padding: 0.6rem;
       border: 1px solid #ccc;
       border-radius: 8px;
-      font-size: 0.95rem;
+      font-size: 1rem;
       flex: 1;
-      min-width: 70px;
+      min-width: 80px;
     }
 
     #convert {
-      padding: 0.5rem 1rem;
+      padding: 0.6rem 1.2rem;
       background: rgba(143, 207, 120, 0.5);
       color: var(--text-color);
       border: none;
@@ -417,8 +387,8 @@
     }
 
     .currency-result {
-      margin-top: 0.4rem;
-      font-size: 1.1rem;
+      margin-top: 1rem;
+      font-size: 1.2rem;
       font-weight: bold;
       color: var(--text-color);
     }
@@ -454,8 +424,8 @@
 
     .calendar-card h2 {
       text-align: left;
-      margin: 0 0 0.8rem 0;
-      padding: 0;
+      margin: 0 0 1rem 0;
+      padding: 0 12px;
     }
 
     .calendar {
@@ -471,7 +441,7 @@
     .calendar th,
     .calendar td {
       border: 1px solid rgba(0, 0, 0, 0.2);
-      padding: 0.45rem;
+      padding: 0.6rem;
       text-align: center;
     }
 
@@ -497,11 +467,11 @@
       background: rgba(0, 140, 255, 0.25);
       border: none;
       border-radius: 8px;
-      padding: 0.35rem 0.9rem;
+      padding: 0.4rem 1rem;
       cursor: pointer;
       color: var(--text-color);
       font-weight: bold;
-      font-size: 0.95rem;
+      font-size: 1rem;
       box-shadow: 0 2px 6px var(--card-shadow);
       transition: background 0s, transform 0.1s;
     }
@@ -515,7 +485,7 @@
       display: flex;
       align-items: center;
       justify-content: space-between;
-      margin-bottom: 0.6rem;
+      margin-bottom: 1rem;
       position: relative;
     }
 
@@ -530,7 +500,7 @@
       left: 50%;
       transform: translateX(-50%);
       font-weight: bold;
-      font-size: 1.1rem;
+      font-size: 1.2rem;
     }
 
     html[data-theme="dark"].calendar {
@@ -583,7 +553,7 @@
     }
 
     #draw-horoscope {
-      padding: 0.5rem 1rem;
+      padding: 0.6rem 1.2rem;
       background-color: rgba(206, 171, 255, 0.5);
       color: #fff;
       border: none;
@@ -598,10 +568,10 @@
     }
 
     #zodiac-select {
-      padding: 0.5rem;
+      padding: 0.6rem;
       border: 1px solid #ccc;
       border-radius: 8px;
-      font-size: 0.95rem;
+      font-size: 1rem;
       flex: 1;
       min-width: 80px;
     }
@@ -609,7 +579,7 @@
     #trend-list {
       list-style: none;
       padding-left: 0;
-      margin: 0;
+      margin-left: 0;
     }
 
     #trend-list li {
@@ -622,8 +592,8 @@
       list-style: none !important;
       all: unset !important;
       display: block !important;
-      padding: 9px 12px !important;
-      margin: 5px 0 !important;
+      padding: 10px 14px !important;
+      margin: 6px 0 !important;
       font-weight: 900 !important;
       color: var(--text-color) !important;
       background: rgba(0, 140, 255, 0.25) !important;
@@ -639,7 +609,7 @@
     #news-list {
       list-style: none !important;
       padding-left: 0 !important;
-      margin: 0 !important;
+      margin-left: 0 !important;
     }
 
     #news-list li {
@@ -694,7 +664,7 @@
     }
 
     #sun-card h2 {
-      margin-bottom: 0.4rem;
+      margin-bottom: 0.5rem;
     }
 
     #sun-info {
@@ -720,8 +690,8 @@
     }
 
     #fortune-card p {
-      margin: 6px 0 10px;
-      font-size: 1.05em;
+      margin: 10px 0;
+      font-size: 1.1em;
       font-weight: bold;
     }
 
@@ -766,13 +736,13 @@
 
     .countdown-display {
       text-align: center;
-      margin: 0.4rem 0;
+      margin: 1rem 0;
     }
 
     .cnt-label {
-      font-size: 1.05rem;
+      font-size: 1.1rem;
       font-weight: bold;
-      margin-bottom: 2px;
+      margin-bottom: 4px;
     }
 
     .cnt-main {
@@ -784,19 +754,19 @@
     }
 
     .cnt-text {
-      font-size: 0.95rem;
+      font-size: 1rem;
     }
 
     .cnt-number {
-      font-size: 2.6rem;
+      font-size: 3rem;
       font-weight: bold;
       line-height: 1;
     }
 
     .cnt-date {
-      font-size: 0.8rem;
+      font-size: 0.85rem;
       opacity: 0.7;
-      margin-top: 2px;
+      margin-top: 4px;
     }
 
     .cnt-btn-area {
@@ -815,9 +785,9 @@
 
     .cnt-settings {
       display: none;
-      margin-top: 8px;
+      margin-top: 10px;
       border-top: 1px solid rgba(0, 0, 0, 0.1);
-      padding-top: 8px;
+      padding-top: 10px;
     }
 
     .cnt-input {
@@ -827,12 +797,12 @@
       box-sizing: border-box;
       border-radius: 4px;
       border: 1px solid #ccc;
-      font-size: 0.95rem;
+      font-size: 1rem;
     }
 
     .cnt-btn-primary {
       width: 100%;
-      padding: 7px;
+      padding: 8px;
       background: #4caf50;
       color: white;
       border: none;
@@ -855,7 +825,6 @@
       align-items: center;
       justify-content: center;
       position: relative;
-      flex-shrink: 0;
     }
 
     .cat-loading {
@@ -873,7 +842,7 @@
 
     .cat-btn {
       width: 100%;
-      margin-top: 10px;
+      margin-top: 12px;
       padding: 10px;
       background: rgba(0, 140, 255, 0.35);
       color: var(--text-color);
@@ -883,7 +852,6 @@
       font-weight: bold;
       cursor: pointer;
       transition: 0.2s;
-      flex-shrink: 0;
     }
 
     .cat-btn:hover {
@@ -1315,22 +1283,22 @@
     .app-dl-container {
       display: flex;
       flex-direction: column;
-      gap: 0.4rem;
-      margin-top: 0.2rem;
+      gap: 0.6rem;
+      margin-top: 0.5rem;
       text-align: center;
     }
 
     .app-dl-help {
-      font-size: 0.8rem;
-      margin: 0 0 4px;
+      font-size: 0.85rem;
+      margin: 4px 0 8px;
       opacity: 0.8;
-      line-height: 1.3;
+      line-height: 1.4;
     }
 
     .app-list {
       display: flex;
       flex-direction: column;
-      gap: 8px;
+      gap: 12px;
       width: 100%;
     }
 
@@ -1339,23 +1307,23 @@
       align-items: center;
       justify-content: space-between;
       background: rgba(0, 0, 0, 0.03);
-      padding: 6px 10px;
+      padding: 8px 12px;
       border-radius: 8px;
     }
 
     .app-icon {
-      font-size: 0.95rem;
+      font-size: 1rem;
     }
 
     .app-link {
       text-decoration: none;
-      width: 110px;
+      width: 120px;
     }
 
     .app-dl-btn {
       width: 100%;
-      padding: 8px;
-      font-size: 0.9rem;
+      padding: 12px;
+      font-size: 0.95rem;
       font-weight: bold;
       color: var(--text-color);
       background: linear-gradient(135deg, rgba(76, 175, 80, 0.4), rgba(33, 150, 243, 0.4));
@@ -1368,7 +1336,7 @@
 
     .app-dl-btn:hover {
       background: linear-gradient(135deg, rgba(76, 175, 80, 0.7), rgba(33, 150, 243, 0.7));
-      transform: translateY(-2px);
+      transform: translateY(-4px);
     }
 
     .app-dl-btn:active {
@@ -1496,7 +1464,7 @@
 
       <div class="card" id="campus-sites-card">
         <h2>学内サイト</h2>
-        <div style="display:flex; flex-direction:column; gap:0.5rem; margin-top:0.2rem;">
+        <div style="display:flex; flex-direction:column; gap:0.6rem; margin-top:0.5rem;">
           <button onclick="window.open('https://webclass.nagoya-bunri.ac.jp/webclass/login.php?rnd=179fa&language=JAPANESE','_blank')" style="cursor:pointer; font-weight:bold;">WebClass</button>
           <button onclick="window.open('https://unipa.nagoya-bunri.ac.jp/uprx/up/pk/pky501/Pky50101.xhtml','_blank')" style="cursor:pointer; font-weight:bold;">UNIPA</button>
         </div>
@@ -1542,7 +1510,7 @@
 
       <div class="card" id="horoscope-card">
         <h2>今日の星座占い</h2>
-        <div style="display:flex; gap:0.5rem; align-items:center; flex-wrap:wrap;">
+        <div style="display:flex; gap:0.6rem; align-items:center; flex-wrap:wrap;">
           <select id="zodiac-select" aria-label="星座">
             <option value="aries">牡羊座</option>
             <option value="taurus">牡牛座</option>
@@ -1559,7 +1527,7 @@
           </select>
           <button id="draw-horoscope" style="padding:0.5rem 1rem;border-radius:8px;border:none;color:var(--text-color);cursor:pointer;font-weight:bold;">占う</button>
         </div>
-        <p id="horoscope-result" style="margin-top:0.5rem;margin-bottom:0;font-weight:bold;font-size:0.9rem;">選んで「占う」を押してください</p>
+        <p id="horoscope-result" style="margin-top:0.8rem;font-weight:bold;">選んで「占う」を押してください</p>
       </div>
 
       <div class="card" id="countdown-card">
@@ -1623,7 +1591,7 @@
           <button id="next-month" aria-label="次月">→</button>
         </div>
         <div id="calendar"></div>
-        <div class="calendar-nav" style="display: flex; justify-content: flex-end; margin-top: 8px; margin-bottom: 0px;">
+        <div class="calendar-nav" style="display: flex; justify-content: flex-end; margin-top: 17px;margin-bottom: 0px;">
           <button id="today-month" aria-label="今月へ">今月に戻る</button>
         </div>
       </div>
@@ -1643,9 +1611,8 @@
           font-family: inherit;
           font-size: 0.95rem;
           outline: none;
-          flex-shrink: 0;
         "></textarea>
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 8px; flex-shrink: 0;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 5px;">
           <div id="memo-count" style="font-size: 0.85rem; color: var(--text-color); opacity: 0.8;">
             文字数: <span id="char-count">0</span>
           </div>
@@ -1761,7 +1728,7 @@
   </script>
 
   <!-- ========================================================
-       ★ Androidホームランチャー型 2次元グリッドシステム（実寸計測修正版）
+       ★ Androidホームランチャー型 2次元グリッドシステム & 編集制御
   ======================================================== -->
   <script>
     let editMode = false;
@@ -1771,7 +1738,7 @@
 
     const hiddenCardsKey = "hiddenCards";
     const GRID_POS_KEY = "widgetGridPositions";
-    const CELL_HEIGHT = 64; // 1マスの縦幅(px)
+    const CELL_HEIGHT = 80; // 1マスの縦幅(px)
     const CELL_GAP = 16;    // マス同士の隙間(px)
 
     // 現在の画面幅に応じたグリッド列数を計算（スマホは1列、タブレット・PCは2〜5列）
@@ -1781,6 +1748,7 @@
       return Math.max(2, Math.min(5, Math.floor((w + CELL_GAP) / (300 + CELL_GAP))));
     }
 
+    // 座標データの取得・保存
     function getSavedPositions() {
       try {
         return JSON.parse(localStorage.getItem(GRID_POS_KEY) || "{}");
@@ -1793,25 +1761,11 @@
       localStorage.setItem(GRID_POS_KEY, JSON.stringify(pos));
     }
 
-    // ★ 修正：gridRowの制約とheight:100%を同時に一瞬解除して、カード本来の高さを正確に測る
+    // カードの高さが何マス分（rowSpan）かを計測
     function calcCardSpan(card) {
-      if (!card || card.style.display === "none") return 2;
-
-      const prevGridRow = card.style.gridRow;
-      const prevHeight = card.style.height;
-
-      // 1マス(64px)への閉じ込めを一瞬解除して自然高さを測定
-      card.style.gridRow = "auto";
-      card.style.height = "auto";
-
-      const naturalHeight = card.scrollHeight || card.offsetHeight || 120;
-
-      // スタイルを元に戻す
-      card.style.gridRow = prevGridRow;
-      card.style.height = prevHeight;
-
-      // 必要なマス数を計算（最低2マス以上を保証して見切れを防止）
-      return Math.max(2, Math.ceil((naturalHeight - 4 + CELL_GAP) / (CELL_HEIGHT + CELL_GAP)));
+      if (!card || card.style.display === "none") return 1;
+      const h = card.offsetHeight || card.getBoundingClientRect().height || 120;
+      return Math.max(1, Math.ceil((h + CELL_GAP) / (CELL_HEIGHT + CELL_GAP)));
     }
 
     // 特定のマス領域が空いているかチェック
@@ -1835,7 +1789,7 @@
       widgets.querySelectorAll(".grid-cell-guide").forEach(el => el.remove());
       if (!editMode || cols <= 1) return;
 
-      const totalRows = Math.max(maxRow + 4, 14);
+      const totalRows = Math.max(maxRow + 4, 12);
       const frag = document.createDocumentFragment();
       for (let r = 1; r <= totalRows; r++) {
         for (let c = 1; c <= cols; c++) {
@@ -1874,6 +1828,7 @@
       const occupied = {};
       let maxRowUsed = 1;
 
+      // ドロップ直後のカードがあれば最優先でその座標を確保する
       const sortedCards = [...cards];
       if (prioritizeCardId) {
         sortedCards.sort((a, b) => (a.id === prioritizeCardId ? -1 : b.id === prioritizeCardId ? 1 : 0));
@@ -1884,10 +1839,6 @@
       sortedCards.forEach(card => {
         const span = calcCardSpan(card);
         card.dataset.span = span;
-
-        const badge = card.querySelector(".size-badge");
-        if (badge) badge.textContent = `${span}マス`;
-
         const saved = posData[card.id];
 
         if (saved && saved.col >= 1) {
@@ -1902,12 +1853,7 @@
             return;
           }
         }
-        pendingCards.push({
-          card,
-          span,
-          prefCol: saved ? Math.min(saved.col, cols) : null,
-          prefRow: saved ? Math.max(1, saved.row) : 1
-        });
+        pendingCards.push({ card, span, prefCol: saved ? Math.min(saved.col, cols) : null, prefRow: saved ? Math.max(1, saved.row) : 1 });
       });
 
       // 座標未設定、または他のカードと重なったカードを空いているマスへ自動配置
@@ -1915,8 +1861,9 @@
         const { card, span, prefCol, prefRow } = item;
         let placed = false;
 
+        // 元の希望位置の近くから探す
         if (prefCol) {
-          for (let r = prefRow; r < 200 && !placed; r++) {
+          for (let r = prefRow; r < 150 && !placed; r++) {
             if (isAreaFree(occupied, prefCol, r, span, cols)) {
               markOccupied(occupied, prefCol, r, span, card.id);
               card.style.gridColumn = `${prefCol} / span 1`;
@@ -1928,7 +1875,8 @@
           }
         }
 
-        for (let r = 1; r < 200 && !placed; r++) {
+        // 左上から空いているマスを探す
+        for (let r = 1; r < 150 && !placed; r++) {
           for (let c = 1; c <= cols && !placed; c++) {
             if (isAreaFree(occupied, c, r, span, cols)) {
               markOccupied(occupied, c, r, span, card.id);
@@ -1948,6 +1896,7 @@
       setTimeout(() => { isResizing = false; }, 60);
     }
 
+    // 既存のコードとの互換用関数
     function resizeGridItem(item) {
       applyGridLayout();
     }
@@ -1990,12 +1939,6 @@
     });
 
     window.addEventListener("DOMContentLoaded", () => {
-      // 前回の1マス圧縮状態の古い座標が残っている場合は一度リセットして綺麗に並べる
-      if (!localStorage.getItem("gridFixedV2")) {
-        localStorage.removeItem(GRID_POS_KEY);
-        localStorage.setItem("gridFixedV2", "1");
-      }
-
       const savedOrder = JSON.parse(localStorage.getItem("widgetOrder") || "[]");
       savedOrder.forEach(id => {
         const el = document.getElementById(id);
@@ -2044,31 +1987,21 @@
       const hiddenCards = JSON.parse(localStorage.getItem(hiddenCardsKey) || "[]");
 
       document.querySelectorAll(".card").forEach(card => {
-        card.style.display = hiddenCards.includes(card.id) ? "none" : "flex";
+        card.style.display = hiddenCards.includes(card.id) ? "none" : "block";
 
-        if (editMode) {
-          if (!card.querySelector(".edit-delete")) {
-            const btn = document.createElement("button");
-            btn.textContent = "非表示";
-            btn.className = "edit-delete";
-            btn.onclick = (e) => {
-              e.stopPropagation();
-              hideCard(card);
-            };
-            btn.style.cssText = "position:absolute;top:8px;right:8px;padding:3px 8px;cursor:pointer;background:#f44336;color:#fff;border:none;font-size:12px;border-radius:6px;z-index:10;";
-            card.appendChild(btn);
-          }
-          if (!card.querySelector(".size-badge")) {
-            const badge = document.createElement("span");
-            badge.className = "size-badge";
-            badge.textContent = `${card.dataset.span || 2}マス`;
-            card.appendChild(badge);
-          }
-        } else {
+        if (editMode && !card.querySelector(".edit-delete")) {
+          const btn = document.createElement("button");
+          btn.textContent = "非表示";
+          btn.className = "edit-delete";
+          btn.onclick = (e) => {
+            e.stopPropagation();
+            hideCard(card);
+          };
+          btn.style.cssText = "position:absolute;top:8px;right:8px;padding:3px 8px;cursor:pointer;background:#f44336;color:#fff;border:none;font-size:12px;border-radius:6px;z-index:10;";
+          card.appendChild(btn);
+        } else if (!editMode) {
           const btn = card.querySelector(".edit-delete");
           if (btn) btn.remove();
-          const badge = card.querySelector(".size-badge");
-          if (badge) badge.remove();
         }
       });
     }
@@ -2129,7 +2062,7 @@
         checkboxes.forEach(cb => {
           if (cb.checked) {
             const card = document.getElementById(cb.value);
-            if (card) card.style.display = "flex";
+            if (card) card.style.display = "block";
             updatedHidden = updatedHidden.filter(id => id !== cb.value);
           }
         });
@@ -2171,6 +2104,7 @@
       title.style.marginTop = "0";
       box.appendChild(title);
 
+      // PC/タブレット向けに「隙間なく左上から綺麗に詰め直す」リセットボタンを提供
       const packBtn = document.createElement("button");
       packBtn.textContent = "🔄 隙間を詰めて左上から自動整列";
       packBtn.style.cssText = "width:100%;margin-bottom:12px;padding:8px;background:#2196f3;color:#fff;border:none;border-radius:6px;cursor:pointer;font-weight:bold;";
@@ -2195,7 +2129,7 @@
         const item = document.createElement("div");
         item.style.cssText = "display:flex;align-items:center;justify-content:space-between;padding:6px 8px;border:1px solid #ccc;border-radius:6px;";
         item.dataset.id = card.id;
-        item.innerHTML = `<span>${cardTitle || card.id} <small style="opacity:0.6;">(${card.dataset.span || 2}マス)</small></span>
+        item.innerHTML = `<span>${cardTitle || card.id}</span>
                           <div><button class="up" style="cursor:pointer;padding:2px 8px;">↑</button> <button class="down" style="cursor:pointer;padding:2px 8px;">↓</button></div>`;
 
         item.querySelector(".up").onclick = () => {
@@ -2219,7 +2153,7 @@
           if (card) widgets.appendChild(card);
         });
         localStorage.setItem("widgetOrder", JSON.stringify(newOrder));
-        localStorage.removeItem(GRID_POS_KEY);
+        localStorage.removeItem(GRID_POS_KEY); // 新しい順序で左上から再配置
         document.body.removeChild(modal);
         applyGridLayout();
       };
@@ -2336,6 +2270,7 @@
       applyGridLayout();
     });
 
+    // カード内のコンテンツ量が変わった際（ニュース取得完了やアコーディオン開閉）に高さを自動調整
     const observer = new MutationObserver(() => {
       if (isResizing || dragSrcEl) return;
       applyGridLayout();
@@ -2415,6 +2350,7 @@
                     localStorage.setItem("widgetOrder", JSON.stringify(data.widgetOrder));
                 }
 
+                // ★ 2Dグリッド座標データの復元
                 if (data.widgetGridPositions) {
                     localStorage.setItem("widgetGridPositions", JSON.stringify(data.widgetGridPositions));
                 }
@@ -2720,7 +2656,7 @@
         const weeklyData = await fetchWeeklyWeather();
 
         html += `
-        <h3 style="margin: 0.8rem 0 0.3rem; font-size: 1rem;">週間天気</h3>
+        <h3>週間天気</h3>
         <div class="weekly-weather">
           ${weeklyData}
         </div>
@@ -2770,7 +2706,7 @@
         const data = await res.json();
         const daily = data.daily;
 
-        let html = "<table style='width:100%;border-collapse:collapse;margin-top:0.3rem;'>";
+        let html = "<table style='width:100%;border-collapse:collapse;margin-top:0.6rem;'>";
         html += "<tr><th>日付</th><th>最高気温</th><th>最低気温</th><th>天気</th></tr>";
         for (let i = 0; i < daily.time.length; i++) {
           const d = new Date(daily.time[i]);
@@ -3018,7 +2954,6 @@
         const data = await res.json();
         if (data && data.rates && data.rates.JPY) {
           document.getElementById('exchange-rate').textContent = `1 ドル = ${data.rates.JPY.toFixed(2)} 円`;
-          if (typeof resizeGridItem === 'function') resizeGridItem(document.getElementById('kawase-card'));
         } else {
           document.getElementById('exchange-rate').textContent = 'レート取得に失敗しました';
         }
@@ -3041,7 +2976,6 @@
         if (data && data.rates && data.rates[to]) {
           const result = amt * data.rates[to];
           document.getElementById('currency-result').textContent = `${amt} ${from} = ${result.toFixed(2)} ${to}`;
-          if (typeof resizeGridItem === 'function') resizeGridItem(document.getElementById('kawase-card'));
         } else {
           document.getElementById('currency-result').textContent = '換算できませんでした';
         }
@@ -3054,130 +2988,153 @@
     document.getElementById('convert').addEventListener('click', convertCurrency);
   </script>
 
-  <!-- ★ 改善版：GitHub Pagesでもブロックされない rss2json API + マルチプロキシ並列取得 -->
   <script>
-    async function fetchRssItems(rssUrls, timeoutMs = 4500) {
-      const tasks = [];
+    async function drawRateChart() {
+      const canvas = document.getElementById('rateChart');
+      if (!canvas) return;
 
-      for (const rssUrl of rssUrls) {
-        const encoded = encodeURIComponent(rssUrl);
+      try {
+        const url = `https://open.er-api.com/v6/latest/USD`;
+        const res = await fetch(url);
+        const data = await res.json();
 
-        // 1. rss2json API（GitHub Pagesからのリクエストに最も強く高速）
-        tasks.push(
-          (async () => {
-            const controller = new AbortController();
-            const timer = setTimeout(() => controller.abort(), timeoutMs);
-            try {
-              const res = await fetch(`https://api.rss2json.com/v1/api.json?rss_url=${encoded}`, { signal: controller.signal });
-              clearTimeout(timer);
-              if (!res.ok) throw new Error("rss2json HTTP " + res.status);
-              const data = await res.json();
-              if (data && data.status === "ok" && Array.isArray(data.items) && data.items.length > 0) {
-                return data.items.map(item => ({ title: item.title, link: item.link }));
+        if (!data || !data.rates) throw new Error("データ取得失敗");
+
+        const labels = ["10日前", "7日前", "5日前", "3日前", "現在"];
+        const currentRate = data.rates.JPY;
+        const values = [currentRate - 0.5, currentRate + 0.2, currentRate - 0.1, currentRate - 0.3, currentRate];
+
+        const ctx = canvas.getContext('2d');
+        if (window.rateChartInstance) window.rateChartInstance.destroy();
+
+        window.rateChartInstance = new Chart(ctx, {
+          type: 'line',
+          data: {
+            labels: labels,
+            datasets: [{
+              label: 'USD/JPY (参考値)',
+              data: values,
+              borderColor: 'rgba(143, 207, 120, 1)',
+              backgroundColor: 'rgba(143, 207, 120, 0.2)',
+              fill: true,
+              tension: 0.3
+            }]
+          },
+          options: {
+            responsive: true,
+            plugins: {
+              legend: {
+                display: false
               }
-              throw new Error("rss2json empty");
-            } catch (e) {
-              clearTimeout(timer);
-              throw e;
             }
-          })()
-        );
+          }
+        });
 
-        // 2. XMLプロキシ群（バックアップとして同時並列実行）
-        const xmlProxies = [
-          `https://api.allorigins.win/get?url=${encoded}&t=${Date.now()}`,
-          `https://api.allorigins.win/raw?url=${encoded}&t=${Date.now()}`,
-          `https://api.codetabs.com/v1/proxy?quest=${encoded}`,
-          `https://corsproxy.io/?${encoded}`
-        ];
-
-        for (const proxyUrl of xmlProxies) {
-          tasks.push(
-            (async () => {
-              const controller = new AbortController();
-              const timer = setTimeout(() => controller.abort(), timeoutMs);
-              try {
-                const res = await fetch(proxyUrl, { signal: controller.signal });
-                clearTimeout(timer);
-                if (!res.ok) throw new Error("Proxy HTTP " + res.status);
-                const text = await res.text();
-                let xmlText = text;
-                try {
-                  const json = JSON.parse(text);
-                  if (json && json.contents) xmlText = json.contents;
-                } catch (_) {}
-
-                const parser = new DOMParser();
-                const xml = parser.parseFromString(xmlText, "text/xml");
-                const nodes = xml.querySelectorAll("item");
-                if (!nodes || nodes.length === 0) throw new Error("No XML items");
-
-                return Array.from(nodes).map(node => ({
-                  title: node.querySelector("title")?.textContent || "情報なし",
-                  link: node.querySelector("link")?.textContent || "#"
-                }));
-              } catch (e) {
-                clearTimeout(timer);
-                throw e;
-              }
-            })()
-          );
-        }
+      } catch (err) {
+        console.error('APIエラーによりグラフを生成できません:', err);
       }
-
-      return Promise.any(tasks);
     }
+  </script>
 
-    // --- 日本のニュース取得 ---
-    async function fetchNews() {
-      const container = document.getElementById('news-list');
-      const STORAGE_KEY = 'portalNewsItemsCacheV2';
-      const rssUrls = [
-        'https://news.yahoo.co.jp/rss/topics/top-picks.xml',
-        'https://news.yahoo.co.jp/rss/topics/domestic.xml'
+  <!-- ★ ニュース取得 & トレンド取得（並列レース + 短時間タイムアウト + キャッシュ即時フォールバック） -->
+  <script>
+    function fetchFastestProxy(rssUrl, timeoutMs = 3500) {
+      const encoded = encodeURIComponent(rssUrl);
+      const proxies = [
+        `https://corsproxy.io/?${encoded}`,
+        `https://api.allorigins.win/raw?url=${encoded}&t=${Date.now()}`,
+        `https://api.allorigins.win/get?url=${encoded}&t=${Date.now()}`,
+        `https://api.codetabs.com/v1/proxy?quest=${encoded}`
       ];
 
-      let cachedItems = null;
-      try {
-        cachedItems = JSON.parse(localStorage.getItem(STORAGE_KEY));
-        if (Array.isArray(cachedItems) && cachedItems.length > 0) {
-          renderNewsItems(cachedItems);
-        } else {
-          container.innerHTML = '<li class="loading">ニュースを取得中…</li>';
-        }
-      } catch (_) {
+      const fetchSingle = (url) => {
+        return new Promise((resolve, reject) => {
+          const controller = new AbortController();
+          const timer = setTimeout(() => {
+            controller.abort();
+            reject(new Error("Timeout"));
+          }, timeoutMs);
+
+          fetch(url, { signal: controller.signal })
+            .then(async (res) => {
+              clearTimeout(timer);
+              if (!res.ok) throw new Error("HTTP " + res.status);
+              const text = await res.text();
+              let xmlContent = text;
+              try {
+                const json = JSON.parse(text);
+                if (json && json.contents) xmlContent = json.contents;
+              } catch (_) {}
+
+              if (!xmlContent || !xmlContent.includes("<item>")) {
+                throw new Error("Invalid RSS content");
+              }
+              resolve(xmlContent);
+            })
+            .catch((err) => {
+              clearTimeout(timer);
+              reject(err);
+            });
+        });
+      };
+
+      return Promise.any(proxies.map(url => fetchSingle(url)));
+    }
+
+    async function fetchNews() {
+      const container = document.getElementById('news-list');
+      const STORAGE_KEY = 'portalNewsCache';
+      const rssUrl = 'https://news.yahoo.co.jp/rss/topics/domestic.xml';
+
+      const cachedXML = localStorage.getItem(STORAGE_KEY);
+      if (cachedXML) {
+        renderNews(cachedXML);
+      } else {
         container.innerHTML = '<li class="loading">ニュースを取得中…</li>';
       }
 
       try {
-        const items = await fetchRssItems(rssUrls, 5000);
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
-        renderNewsItems(items);
+        const xmlText = await fetchFastestProxy(rssUrl, 3500);
+        localStorage.setItem(STORAGE_KEY, xmlText);
+        renderNews(xmlText);
         if (typeof resizeGridItem === 'function') resizeGridItem(document.getElementById('news-card'));
       } catch (err) {
-        console.warn("ニュースの最新取得失敗:", err);
-        if (Array.isArray(cachedItems) && cachedItems.length > 0) {
-          renderNewsItems(cachedItems);
+        console.warn("ニュースの最新取得失敗、キャッシュを維持します", err);
+        if (cachedXML) {
+          renderNews(cachedXML);
+          const note = document.createElement('li');
+          note.style.fontSize = "0.75rem";
+          note.style.color = "#888";
+          note.style.textAlign = "right";
+          note.textContent = "※前回取得した情報を表示中";
+          container.appendChild(note);
         } else {
           container.innerHTML = `<li class="error">ニュース取得に失敗しました。<br>時間をおいてください。</li>`;
         }
-        if (typeof resizeGridItem === 'function') resizeGridItem(document.getElementById('news-card'));
       }
     }
 
-    function renderNewsItems(items) {
+    function renderNews(xmlText) {
       const container = document.getElementById('news-list');
-      container.innerHTML = '';
+      const parser = new DOMParser();
+      const xml = parser.parseFromString(xmlText, "application/xml");
+      const items = xml.querySelectorAll("item");
 
+      container.innerHTML = '';
       if (!items || items.length === 0) {
         container.innerHTML = '<li>ニュース情報はありません。</li>';
         return;
       }
 
-      items.slice(0, 8).forEach(item => {
+      items.forEach((item, idx) => {
+        if (idx >= 8) return;
+
+        const title = item.querySelector("title")?.textContent || '情報なし';
+        const link = item.querySelector("link")?.textContent || '#';
+
         const li = document.createElement("li");
-        li.innerHTML = `<a href="${item.link}" target="_blank"
-                    style="text-decoration:none;color:var(--link-color);">${item.title}</a>`;
+        li.innerHTML = `<a href="${link}" target="_blank"
+                    style="text-decoration:none;color:var(--link-color);">${title}</a>`;
         container.appendChild(li);
       });
     }
@@ -3185,57 +3142,51 @@
     fetchNews();
     setInterval(fetchNews, 15 * 60 * 1000);
 
-    // --- 今日のトレンド取得 ---
     async function fetchTrends() {
       const container = document.getElementById("trend-list");
-      const STORAGE_KEY = "portalTrendItemsCacheV2";
+      const STORAGE_KEY = "portalTrendCache";
       const CACHE_DURATION = 30 * 60 * 1000;
 
       let cachedObj = null;
       try {
         cachedObj = JSON.parse(localStorage.getItem(STORAGE_KEY));
-        if (cachedObj && Array.isArray(cachedObj.items) && cachedObj.items.length > 0) {
-          renderTrendItems(cachedObj.items);
+        if (cachedObj && cachedObj.data) {
+          renderTrends(cachedObj.data);
           if (Date.now() - cachedObj.timestamp < CACHE_DURATION) {
             return;
           }
         }
       } catch (e) {}
 
-      if (!cachedObj || !cachedObj.items) {
+      if (!cachedObj || !cachedObj.data) {
         container.innerHTML = '<li class="loading">高速取得中...</li>';
       }
 
-      // Google Trendsの最新エンドポイント(.com)と従来(.co.jp)の両方を対象にする
-      const rssUrls = [
-        "https://trends.google.com/trending/rss?geo=JP",
-        "https://trends.google.co.jp/trending/rss?geo=JP"
-      ];
+      const rssUrl = "https://trends.google.co.jp/trending/rss?geo=JP";
 
       try {
-        const items = await fetchRssItems(rssUrls, 5000);
+        const winnerResponse = await fetchFastestProxy(rssUrl, 3500);
 
         localStorage.setItem(STORAGE_KEY, JSON.stringify({
           timestamp: Date.now(),
-          items: items
+          data: winnerResponse
         }));
 
-        renderTrendItems(items);
+        renderTrends(winnerResponse);
         if (typeof resizeGridItem === 'function') resizeGridItem(document.getElementById('trend-card'));
 
       } catch (err) {
         console.warn("トレンド最新取得失敗:", err);
-        if (cachedObj && Array.isArray(cachedObj.items) && cachedObj.items.length > 0) {
-          renderTrendItems(cachedObj.items);
+        if (cachedObj && cachedObj.data) {
+          renderTrends(cachedObj.data);
         } else {
           container.innerHTML =
             `<li class="error" style="font-size:0.85rem;">取得に失敗しました。<br>時間をおいてください。</li>`;
         }
-        if (typeof resizeGridItem === 'function') resizeGridItem(document.getElementById('trend-card'));
       }
     }
 
-    function renderTrendItems(items) {
+    function renderTrends(xmlText) {
       const container = document.getElementById("trend-list");
 
       const rainbow10 = [
@@ -3246,44 +3197,54 @@
         "rgba(160, 0, 255, 0.25)", "rgba(255, 80, 160, 0.25)"
       ];
 
-      container.innerHTML = "";
+      try {
+        const parser = new DOMParser();
+        const xml = parser.parseFromString(xmlText, "application/xml");
+        const items = xml.querySelectorAll("item");
 
-      if (!items || items.length === 0) {
-        container.innerHTML = "<li>トレンド情報はありません</li>";
-        return;
+        container.innerHTML = "";
+
+        if (!items || items.length === 0) {
+          container.innerHTML = "<li>データ形式エラー</li>";
+          return;
+        }
+
+        items.forEach((item, idx) => {
+          if (idx >= 10) return;
+
+          const title = item.querySelector("title")?.textContent || "情報なし";
+          const query = encodeURIComponent(title);
+          const googleLink = `https://www.google.com/search?q=${query}`;
+
+          const bg = rainbow10[idx];
+          const hoverBg = bg.replace("0.25", "0.40");
+
+          const li = document.createElement("li");
+          li.innerHTML = `
+              <a href="${googleLink}" target="_blank"
+                style="
+                  display: block;
+                  padding: 10px 14px;
+                  margin: 6px 0;
+                  font-weight: 900;
+                  color: var(--text-color);
+                  background: ${bg};
+                  border-radius: 10px;
+                  cursor: pointer;
+                  text-decoration: none;
+                  transition: 0.2s;
+                "
+                onmouseover="this.style.background='${hoverBg}'"
+                onmouseout="this.style.background='${bg}'"
+              >
+                ${title}
+              </a>
+            `;
+          container.appendChild(li);
+        });
+      } catch (e) {
+        container.innerHTML = "<li>解析エラー</li>";
       }
-
-      items.slice(0, 10).forEach((item, idx) => {
-        const title = item.title || "情報なし";
-        const query = encodeURIComponent(title);
-        const googleLink = `https://www.google.com/search?q=${query}`;
-
-        const bg = rainbow10[idx];
-        const hoverBg = bg.replace("0.25", "0.40");
-
-        const li = document.createElement("li");
-        li.innerHTML = `
-            <a href="${googleLink}" target="_blank"
-              style="
-                display: block;
-                padding: 8px 12px;
-                margin: 5px 0;
-                font-weight: 900;
-                color: var(--text-color);
-                background: ${bg};
-                border-radius: 10px;
-                cursor: pointer;
-                text-decoration: none;
-                transition: 0.2s;
-              "
-              onmouseover="this.style.background='${hoverBg}'"
-              onmouseout="this.style.background='${bg}'"
-            >
-              ${title}
-            </a>
-          `;
-        container.appendChild(li);
-      });
     }
 
     fetchTrends();
@@ -3333,7 +3294,7 @@
             numEl.style.color = "#ff9800";
           } else {
             numEl.textContent = Math.abs(diffDays);
-            labelEl.innerHTML = data.name + " <span style='font-size:0.8rem;font-weight:normal;'>から経過</span>";
+            labelEl.innerHTML = data.name + "<br><span style='font-size:0.8rem;font-weight:normal;'>から経過</span>";
             numEl.style.color = "#f44336";
           }
         } else {
@@ -3579,7 +3540,6 @@
         localStorage.setItem(storageKey, msg);
       }
       el.textContent = `${select.options[select.selectedIndex].text} — ${msg}`;
-      if (typeof resizeGridItem === 'function') resizeGridItem(document.getElementById('horoscope-card'));
     }
 
     document.getElementById('draw-horoscope').addEventListener('click', drawHoroscope);
@@ -3621,7 +3581,6 @@
             ☀️ 日の出：<strong>${sunriseTime}</strong><br>
             🌇 日の入：<strong>${sunsetTime}</strong>
           `;
-        if (typeof resizeGridItem === 'function') resizeGridItem(document.getElementById('sun-card'));
       } catch (err) {
         console.error(err);
         sunInfo.textContent = "日の出・日の入の取得に失敗しました。";
@@ -3651,7 +3610,7 @@
         resultEl.style.color = "#FFD700";
         resultEl.style.textShadow = "0px 0px 10px rgba(255, 215, 0, 0.8)";
         resultEl.style.transformOrigin = "center center";
-        resultEl.style.transform = "scale(1.08)";
+        resultEl.style.transform = "scale(1.15)";
         resultEl.style.transition = "0.3s";
 
         var duration = 3 * 1000;
@@ -3703,14 +3662,13 @@
         resultEl.style.textShadow = "none";
         resultEl.style.transform = "scale(1.0)";
       }
-      if (typeof resizeGridItem === 'function') resizeGridItem(document.getElementById('fortune-card'));
     }
 
     window.addEventListener("DOMContentLoaded", () => {
       const visibility = JSON.parse(localStorage.getItem("cardVisibility") || "{}");
       const card = document.getElementById("fortune-card");
       if (card && visibility.hasOwnProperty("fortune-card")) {
-        card.style.display = visibility["fortune-card"] ? "flex" : "none";
+        card.style.display = visibility["fortune-card"] ? "block" : "none";
       }
 
       const resultEl = document.getElementById("fortune-result");
