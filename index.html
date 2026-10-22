@@ -105,7 +105,7 @@
     .widgets {
       display: grid;
       grid-template-columns: repeat(var(--grid-cols, 4), minmax(0, 1fr));
-      grid-auto-rows: 64px; /* 1マスの縦基準サイズ（64px単位できめ細かくフィット） */
+      grid-auto-rows: 64px; /* 1マスの縦基準サイズ（64px単位） */
       gap: 16px;
       width: 100%;
       margin: 0 auto;
@@ -148,7 +148,6 @@
 
     .widgets .card {
       width: 100%;
-      /* ★ 割り当てられたグリッド枠に100%ピタッと合わせる */
       height: 100%;
       margin: 0;
       background: var(--card-bg);
@@ -856,6 +855,7 @@
       align-items: center;
       justify-content: center;
       position: relative;
+      flex-shrink: 0;
     }
 
     .cat-loading {
@@ -1643,6 +1643,7 @@
           font-family: inherit;
           font-size: 0.95rem;
           outline: none;
+          flex-shrink: 0;
         "></textarea>
         <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 8px; flex-shrink: 0;">
           <div id="memo-count" style="font-size: 0.85rem; color: var(--text-color); opacity: 0.8;">
@@ -1760,7 +1761,7 @@
   </script>
 
   <!-- ========================================================
-       ★ Androidホームランチャー型 2次元グリッドシステム（1マス単位ジャストフィット版）
+       ★ Androidホームランチャー型 2次元グリッドシステム（実寸計測修正版）
   ======================================================== -->
   <script>
     let editMode = false;
@@ -1770,7 +1771,7 @@
 
     const hiddenCardsKey = "hiddenCards";
     const GRID_POS_KEY = "widgetGridPositions";
-    const CELL_HEIGHT = 64; // 1マスの縦幅(px) -> 余白が出すぎない細やかな64px単位
+    const CELL_HEIGHT = 64; // 1マスの縦幅(px)
     const CELL_GAP = 16;    // マス同士の隙間(px)
 
     // 現在の画面幅に応じたグリッド列数を計算（スマホは1列、タブレット・PCは2〜5列）
@@ -1792,18 +1793,25 @@
       localStorage.setItem(GRID_POS_KEY, JSON.stringify(pos));
     }
 
-    // ★ カードの実寸高さを測り、1マス単位（1, 2, 3, 4, 5...）で無駄なくグリッドに合わせる
+    // ★ 修正：gridRowの制約とheight:100%を同時に一瞬解除して、カード本来の高さを正確に測る
     function calcCardSpan(card) {
-      if (!card || card.style.display === "none") return 1;
+      if (!card || card.style.display === "none") return 2;
 
-      // 一瞬だけ height: auto にしてコンテンツ本来の高さを正確に取得
+      const prevGridRow = card.style.gridRow;
       const prevHeight = card.style.height;
+
+      // 1マス(64px)への閉じ込めを一瞬解除して自然高さを測定
+      card.style.gridRow = "auto";
       card.style.height = "auto";
-      const h = card.offsetHeight || card.getBoundingClientRect().height || 100;
+
+      const naturalHeight = card.scrollHeight || card.offsetHeight || 120;
+
+      // スタイルを元に戻す
+      card.style.gridRow = prevGridRow;
       card.style.height = prevHeight;
 
-      // 1マス単位でジャストフィットするマス数を算出（数ピクセルのはみ出しで1マス増えないよう -6px 許容）
-      return Math.max(1, Math.ceil((h - 6 + CELL_GAP) / (CELL_HEIGHT + CELL_GAP)));
+      // 必要なマス数を計算（最低2マス以上を保証して見切れを防止）
+      return Math.max(2, Math.ceil((naturalHeight - 4 + CELL_GAP) / (CELL_HEIGHT + CELL_GAP)));
     }
 
     // 特定のマス領域が空いているかチェック
@@ -1841,7 +1849,7 @@
       widgets.appendChild(frag);
     }
 
-    // ★ メインの2Dグリッド配置計算関数（1マス単位でピタッと配置）
+    // ★ メインの2Dグリッド配置計算関数
     function applyGridLayout(prioritizeCardId = null) {
       if (!widgets) return;
       isResizing = true;
@@ -1866,7 +1874,6 @@
       const occupied = {};
       let maxRowUsed = 1;
 
-      // ドロップ直後のカードがあれば最優先でその座標を確保する
       const sortedCards = [...cards];
       if (prioritizeCardId) {
         sortedCards.sort((a, b) => (a.id === prioritizeCardId ? -1 : b.id === prioritizeCardId ? 1 : 0));
@@ -1878,7 +1885,6 @@
         const span = calcCardSpan(card);
         card.dataset.span = span;
 
-        // 編集モード中のサイズバッジ更新
         const badge = card.querySelector(".size-badge");
         if (badge) badge.textContent = `${span}マス`;
 
@@ -1909,7 +1915,6 @@
         const { card, span, prefCol, prefRow } = item;
         let placed = false;
 
-        // 1. 希望列の近くから探す
         if (prefCol) {
           for (let r = prefRow; r < 200 && !placed; r++) {
             if (isAreaFree(occupied, prefCol, r, span, cols)) {
@@ -1923,7 +1928,6 @@
           }
         }
 
-        // 2. 左上から1マス単位で最も浅い空きスペースを探す
         for (let r = 1; r < 200 && !placed; r++) {
           for (let c = 1; c <= cols && !placed; c++) {
             if (isAreaFree(occupied, c, r, span, cols)) {
@@ -1986,6 +1990,12 @@
     });
 
     window.addEventListener("DOMContentLoaded", () => {
+      // 前回の1マス圧縮状態の古い座標が残っている場合は一度リセットして綺麗に並べる
+      if (!localStorage.getItem("gridFixedV2")) {
+        localStorage.removeItem(GRID_POS_KEY);
+        localStorage.setItem("gridFixedV2", "1");
+      }
+
       const savedOrder = JSON.parse(localStorage.getItem("widgetOrder") || "[]");
       savedOrder.forEach(id => {
         const el = document.getElementById(id);
@@ -2051,7 +2061,7 @@
           if (!card.querySelector(".size-badge")) {
             const badge = document.createElement("span");
             badge.className = "size-badge";
-            badge.textContent = `${card.dataset.span || 1}マス`;
+            badge.textContent = `${card.dataset.span || 2}マス`;
             card.appendChild(badge);
           }
         } else {
@@ -2185,7 +2195,7 @@
         const item = document.createElement("div");
         item.style.cssText = "display:flex;align-items:center;justify-content:space-between;padding:6px 8px;border:1px solid #ccc;border-radius:6px;";
         item.dataset.id = card.id;
-        item.innerHTML = `<span>${cardTitle || card.id} <small style="opacity:0.6;">(${card.dataset.span || 1}マス)</small></span>
+        item.innerHTML = `<span>${cardTitle || card.id} <small style="opacity:0.6;">(${card.dataset.span || 2}マス)</small></span>
                           <div><button class="up" style="cursor:pointer;padding:2px 8px;">↑</button> <button class="down" style="cursor:pointer;padding:2px 8px;">↓</button></div>`;
 
         item.querySelector(".up").onclick = () => {
@@ -3008,6 +3018,7 @@
         const data = await res.json();
         if (data && data.rates && data.rates.JPY) {
           document.getElementById('exchange-rate').textContent = `1 ドル = ${data.rates.JPY.toFixed(2)} 円`;
+          if (typeof resizeGridItem === 'function') resizeGridItem(document.getElementById('kawase-card'));
         } else {
           document.getElementById('exchange-rate').textContent = 'レート取得に失敗しました';
         }
@@ -3043,153 +3054,130 @@
     document.getElementById('convert').addEventListener('click', convertCurrency);
   </script>
 
+  <!-- ★ 改善版：GitHub Pagesでもブロックされない rss2json API + マルチプロキシ並列取得 -->
   <script>
-    async function drawRateChart() {
-      const canvas = document.getElementById('rateChart');
-      if (!canvas) return;
+    async function fetchRssItems(rssUrls, timeoutMs = 4500) {
+      const tasks = [];
 
-      try {
-        const url = `https://open.er-api.com/v6/latest/USD`;
-        const res = await fetch(url);
-        const data = await res.json();
+      for (const rssUrl of rssUrls) {
+        const encoded = encodeURIComponent(rssUrl);
 
-        if (!data || !data.rates) throw new Error("データ取得失敗");
-
-        const labels = ["10日前", "7日前", "5日前", "3日前", "現在"];
-        const currentRate = data.rates.JPY;
-        const values = [currentRate - 0.5, currentRate + 0.2, currentRate - 0.1, currentRate - 0.3, currentRate];
-
-        const ctx = canvas.getContext('2d');
-        if (window.rateChartInstance) window.rateChartInstance.destroy();
-
-        window.rateChartInstance = new Chart(ctx, {
-          type: 'line',
-          data: {
-            labels: labels,
-            datasets: [{
-              label: 'USD/JPY (参考値)',
-              data: values,
-              borderColor: 'rgba(143, 207, 120, 1)',
-              backgroundColor: 'rgba(143, 207, 120, 0.2)',
-              fill: true,
-              tension: 0.3
-            }]
-          },
-          options: {
-            responsive: true,
-            plugins: {
-              legend: {
-                display: false
+        // 1. rss2json API（GitHub Pagesからのリクエストに最も強く高速）
+        tasks.push(
+          (async () => {
+            const controller = new AbortController();
+            const timer = setTimeout(() => controller.abort(), timeoutMs);
+            try {
+              const res = await fetch(`https://api.rss2json.com/v1/api.json?rss_url=${encoded}`, { signal: controller.signal });
+              clearTimeout(timer);
+              if (!res.ok) throw new Error("rss2json HTTP " + res.status);
+              const data = await res.json();
+              if (data && data.status === "ok" && Array.isArray(data.items) && data.items.length > 0) {
+                return data.items.map(item => ({ title: item.title, link: item.link }));
               }
+              throw new Error("rss2json empty");
+            } catch (e) {
+              clearTimeout(timer);
+              throw e;
             }
-          }
-        });
+          })()
+        );
 
-      } catch (err) {
-        console.error('APIエラーによりグラフを生成できません:', err);
-      }
-    }
-  </script>
+        // 2. XMLプロキシ群（バックアップとして同時並列実行）
+        const xmlProxies = [
+          `https://api.allorigins.win/get?url=${encoded}&t=${Date.now()}`,
+          `https://api.allorigins.win/raw?url=${encoded}&t=${Date.now()}`,
+          `https://api.codetabs.com/v1/proxy?quest=${encoded}`,
+          `https://corsproxy.io/?${encoded}`
+        ];
 
-  <!-- ★ ニュース取得 & トレンド取得（並列レース + 短時間タイムアウト + キャッシュ即時フォールバック） -->
-  <script>
-    function fetchFastestProxy(rssUrl, timeoutMs = 3500) {
-      const encoded = encodeURIComponent(rssUrl);
-      const proxies = [
-        `https://corsproxy.io/?${encoded}`,
-        `https://api.allorigins.win/raw?url=${encoded}&t=${Date.now()}`,
-        `https://api.allorigins.win/get?url=${encoded}&t=${Date.now()}`,
-        `https://api.codetabs.com/v1/proxy?quest=${encoded}`
-      ];
-
-      const fetchSingle = (url) => {
-        return new Promise((resolve, reject) => {
-          const controller = new AbortController();
-          const timer = setTimeout(() => {
-            controller.abort();
-            reject(new Error("Timeout"));
-          }, timeoutMs);
-
-          fetch(url, { signal: controller.signal })
-            .then(async (res) => {
-              clearTimeout(timer);
-              if (!res.ok) throw new Error("HTTP " + res.status);
-              const text = await res.text();
-              let xmlContent = text;
+        for (const proxyUrl of xmlProxies) {
+          tasks.push(
+            (async () => {
+              const controller = new AbortController();
+              const timer = setTimeout(() => controller.abort(), timeoutMs);
               try {
-                const json = JSON.parse(text);
-                if (json && json.contents) xmlContent = json.contents;
-              } catch (_) {}
+                const res = await fetch(proxyUrl, { signal: controller.signal });
+                clearTimeout(timer);
+                if (!res.ok) throw new Error("Proxy HTTP " + res.status);
+                const text = await res.text();
+                let xmlText = text;
+                try {
+                  const json = JSON.parse(text);
+                  if (json && json.contents) xmlText = json.contents;
+                } catch (_) {}
 
-              if (!xmlContent || !xmlContent.includes("<item>")) {
-                throw new Error("Invalid RSS content");
+                const parser = new DOMParser();
+                const xml = parser.parseFromString(xmlText, "text/xml");
+                const nodes = xml.querySelectorAll("item");
+                if (!nodes || nodes.length === 0) throw new Error("No XML items");
+
+                return Array.from(nodes).map(node => ({
+                  title: node.querySelector("title")?.textContent || "情報なし",
+                  link: node.querySelector("link")?.textContent || "#"
+                }));
+              } catch (e) {
+                clearTimeout(timer);
+                throw e;
               }
-              resolve(xmlContent);
-            })
-            .catch((err) => {
-              clearTimeout(timer);
-              reject(err);
-            });
-        });
-      };
+            })()
+          );
+        }
+      }
 
-      return Promise.any(proxies.map(url => fetchSingle(url)));
+      return Promise.any(tasks);
     }
 
+    // --- 日本のニュース取得 ---
     async function fetchNews() {
       const container = document.getElementById('news-list');
-      const STORAGE_KEY = 'portalNewsCache';
-      const rssUrl = 'https://news.yahoo.co.jp/rss/topics/domestic.xml';
+      const STORAGE_KEY = 'portalNewsItemsCacheV2';
+      const rssUrls = [
+        'https://news.yahoo.co.jp/rss/topics/top-picks.xml',
+        'https://news.yahoo.co.jp/rss/topics/domestic.xml'
+      ];
 
-      const cachedXML = localStorage.getItem(STORAGE_KEY);
-      if (cachedXML) {
-        renderNews(cachedXML);
-      } else {
+      let cachedItems = null;
+      try {
+        cachedItems = JSON.parse(localStorage.getItem(STORAGE_KEY));
+        if (Array.isArray(cachedItems) && cachedItems.length > 0) {
+          renderNewsItems(cachedItems);
+        } else {
+          container.innerHTML = '<li class="loading">ニュースを取得中…</li>';
+        }
+      } catch (_) {
         container.innerHTML = '<li class="loading">ニュースを取得中…</li>';
       }
 
       try {
-        const xmlText = await fetchFastestProxy(rssUrl, 3500);
-        localStorage.setItem(STORAGE_KEY, xmlText);
-        renderNews(xmlText);
+        const items = await fetchRssItems(rssUrls, 5000);
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
+        renderNewsItems(items);
         if (typeof resizeGridItem === 'function') resizeGridItem(document.getElementById('news-card'));
       } catch (err) {
-        console.warn("ニュースの最新取得失敗、キャッシュを維持します", err);
-        if (cachedXML) {
-          renderNews(cachedXML);
-          const note = document.createElement('li');
-          note.style.fontSize = "0.75rem";
-          note.style.color = "#888";
-          note.style.textAlign = "right";
-          note.textContent = "※前回取得した情報を表示中";
-          container.appendChild(note);
+        console.warn("ニュースの最新取得失敗:", err);
+        if (Array.isArray(cachedItems) && cachedItems.length > 0) {
+          renderNewsItems(cachedItems);
         } else {
           container.innerHTML = `<li class="error">ニュース取得に失敗しました。<br>時間をおいてください。</li>`;
         }
+        if (typeof resizeGridItem === 'function') resizeGridItem(document.getElementById('news-card'));
       }
     }
 
-    function renderNews(xmlText) {
+    function renderNewsItems(items) {
       const container = document.getElementById('news-list');
-      const parser = new DOMParser();
-      const xml = parser.parseFromString(xmlText, "application/xml");
-      const items = xml.querySelectorAll("item");
-
       container.innerHTML = '';
+
       if (!items || items.length === 0) {
         container.innerHTML = '<li>ニュース情報はありません。</li>';
         return;
       }
 
-      items.forEach((item, idx) => {
-        if (idx >= 8) return;
-
-        const title = item.querySelector("title")?.textContent || '情報なし';
-        const link = item.querySelector("link")?.textContent || '#';
-
+      items.slice(0, 8).forEach(item => {
         const li = document.createElement("li");
-        li.innerHTML = `<a href="${link}" target="_blank"
-                    style="text-decoration:none;color:var(--link-color);">${title}</a>`;
+        li.innerHTML = `<a href="${item.link}" target="_blank"
+                    style="text-decoration:none;color:var(--link-color);">${item.title}</a>`;
         container.appendChild(li);
       });
     }
@@ -3197,51 +3185,57 @@
     fetchNews();
     setInterval(fetchNews, 15 * 60 * 1000);
 
+    // --- 今日のトレンド取得 ---
     async function fetchTrends() {
       const container = document.getElementById("trend-list");
-      const STORAGE_KEY = "portalTrendCache";
+      const STORAGE_KEY = "portalTrendItemsCacheV2";
       const CACHE_DURATION = 30 * 60 * 1000;
 
       let cachedObj = null;
       try {
         cachedObj = JSON.parse(localStorage.getItem(STORAGE_KEY));
-        if (cachedObj && cachedObj.data) {
-          renderTrends(cachedObj.data);
+        if (cachedObj && Array.isArray(cachedObj.items) && cachedObj.items.length > 0) {
+          renderTrendItems(cachedObj.items);
           if (Date.now() - cachedObj.timestamp < CACHE_DURATION) {
             return;
           }
         }
       } catch (e) {}
 
-      if (!cachedObj || !cachedObj.data) {
+      if (!cachedObj || !cachedObj.items) {
         container.innerHTML = '<li class="loading">高速取得中...</li>';
       }
 
-      const rssUrl = "https://trends.google.co.jp/trending/rss?geo=JP";
+      // Google Trendsの最新エンドポイント(.com)と従来(.co.jp)の両方を対象にする
+      const rssUrls = [
+        "https://trends.google.com/trending/rss?geo=JP",
+        "https://trends.google.co.jp/trending/rss?geo=JP"
+      ];
 
       try {
-        const winnerResponse = await fetchFastestProxy(rssUrl, 3500);
+        const items = await fetchRssItems(rssUrls, 5000);
 
         localStorage.setItem(STORAGE_KEY, JSON.stringify({
           timestamp: Date.now(),
-          data: winnerResponse
+          items: items
         }));
 
-        renderTrends(winnerResponse);
+        renderTrendItems(items);
         if (typeof resizeGridItem === 'function') resizeGridItem(document.getElementById('trend-card'));
 
       } catch (err) {
         console.warn("トレンド最新取得失敗:", err);
-        if (cachedObj && cachedObj.data) {
-          renderTrends(cachedObj.data);
+        if (cachedObj && Array.isArray(cachedObj.items) && cachedObj.items.length > 0) {
+          renderTrendItems(cachedObj.items);
         } else {
           container.innerHTML =
             `<li class="error" style="font-size:0.85rem;">取得に失敗しました。<br>時間をおいてください。</li>`;
         }
+        if (typeof resizeGridItem === 'function') resizeGridItem(document.getElementById('trend-card'));
       }
     }
 
-    function renderTrends(xmlText) {
+    function renderTrendItems(items) {
       const container = document.getElementById("trend-list");
 
       const rainbow10 = [
@@ -3252,54 +3246,44 @@
         "rgba(160, 0, 255, 0.25)", "rgba(255, 80, 160, 0.25)"
       ];
 
-      try {
-        const parser = new DOMParser();
-        const xml = parser.parseFromString(xmlText, "application/xml");
-        const items = xml.querySelectorAll("item");
+      container.innerHTML = "";
 
-        container.innerHTML = "";
-
-        if (!items || items.length === 0) {
-          container.innerHTML = "<li>データ形式エラー</li>";
-          return;
-        }
-
-        items.forEach((item, idx) => {
-          if (idx >= 10) return;
-
-          const title = item.querySelector("title")?.textContent || "情報なし";
-          const query = encodeURIComponent(title);
-          const googleLink = `https://www.google.com/search?q=${query}`;
-
-          const bg = rainbow10[idx];
-          const hoverBg = bg.replace("0.25", "0.40");
-
-          const li = document.createElement("li");
-          li.innerHTML = `
-              <a href="${googleLink}" target="_blank"
-                style="
-                  display: block;
-                  padding: 8px 12px;
-                  margin: 5px 0;
-                  font-weight: 900;
-                  color: var(--text-color);
-                  background: ${bg};
-                  border-radius: 10px;
-                  cursor: pointer;
-                  text-decoration: none;
-                  transition: 0.2s;
-                "
-                onmouseover="this.style.background='${hoverBg}'"
-                onmouseout="this.style.background='${bg}'"
-              >
-                ${title}
-              </a>
-            `;
-          container.appendChild(li);
-        });
-      } catch (e) {
-        container.innerHTML = "<li>解析エラー</li>";
+      if (!items || items.length === 0) {
+        container.innerHTML = "<li>トレンド情報はありません</li>";
+        return;
       }
+
+      items.slice(0, 10).forEach((item, idx) => {
+        const title = item.title || "情報なし";
+        const query = encodeURIComponent(title);
+        const googleLink = `https://www.google.com/search?q=${query}`;
+
+        const bg = rainbow10[idx];
+        const hoverBg = bg.replace("0.25", "0.40");
+
+        const li = document.createElement("li");
+        li.innerHTML = `
+            <a href="${googleLink}" target="_blank"
+              style="
+                display: block;
+                padding: 8px 12px;
+                margin: 5px 0;
+                font-weight: 900;
+                color: var(--text-color);
+                background: ${bg};
+                border-radius: 10px;
+                cursor: pointer;
+                text-decoration: none;
+                transition: 0.2s;
+              "
+              onmouseover="this.style.background='${hoverBg}'"
+              onmouseout="this.style.background='${bg}'"
+            >
+              ${title}
+            </a>
+          `;
+        container.appendChild(li);
+      });
     }
 
     fetchTrends();
