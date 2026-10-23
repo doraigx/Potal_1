@@ -73,9 +73,7 @@
     }
 
     .logo-img {
-      height: 20%;
-      width: auto;
-      max-height: 80px;
+      height: 120px;
       object-fit: contain;
       display: block;
     }
@@ -98,33 +96,34 @@
     }
 
     .main-container {
-      margin: 2rem auto 0;
+      margin: 1.5rem auto 0;
       padding: 0 1.5rem;
     }
 
     /* =====================================================
        ★ Androidホームランチャー風 2次元グリッドシステム
+       （編集モード時に横幅が縮まない・マス目に100%フィット）
     ===================================================== */
     .widgets {
       display: grid;
       grid-template-columns: repeat(var(--grid-cols, 4), minmax(0, 1fr));
-      grid-auto-rows: 80px; /* 1マスの縦基準サイズ(80px) */
-      gap: 16px;
+      grid-auto-rows: 80px; /* 1マスの縦基準サイズ: 80px */
+      gap: 16px;            /* マス同士の隙間: 16px */
       width: 100%;
       margin: 0 auto;
       position: relative;
       min-height: 80vh;
       box-sizing: border-box;
+      padding: 0; /* ★編集モード時もpaddingを0に固定し、中央にギュッとなる現象を防止 */
     }
 
-    /* 編集モード時のグリッドパレット表示（PC/タブレット）
-       ※outlineを使うことで横幅が縮まず、文字の改行や高さズレを完全防止 */
+    /* 編集モード時のグリッドパレット表示（PC/タブレット） */
     @media screen and (min-width: 601px) {
       .widgets.edit-grid-active {
-        border-radius: 16px;
+        border-radius: 14px;
         background-color: rgba(33, 150, 243, 0.03);
-        outline: 2px dashed rgba(33, 150, 243, 0.35);
-        outline-offset: 6px;
+        outline: 2px dashed rgba(33, 150, 243, 0.4);
+        outline-offset: 8px;
       }
 
       /* ドロップ先のハイライトガイド枠 */
@@ -139,26 +138,25 @@
 
       /* 背景の空きマス目ガイド（編集モード時のみ表示） */
       .grid-cell-guide {
-        border: 1px dashed rgba(150, 150, 150, 0.22);
-        border-radius: 10px;
+        border: 1px dashed rgba(150, 150, 150, 0.25);
+        border-radius: 12px;
         pointer-events: none;
         z-index: 0;
-        height: 100%;
         box-sizing: border-box;
       }
       [data-theme="dark"] .grid-cell-guide {
-        border-color: rgba(255, 255, 255, 0.12);
+        border-color: rgba(255, 255, 255, 0.14);
       }
     }
 
-    /* ★ カードの高さをグリッドのマス目(100%)にピタッと合わせ、中の要素をフレックスで綺麗に充填する */
+    /* ★ カード自体をグリッドのマス目高さ（100%）にピタッと合わせる */
     .widgets .card {
       width: 100%;
       height: 100%;
       margin: 0;
       background: var(--card-bg);
       border-radius: 12px;
-      padding: 14px 18px;
+      padding: 12px 16px;
       box-shadow: 0 2px 6px var(--card-shadow);
       box-sizing: border-box;
       transition: transform 0.25s ease, box-shadow 0.25s ease;
@@ -168,45 +166,34 @@
       flex-direction: column;
       justify-content: space-between;
       overflow: hidden;
-      font-size: var(--base-font-size);
     }
 
-    .card h2 {
-      font-size: calc(var(--base-font-size, 16px) * 1.1);
-      margin: 0 0 8px 0;
-      line-height: 1.25;
-      flex-shrink: 0;
+    /* JSで必要マス数を計測する時だけ一時的に付与するクラス */
+    .widgets .card.measuring-height {
+      height: auto !important;
+      justify-content: flex-start !important;
     }
 
     .widgets.edit-grid-active .card {
       user-select: none;
-      outline: 2px solid rgba(76, 175, 80, 0.45);
+      outline: 2px solid rgba(76, 175, 80, 0.55);
+      outline-offset: -2px;
     }
 
     .widgets.edit-grid-active .card:hover {
       outline: 2px solid #4caf50;
     }
 
-    .widgets:not(.edit-grid-active) .card:hover {
-      transform: translateY(-4px);
-      box-shadow: 0 8px 18px rgba(0, 0, 0, 0.18);
-    }
-
-    .widgets:not(.edit-grid-active) .card:active {
-      transform: translateY(-2px);
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-    }
-
-    /* スマホサイズ（600px以下）では縦1列に整列 */
+    /* スマホサイズ（600px以下）では今まで通り縦1列に整列 */
     @media screen and (max-width: 600px) {
       .main-container {
         padding: 0 1rem;
-        margin-top: 1.5rem;
+        margin-top: 1.2rem;
       }
       .widgets {
         display: flex;
         flex-direction: column;
-        gap: 1.2rem;
+        gap: 1rem;
         min-height: auto;
       }
       .widgets .card {
@@ -217,104 +204,61 @@
     }
 
     /* =====================================================
-       ★ 各カードの中身をグリッド高さにピッタリ合わせる専用調整
+       ★ カード内の要素サイズ最適化（1マス・2マス・3マスに綺麗に収める）
     ===================================================== */
-
-    /* 1. 学内サイト (2マス: 176px) */
-    #campus-sites-card .campus-btn-group {
-      display: flex;
-      flex-direction: column;
-      justify-content: space-evenly;
-      gap: 10px;
-      flex: 1;
-    }
-    #campus-sites-card button {
-      background-color: rgba(255, 69, 165, 0.5);
-      border: none;
-      padding: 0.65rem 1rem;
-      border-radius: 0.5rem;
-      cursor: pointer;
-      font-size: 0.95rem;
-      font-weight: bold;
-      transition: 0.2s;
-      color: var(--text-color);
-      width: 100%;
-    }
-    #campus-sites-card button:hover {
-      background-color: #ff45a5;
+    .card {
+      font-size: var(--base-font-size);
     }
 
-    /* 2. 日の出・日の入 (2マス: 176px) */
-    #sun-info {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      justify-content: space-evenly;
-      background: var(--bg-color);
-      border-radius: 8px;
-      padding: 8px 14px;
-      font-size: 1.05rem;
-      line-height: 1.5;
+    .card h2 {
+      font-size: calc(var(--base-font-size) * 1.05);
+      margin: 0 0 6px 0;
+      line-height: 1.25;
+      flex-shrink: 0;
     }
 
-    /* 3. 今日の星座占い (2マス: 176px) */
-    #horoscope-card .horoscope-body {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
-    }
-    #zodiac-select {
-      padding: 0.5rem;
-      border: 1px solid #ccc;
-      border-radius: 8px;
-      font-size: 0.95rem;
-      flex: 1;
-      min-width: 80px;
-    }
-    #draw-horoscope {
-      padding: 0.5rem 1rem;
-      background-color: rgba(206, 171, 255, 0.5);
-      color: var(--text-color);
-      border: none;
-      border-radius: 8px;
-      cursor: pointer;
-      font-weight: bold;
-      transition: 0.2s;
-    }
-    #draw-horoscope:hover {
-      background-color: rgba(206, 171, 255, 1);
-    }
-    #horoscope-result {
-      margin: 6px 0 0 0;
-      padding: 6px 10px;
-      background: var(--bg-color);
-      border-radius: 6px;
-      font-weight: bold;
-      font-size: 0.85rem;
-      text-align: center;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-
-    /* 4. おみくじ (2マス: 176px) */
-    #fortune-card p {
-      flex: 1;
-      display: flex;
-      align-items: center;
+    /* --- 1マス（80px）で収まるコンパクトカード --- */
+    /* 日の出・日の入カード（1マス） */
+    #sun-card {
       justify-content: center;
-      margin: 4px 0 8px 0;
-      padding: 4px 8px;
-      background: var(--bg-color);
-      border-radius: 8px;
-      font-size: 1rem;
+      padding: 10px 16px;
+    }
+    #sun-card h2 {
+      margin-bottom: 4px;
+      font-size: calc(var(--base-font-size) * 0.95);
+    }
+    #sun-info {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      flex-wrap: wrap;
+      font-size: 0.92rem;
+      line-height: 1.2;
+    }
+
+    /* おみくじカード（1マス） */
+    #fortune-card {
+      flex-direction: row;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      padding: 10px 16px;
+    }
+    #fortune-card h2 {
+      margin: 0;
+      white-space: nowrap;
+    }
+    #fortune-card p {
+      margin: 0;
+      font-size: 0.92rem;
       font-weight: bold;
+      flex: 1;
       text-align: center;
+      line-height: 1.25;
     }
     .Fort-btn {
-      padding: 9px 16px;
-      font-size: 0.95em;
+      padding: 6px 14px;
+      font-size: 0.85rem;
       color: var(--text-color);
       background-color: rgba(107, 184, 255, 0.35);
       font-weight: bold;
@@ -322,81 +266,116 @@
       cursor: pointer;
       transition: background-color 0.2s;
       border-radius: 8px;
-      width: 100%;
+      white-space: nowrap;
+      flex-shrink: 0;
     }
     .Fort-btn:hover {
       background-color: rgba(107, 184, 255, 1);
     }
 
-    /* 5. 為替 (2マス: 176px、換算結果表示時も綺麗に収まる) */
-    #kawase-card .kawase-body {
-      flex: 1;
+    /* --- 2マス（176px）に収まるカード群 --- */
+    /* 学内サイト（ボタン横並びでスッキリ） */
+    #campus-sites-card .campus-btn-wrap {
       display: flex;
-      flex-direction: column;
-      justify-content: space-between;
+      gap: 0.6rem;
+      margin-top: auto;
+      margin-bottom: auto;
     }
-    .currency-result {
-      margin: 0;
-      font-size: 1.05rem;
+    #campus-sites-card button {
+      flex: 1;
+      background-color: rgba(255, 69, 165, 0.5);
+      border: none;
+      padding: 0.65rem 0.5rem;
+      border-radius: 0.5rem;
+      cursor: pointer;
+      font-size: 0.9rem;
       font-weight: bold;
+      transition: 0.2s;
       color: var(--text-color);
-      background: var(--bg-color);
-      padding: 5px 10px;
-      border-radius: 6px;
-      text-align: center;
     }
-    .currency-result:empty {
-      display: none;
+    #campus-sites-card button:hover {
+      background-color: #ff45a5;
     }
+
+    /* 為替カード（2マス） */
     .currency-converter {
       display: flex;
       flex-wrap: nowrap;
-      gap: 0.4rem;
-      margin-top: 6px;
+      gap: 0.35rem;
+      margin-top: 4px;
       align-items: center;
     }
     .currency-input,
     #from,
     #to {
-      padding: 0.45rem;
+      padding: 0.35rem 0.4rem;
       border: 1px solid #ccc;
-      border-radius: 8px;
+      border-radius: 6px;
       font-size: 0.9rem;
       flex: 1;
-      min-width: 55px;
-      width: 100%;
-      box-sizing: border-box;
+      min-width: 50px;
     }
     #convert {
-      padding: 0.45rem 0.8rem;
+      padding: 0.38rem 0.75rem;
       background: rgba(143, 207, 120, 0.5);
       color: var(--text-color);
       border: none;
-      border-radius: 8px;
+      border-radius: 6px;
       cursor: pointer;
       font-weight: bold;
+      font-size: 0.9rem;
       white-space: nowrap;
-      transition: 0.2s;
     }
     #convert:hover {
       background: rgba(143, 207, 120, 1);
     }
+    .currency-result {
+      margin-top: 2px;
+      font-size: 0.98rem;
+      font-weight: bold;
+      color: var(--text-color);
+      min-height: 1.3em;
+    }
 
-    /* 6. あと何日？ (通常2マス: 176px、設定展開時自動で3マスへ伸縮) */
-    .countdown-display {
+    /* 星座占いカード（2マス） */
+    #zodiac-select {
+      padding: 0.4rem 0.5rem;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      font-size: 0.92rem;
       flex: 1;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
+      min-width: 80px;
+    }
+    #draw-horoscope {
+      padding: 0.42rem 0.9rem;
+      background-color: rgba(206, 171, 255, 0.5);
+      color: var(--text-color);
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: bold;
+      font-size: 0.9rem;
+    }
+    #draw-horoscope:hover {
+      background-color: rgba(206, 171, 255, 1);
+    }
+    #horoscope-result {
+      margin: 6px 0 0 0;
+      font-size: 0.88rem;
+      font-weight: bold;
+      line-height: 1.35;
+    }
+
+    /* あと何日？（カウントダウン・2マス） */
+    .countdown-display {
       text-align: center;
-      margin: 0;
-      background: var(--bg-color);
-      border-radius: 8px;
-      padding: 4px 8px;
+      margin: 2px 0;
     }
     .cnt-label {
       font-size: 0.95rem;
       font-weight: bold;
+      margin-bottom: 0;
+      line-height: 1.2;
     }
     .cnt-main {
       display: flex;
@@ -404,7 +383,6 @@
       align-items: baseline;
       gap: 4px;
       color: #2196f3;
-      margin: 2px 0;
     }
     .cnt-text {
       font-size: 0.85rem;
@@ -412,15 +390,16 @@
     .cnt-number {
       font-size: 2.1rem;
       font-weight: bold;
-      line-height: 1;
+      line-height: 1.05;
     }
     .cnt-date {
-      font-size: 0.75rem;
+      font-size: 0.78rem;
       opacity: 0.7;
+      margin-top: 1px;
     }
     .cnt-btn-area {
       text-align: right;
-      margin-top: 4px;
+      margin-top: -18px;
     }
     .cnt-btn-outline {
       font-size: 0.75rem;
@@ -429,7 +408,7 @@
       border-radius: 4px;
       color: var(--text-color);
       cursor: pointer;
-      padding: 2px 8px;
+      padding: 2px 6px;
     }
     .cnt-settings {
       display: none;
@@ -439,12 +418,12 @@
     }
     .cnt-input {
       width: 100%;
-      padding: 5px;
-      margin-bottom: 5px;
+      padding: 4px 6px;
+      margin-bottom: 4px;
       box-sizing: border-box;
       border-radius: 4px;
       border: 1px solid #ccc;
-      font-size: 0.9rem;
+      font-size: 0.88rem;
     }
     .cnt-btn-primary {
       width: 100%;
@@ -457,73 +436,54 @@
       cursor: pointer;
     }
 
-    /* 7. 簡易メモ帳 (3マス: 272px) */
-    #memo-card #simple-memo {
-      width: 100%;
-      flex: 1;
-      min-height: 140px;
-      padding: 10px;
-      box-sizing: border-box;
-      border-radius: 8px;
-      border: 1px solid #ccc;
-      resize: none;
-      background: var(--bg-color);
-      color: var(--text-color);
-      font-family: inherit;
-      font-size: 0.95rem;
-      outline: none;
-    }
-
-    /* 8. アプリダウンロード (3マス: 272px) */
+    /* アプリダウンロード（2マス） */
     .app-dl-container {
-      flex: 1;
       display: flex;
       flex-direction: column;
-      justify-content: space-between;
+      gap: 4px;
       text-align: center;
+      flex: 1;
+      justify-content: center;
     }
     .app-dl-help {
-      font-size: 0.85rem;
-      margin: 0 0 8px 0;
-      opacity: 0.85;
-      line-height: 1.4;
+      font-size: 0.78rem;
+      margin: 0 0 2px;
+      opacity: 0.8;
+      line-height: 1.2;
     }
     .app-list {
-      flex: 1;
       display: flex;
       flex-direction: column;
-      justify-content: space-evenly;
-      gap: 10px;
+      gap: 6px;
       width: 100%;
     }
     .app-item {
-      flex: 1;
       display: flex;
       align-items: center;
       justify-content: space-between;
-      background: var(--bg-color);
-      padding: 8px 14px;
-      border-radius: 8px;
+      background: rgba(0, 0, 0, 0.03);
+      padding: 4px 10px;
+      border-radius: 6px;
     }
     .app-icon {
-      font-size: 0.95rem;
+      font-size: 0.88rem;
       font-weight: bold;
     }
     .app-link {
       text-decoration: none;
-      width: 120px;
+      width: 105px;
     }
     .app-dl-btn {
       width: 100%;
-      padding: 10px;
-      font-size: 0.9rem;
+      padding: 6px 8px;
+      font-size: 0.82rem;
       font-weight: bold;
       color: var(--text-color);
       background: linear-gradient(135deg, rgba(76, 175, 80, 0.4), rgba(33, 150, 243, 0.4));
       border: none;
-      border-radius: 8px;
+      border-radius: 6px;
       cursor: pointer;
-      box-shadow: 0 2px 6px var(--card-shadow);
+      box-shadow: 0 1px 4px var(--card-shadow);
       transition: background 0.3s ease, transform 0.2s ease;
     }
     .app-dl-btn:hover {
@@ -531,12 +491,34 @@
       transform: translateY(-2px);
     }
 
-    /* 9. 癒やしの猫 (4マス: 368px) */
+    /* --- 3マス（272px）以上に収まるカード群 --- */
+    /* 簡易メモ帳（3マス） */
+    #memo-card {
+      display: flex;
+      flex-direction: column;
+    }
+    #simple-memo {
+      width: 100%;
+      flex: 1;
+      min-height: 155px;
+      padding: 8px 10px;
+      box-sizing: border-box;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+      resize: none;
+      background: var(--bg-color);
+      color: var(--text-color);
+      font-family: inherit;
+      font-size: 0.9rem;
+      outline: none;
+    }
+
+    /* 癒やしの猫（3マス） */
     .cat-frame {
       width: 100%;
       flex: 1;
-      min-height: 220px;
-      background: var(--bg-color);
+      min-height: 155px;
+      background: rgba(0, 0, 0, 0.05);
       border-radius: 8px;
       overflow: hidden;
       display: flex;
@@ -546,24 +528,25 @@
     }
     .cat-loading {
       position: absolute;
-      font-size: 0.9rem;
+      font-size: 0.85rem;
       opacity: 0.6;
     }
     .cat-img {
-      width: 100%;
-      height: 100%;
+      max-width: 100%;
+      max-height: 100%;
       display: none;
-      object-fit: cover;
+      object-fit: contain;
     }
     .cat-btn {
       width: 100%;
-      margin-top: 10px;
-      padding: 10px;
+      margin-top: 8px;
+      padding: 7px;
       background: rgba(0, 140, 255, 0.35);
       color: var(--text-color);
       border: none;
-      border-radius: 8px;
+      border-radius: 6px;
       font-weight: bold;
+      font-size: 0.88rem;
       cursor: pointer;
       transition: 0.2s;
       flex-shrink: 0;
@@ -572,63 +555,24 @@
       opacity: 0.85;
     }
 
-    /* 10. カレンダー (4マス: 368px に隙間なくピッタリ収める) */
-    #calendar-card #calendar {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-    }
-    .calendar {
-      width: 100%;
-      flex: 1;
-      height: 100%;
-      border-collapse: separate;
-      border-spacing: 0;
-      border: 2px solid #000;
-      border-radius: 10px;
-      overflow: hidden;
-      table-layout: fixed;
-    }
-    .calendar th,
-    .calendar td {
-      border: 1px solid rgba(0, 0, 0, 0.2);
-      padding: 2px 0;
-      text-align: center;
-      font-size: 0.85rem;
-    }
-    .calendar th {
-      background: rgba(0, 0, 0, 0.05);
-      color: var(--text-color);
-      font-weight: bold;
-      height: 24px;
-    }
-    .calendar td {
-      background: var(--card-bg);
-      color: var(--text-color);
-    }
-    .calendar td.today {
-      background: #bbdefb;
-      color: #000;
-      font-weight: bold;
-    }
+    /* カレンダー（4マスにスッキリ収める） */
     .calendar-nav {
       display: flex;
       align-items: center;
       justify-content: space-between;
       margin-bottom: 6px;
       position: relative;
-      flex-shrink: 0;
     }
     .calendar-nav button {
       background: rgba(0, 140, 255, 0.25);
       border: none;
-      border-radius: 8px;
-      padding: 0.25rem 0.8rem;
+      border-radius: 6px;
+      padding: 0.25rem 0.75rem;
       cursor: pointer;
       color: var(--text-color);
       font-weight: bold;
-      font-size: 0.85rem;
-      box-shadow: 0 2px 6px var(--card-shadow);
+      font-size: 0.88rem;
+      box-shadow: 0 1px 4px var(--card-shadow);
     }
     .calendar-nav button:hover {
       background: rgba(0, 140, 255, 0.50);
@@ -639,7 +583,36 @@
       transform: translateX(-50%);
       font-weight: bold;
       font-size: 1rem;
-      white-space: nowrap;
+    }
+    .calendar {
+      width: 100%;
+      border-collapse: separate;
+      border-spacing: 0;
+      border: 1.5px solid #000;
+      border-radius: 8px;
+      overflow: hidden;
+      table-layout: fixed;
+      font-size: 0.85rem;
+    }
+    .calendar th,
+    .calendar td {
+      border: 1px solid rgba(0, 0, 0, 0.15);
+      padding: 0.32rem 0.2rem;
+      text-align: center;
+    }
+    .calendar th {
+      background: rgba(0, 0, 0, 0.05);
+      color: var(--text-color);
+      font-weight: bold;
+    }
+    .calendar td {
+      background: var(--card-bg);
+      color: var(--text-color);
+    }
+    .calendar td.today {
+      background: #bbdefb;
+      color: #000;
+      font-weight: bold;
     }
     html[data-theme="dark"] .calendar {
       border-color: #dcdcdc;
@@ -656,67 +629,14 @@
     .calendar td.sunday,
     .calendar td.holiday { color: red; }
 
-    /* 11. 今日のトレンド & 12. 日本のニュース (6マス: 560px にリストが均等充填) */
-    #trend-list,
-    #news-list {
-      list-style: none !important;
-      padding: 0 !important;
-      margin: 0 !important;
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
-      gap: 5px;
-    }
-    #trend-list li,
-    #news-list li {
-      list-style: none !important;
-      padding: 0 !important;
-      margin: 0 !important;
-      flex: 1;
-      display: flex;
-    }
-    #trend-list a,
-    #news-list a {
-      flex: 1;
-      display: flex !important;
-      align-items: center;
-      padding: 6px 12px !important;
-      margin: 0 !important;
-      font-weight: 700 !important;
-      font-size: 0.86rem !important;
-      line-height: 1.3 !important;
-      color: var(--text-color) !important;
-      border-radius: 8px !important;
-      cursor: pointer !important;
-      text-decoration: none !important;
-      box-sizing: border-box !important;
-      overflow: hidden;
-      display: -webkit-box !important;
-      -webkit-line-clamp: 2;
-      -webkit-box-orient: vertical;
-    }
-    #news-list a {
-      background: rgba(0, 140, 255, 0.22) !important;
-    }
-    #news-list a:hover {
-      background: rgba(0, 140, 255, 0.38) !important;
-    }
-
-    /* 13. 天気 (6マス: 560px に現在の天気＋時間別＋週間天気がピッタリ収まる) */
-    #weather {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
-    }
+    /* 天気カード（6マス） */
     .weather {
       display: flex;
-      gap: 0.6rem;
+      gap: 0.5rem;
       align-items: center;
     }
     .weather .icon {
-      font-size: 2.3rem;
+      font-size: 2.2rem;
       width: 52px;
       height: 52px;
       display: flex;
@@ -736,30 +656,29 @@
       margin: 1px 0;
     }
     .forecast {
-      margin-top: 6px;
+      margin-top: 0.4rem;
       border-collapse: collapse;
       width: 100%;
-      font-size: 12px;
+      font-size: 12.5px;
     }
     .forecast th,
     .forecast td {
       border-bottom: 1px solid #ddd;
-      padding: 2px 4px;
+      padding: 2.5px 4px;
       text-align: center;
     }
     .forecast th {
       background: var(--bg-color);
     }
-    .weekly-weather {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      justify-content: flex-end;
+    #weather h3 {
+      margin: 6px 0 2px;
+      font-size: 0.92rem;
     }
     .weekly-weather table {
       width: 100%;
       border-collapse: collapse;
-      font-size: 12px;
+      margin-top: 0.2rem;
+      font-size: 12.5px;
     }
     .weekly-weather th,
     .weekly-weather td {
@@ -775,24 +694,57 @@
       background: var(--card-bg);
     }
 
-    /* 14. 最新の地震情報 (初期5マス: 464px、もっと見る押下時に自動拡張) */
+    /* ニュース・トレンドカード（5〜6マスに綺麗に整列） */
+    #trend-list,
+    #news-list {
+      list-style: none !important;
+      padding-left: 0 !important;
+      margin: 0 !important;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      flex: 1;
+      gap: 4px;
+    }
+    #trend-list li,
+    #news-list li {
+      list-style: none !important;
+      padding: 0 !important;
+      margin: 0 !important;
+    }
+    #news-list a {
+      all: unset !important;
+      display: block !important;
+      padding: 7px 10px !important;
+      font-size: 0.85rem !important;
+      line-height: 1.3 !important;
+      font-weight: 700 !important;
+      color: var(--text-color) !important;
+      background: rgba(0, 140, 255, 0.22) !important;
+      border-radius: 8px !important;
+      cursor: pointer !important;
+      box-sizing: border-box !important;
+    }
+    #news-list a:hover {
+      background: rgba(0, 140, 255, 0.35) !important;
+    }
+
+    /* 地震情報カード */
     #result {
       list-style: none;
       padding: 0;
       margin: 0;
-      flex: 1;
       display: flex;
       flex-direction: column;
-      justify-content: space-between;
-      gap: 8px;
+      gap: 6px;
     }
     #result li {
       margin: 0;
     }
     .eq {
       background: var(--bg-color);
-      padding: 7px 10px;
-      border-radius: 8px;
+      padding: 0.55rem 0.75rem;
+      border-radius: 6px;
       border-left: 5px solid #21cbf3;
     }
     .eq .meta {
@@ -804,13 +756,13 @@
       display: inline-block;
       background: rgba(255, 170, 100, 0.5);
       font-weight: bold;
+      font-size: 0.78rem;
       text-align: center;
       color: var(--text-color);
-      padding: 3px 10px;
-      border-radius: 6px;
+      padding: 0.3rem 0.6rem;
+      border-radius: 5px;
       cursor: pointer;
-      margin-top: 4px;
-      font-size: 0.78rem;
+      margin-top: 0.3rem;
       transition: 0.2s;
     }
     .ac-parent:hover {
@@ -818,12 +770,14 @@
     }
     .ac-child {
       display: none;
-      padding: 6px 8px;
+      padding: 0.5rem;
       border-radius: 6px;
-      margin-top: 4px;
+      margin-top: 0.3rem;
       font-size: 0.82rem;
       background: var(--card-bg);
-      border: 1px solid rgba(150, 150, 150, 0.2);
+      position: relative;
+      max-height: 150px;
+      overflow-y: auto;
     }
     .point-row {
       padding: 3px 0;
@@ -855,17 +809,12 @@
     .eq.s6-weak, .eq.s6-strong { background-color: rgba(244, 67, 54, 0.25); border-left-color: #f44336; }
     .eq.s7 { background-color: rgba(106, 27, 154, 0.3); border-left-color: #6a1b9a; color: #6a1b9a; font-weight: bold; }
 
-    .eq-buttons {
-      display: flex;
-      gap: 0.5rem;
-      margin-top: 8px;
-      flex-shrink: 0;
-    }
     .eq-buttons button {
       flex: 1;
       background: rgba(255, 152, 129, 0.8);
       color: var(--text-color);
       font-weight: bold;
+      font-size: 0.82rem;
       border: none;
       border-radius: 6px;
       padding: 0.45rem 0;
@@ -881,7 +830,6 @@
       color: #777;
       font-size: 0.9rem;
     }
-
     .error {
       color: #d9534f;
       font-size: 0.9rem;
@@ -905,10 +853,21 @@
     #theme-toggle {
       padding: 0.4rem 0.8rem;
       border: none;
+      background: none;
       color: inherit;
       font-size: 1.5rem;
       cursor: pointer;
       background: rgba(255, 255, 255, 0.1);
+    }
+
+    .widgets:not(.edit-grid-active) .card:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 6px 14px rgba(0, 0, 0, 0.16);
+    }
+
+    .widgets:not(.edit-grid-active) .card:active {
+      transform: translateY(-1px);
+      box-shadow: 0 3px 8px rgba(0, 0, 0, 0.14);
     }
 
     #clock {
@@ -994,6 +953,7 @@
         justify-content: center;
         border-radius: 8px;
         position: relative;
+        isolation: auto;
       }
 
       .header-btn::after {
@@ -1029,6 +989,11 @@
         pointer-events: none;
       }
 
+      [data-theme="dark"] #mobile-nav-bar {
+        background: rgba(20, 20, 20, 0);
+        border-top: 1px solid rgba(255, 255, 255, 0);
+      }
+
       #circle-trigger-btn {
         width: 60px;
         height: 60px;
@@ -1047,6 +1012,8 @@
         left: 50%;
         transform: translateX(-50%);
         touch-action: none;
+        -webkit-touch-callout: none;
+        -webkit-user-select: none;
         user-select: none;
         pointer-events: auto;
       }
@@ -1171,6 +1138,12 @@
       }
     }
 
+    .logo-img {
+      height: 20%;
+      width: auto;
+      object-fit: contain;
+    }
+
     .modal-overlay {
       position: fixed;
       top: 0;
@@ -1206,6 +1179,13 @@
 
     .modal-header h3 { margin: 0; font-size: 1.1rem; }
 
+    .setting-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px 0;
+    }
+
     .close-btn {
       background: none;
       border: none;
@@ -1239,6 +1219,16 @@
       color: var(--text-color);
       opacity: 0.7;
       margin-top: 5px;
+    }
+
+    #settings-modal[style*="display: flex"] ~ #mobile-nav-bar,
+    #settings-modal[style*="display: flex"] ~ #circle-overlay,
+    #settings-modal[style*="display: flex"] ~ #circle-menu-ring,
+    #settings-modal[style*="display: flex"] ~ #edit-btn,
+    #settings-modal[style*="display: flex"] ~ button[style*="position: fixed"] {
+      display: none !important;
+      visibility: hidden !important;
+      opacity: 0 !important;
     }
 
     body:has(#settings-modal[style*="display: flex"]) #edit-btn,
@@ -1318,18 +1308,10 @@
     </div>
 
     <script>
-      // ★ 外部API(トレンド・ニュース)の通信をクラッシュさせていたService Worker(sw.js)の干渉を解除
-      if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.getRegistrations().then(regs => {
-          for (let reg of regs) {
-            reg.unregister();
-          }
-        });
-      }
-
       (function() {
         const html = document.documentElement;
         const toggleBtn = document.getElementById("theme-toggle");
+
         const STORAGE_KEY_COLOR = "portalHeaderColor";
 
         const applyHeaderColor = (color) => {
@@ -1338,7 +1320,11 @@
         };
 
         const savedColor = localStorage.getItem(STORAGE_KEY_COLOR);
-        if (savedColor) applyHeaderColor(savedColor);
+        if (savedColor) {
+          applyHeaderColor(savedColor);
+          const colorPicker = document.getElementById("color-picker");
+          if (colorPicker) colorPicker.value = savedColor;
+        }
 
         const applyTheme = (theme) => {
           html.setAttribute("data-theme", theme);
@@ -1354,7 +1340,9 @@
           localStorage.setItem("theme", current);
         });
       })();
+    </script>
 
+    <script>
       function openClockMode() {
         window.open('clock.html', '_blank');
       }
@@ -1364,16 +1352,14 @@
   <div class="main-container">
     <div class="widgets">
 
-      <!-- 学内サイト (2マス) -->
       <div class="card" id="campus-sites-card">
         <h2>学内サイト</h2>
-        <div class="campus-btn-group">
+        <div class="campus-btn-wrap">
           <button onclick="window.open('https://webclass.nagoya-bunri.ac.jp/webclass/login.php?rnd=179fa&language=JAPANESE','_blank')">WebClass</button>
           <button onclick="window.open('https://unipa.nagoya-bunri.ac.jp/uprx/up/pk/pky501/Pky50101.xhtml','_blank')">UNIPA</button>
         </div>
       </div>
 
-      <!-- 今日のトレンド (6マス) -->
       <div class="card" id="trend-card">
         <h2>今日のトレンド</h2>
         <ul id="trend-list">
@@ -1381,7 +1367,6 @@
         </ul>
       </div>
 
-      <!-- 天気 (6マス) -->
       <div class="card" id="weather-card">
         <h2>天気</h2>
         <div id="weather">
@@ -1389,65 +1374,54 @@
         </div>
       </div>
 
-      <!-- 日の出・日の入 (2マス) -->
       <div class="card" id="sun-card">
         <h2>日の出・日の入</h2>
         <div id="sun-info">読み込み中...</div>
       </div>
 
-      <!-- 為替 (2マス) -->
       <div class="card" id="kawase-card">
         <h2>為替</h2>
-        <div class="kawase-body">
-          <div id="exchange-rate" class="currency-result">読み込み中...</div>
-          <div class="currency-converter">
-            <input type="number" id="amount" value="1" class="currency-input">
-            <select id="from">
-              <option value="USD" selected>USD</option>
-              <option value="JPY">JPY</option>
-            </select>
-            <span>→</span>
-            <select id="to">
-              <option value="JPY" selected>JPY</option>
-              <option value="USD">USD</option>
-            </select>
-            <button id="convert">換算</button>
-          </div>
-          <div id="currency-result" class="currency-result"></div>
+        <div id="exchange-rate" class="currency-result">読み込み中...</div>
+        <div class="currency-converter">
+          <input type="number" id="amount" value="1" class="currency-input">
+          <select id="from">
+            <option value="USD" selected>USD</option>
+            <option value="JPY">JPY</option>
+          </select>
+          <span>→</span>
+          <select id="to">
+            <option value="JPY" selected>JPY</option>
+            <option value="USD">USD</option>
+          </select>
+          <button id="convert">換算</button>
         </div>
+        <div id="currency-result" class="currency-result"></div>
       </div>
 
-      <!-- 今日の星座占い (2マス) -->
       <div class="card" id="horoscope-card">
         <h2>今日の星座占い</h2>
-        <div class="horoscope-body">
-          <div style="display:flex; gap:0.5rem; align-items:center;">
-            <select id="zodiac-select" aria-label="星座">
-              <option value="aries">牡羊座</option>
-              <option value="taurus">牡牛座</option>
-              <option value="gemini">双子座</option>
-              <option value="cancer">蟹座</option>
-              <option value="leo">獅子座</option>
-              <option value="virgo">乙女座</option>
-              <option value="libra">天秤座</option>
-              <option value="scorpio">蠍座</option>
-              <option value="sagittarius">射手座</option>
-              <option value="capricorn">山羊座</option>
-              <option value="aquarius">水瓶座</option>
-              <option value="pisces">魚座</option>
-            </select>
-            <button id="draw-horoscope">占う</button>
-          </div>
-          <p id="horoscope-result">選んで「占う」を押してください</p>
+        <div style="display:flex; gap:0.5rem; align-items:center;">
+          <select id="zodiac-select" aria-label="星座">
+            <option value="aries">牡羊座</option>
+            <option value="taurus">牡牛座</option>
+            <option value="gemini">双子座</option>
+            <option value="cancer">蟹座</option>
+            <option value="leo">獅子座</option>
+            <option value="virgo">乙女座</option>
+            <option value="libra">天秤座</option>
+            <option value="scorpio">蠍座</option>
+            <option value="sagittarius">射手座</option>
+            <option value="capricorn">山羊座</option>
+            <option value="aquarius">水瓶座</option>
+            <option value="pisces">魚座</option>
+          </select>
+          <button id="draw-horoscope">占う</button>
         </div>
+        <p id="horoscope-result">選んで「占う」を押してください</p>
       </div>
 
-      <!-- あと何日？ (2マス、設定展開時3マス) -->
       <div class="card" id="countdown-card">
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
-          <h2 style="margin:0;">あと何日？</h2>
-          <button id="cnt-toggle-btn" class="cnt-btn-outline">設定</button>
-        </div>
+        <h2>あと何日？</h2>
         <div class="countdown-display">
           <div id="countdown-label" class="cnt-label">未設定</div>
           <div class="cnt-main">
@@ -1457,6 +1431,11 @@
           </div>
           <div id="countdown-date-display" class="cnt-date">----/--/--</div>
         </div>
+
+        <div class="cnt-btn-area">
+          <button id="cnt-toggle-btn" class="cnt-btn-outline">設定</button>
+        </div>
+
         <div id="cnt-settings" class="cnt-settings">
           <input type="text" id="cnt-name" class="cnt-input" placeholder="イベント名 (例: 夏休み)">
           <input type="date" id="cnt-date" class="cnt-input">
@@ -1464,7 +1443,6 @@
         </div>
       </div>
 
-      <!-- 癒やしの猫 (4マス) -->
       <div class="card" id="cat-card">
         <h2>癒やしの猫</h2>
         <div class="cat-frame">
@@ -1476,19 +1454,18 @@
         </button>
       </div>
 
-      <!-- 最新の地震情報 (5マス、もっと見る・震度展開時に自動拡張) -->
       <div class="card" id="eq-card">
         <h2>最新の地震情報</h2>
         <ul id="result">
           <li class="loading">取得中…</li>
         </ul>
-        <div class="eq-buttons">
+
+        <div class="eq-buttons" style="display:flex; gap:0.5rem; margin-top:0.4rem;">
           <button id="eq-load-more">もっと見る</button>
           <button id="eq-close-all" style="display:none;">閉じる</button>
         </div>
       </div>
 
-      <!-- 日本のニュース (6マス) -->
       <div class="card" id="news-card">
         <h2>日本のニュース</h2>
         <ul id="news-list">
@@ -1496,7 +1473,6 @@
         </ul>
       </div>
 
-      <!-- カレンダー (4マス) -->
       <div class="card" id="calendar-card">
         <h2>カレンダー</h2>
         <div class="calendar-nav">
@@ -1510,15 +1486,14 @@
         </div>
       </div>
 
-      <!-- 簡易メモ帳 (3マス) -->
       <div class="card" id="memo-card">
         <h2>簡易メモ帳</h2>
         <textarea id="simple-memo" placeholder="ここにメモを入力... (自動保存されます)"></textarea>
         <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 6px; flex-shrink: 0;">
-          <div id="memo-count" style="font-size: 0.85rem; color: var(--text-color); opacity: 0.8;">
+          <div id="memo-count" style="font-size: 0.8rem; color: var(--text-color); opacity: 0.8;">
             文字数: <span id="char-count">0</span>
           </div>
-          <button onclick="clearMemo()" style="font-size:0.8rem; padding:4px 8px; cursor:pointer; background:#f44336; color:white; border:none; border-radius:4px;">
+          <button onclick="clearMemo()" style="font-size:0.78rem; padding:3px 8px; cursor:pointer; background:#f44336; color:white; border:none; border-radius:4px;">
             全消去
           </button>
         </div>
@@ -1555,20 +1530,16 @@
         });
       </script>
 
-      <!-- おみくじ (2マス) -->
       <div class="card" id="fortune-card">
         <h2>おみくじ</h2>
-        <p id="fortune-result">ボタンを押してね↓</p>
+        <p id="fortune-result">ボタンを押してね</p>
         <button class="Fort-btn" onclick="showFortune()">占う</button>
       </div>
 
-      <!-- アプリダウンロード (3マス) -->
       <div class="card" id="app-download-card">
         <h2>アプリダウンロード</h2>
         <div class="app-dl-container">
-          <p class="app-dl-help">
-            作者が作ったアプリを、ダウンロードできます。
-          </p>
+          <p class="app-dl-help">作者が作ったアプリをダウンロードできます。</p>
           <div class="app-list">
             <div class="app-item">
               <span class="app-icon">画面録画</span>
@@ -1630,8 +1601,7 @@
   </script>
 
   <!-- ========================================================
-       ★ Androidホームランチャー型 2次元グリッドシステム
-          （各カードをグリッドの定数マスに合わせ、地震などの展開時は自動伸縮）
+       ★ Androidホームランチャー型 2次元グリッドシステム & 編集制御
   ======================================================== -->
   <script>
     let editMode = false;
@@ -1640,35 +1610,18 @@
     let isResizing = false;
 
     const hiddenCardsKey = "hiddenCards";
-    const GRID_POS_KEY = "widgetGridPositions_v4";
+    const GRID_POS_KEY = "widgetGridPositions";
     const CELL_HEIGHT = 80; // 1マスの縦幅(px)
     const CELL_GAP = 16;    // マス同士の隙間(px)
 
-    // ★ 各カードのグリッド高さ（マス数）定義
-    // 2マス=176px, 3マス=272px, 4マス=368px, 5マス=464px, 6マス=560px
-    const BASE_CARD_SPANS = {
-      "campus-sites-card": 2, // 学内サイト
-      "sun-card":          2, // 日の出・日の入
-      "horoscope-card":    2, // 今日の星座占い
-      "fortune-card":      2, // おみくじ
-      "kawase-card":       2, // 為替
-      "countdown-card":    2, // あと何日？
-      "memo-card":         3, // 簡易メモ帳
-      "app-download-card": 3, // アプリダウンロード
-      "cat-card":          4, // 癒やしの猫
-      "calendar-card":     4, // カレンダー
-      "eq-card":           5, // 最新の地震情報（基本5マス、もっと見るで自動増加）
-      "trend-card":        6, // 今日のトレンド
-      "news-card":         6, // 日本のニュース
-      "weather-card":      6  // 天気
-    };
-
+    // 現在の画面幅に応じたグリッド列数を計算（スマホは1列、タブレット・PCは2〜5列）
     function getGridCols() {
       if (window.innerWidth <= 600) return 1;
       const w = widgets.clientWidth || window.innerWidth - 48;
       return Math.max(2, Math.min(5, Math.floor((w + CELL_GAP) / (300 + CELL_GAP))));
     }
 
+    // 座標データの取得・保存
     function getSavedPositions() {
       try {
         return JSON.parse(localStorage.getItem(GRID_POS_KEY) || "{}");
@@ -1681,24 +1634,20 @@
       localStorage.setItem(GRID_POS_KEY, JSON.stringify(pos));
     }
 
-    // ★ 基本は定義されたマス数にピタッと固定し、
-    // 「地震情報（もっと見る・各地の震度）」や「あと何日？（設定展開）」だけ中身の増加に応じてマスを増やす
+    // ★ カード本来のコンテンツ高さを計測し、何マス分（rowSpan）で収まるかを正確に算出
     function calcCardSpan(card) {
       if (!card || card.style.display === "none") return 1;
-      const baseSpan = BASE_CARD_SPANS[card.id] || 3;
 
-      if (card.id === "eq-card" || card.id === "countdown-card") {
-        const prevH = card.style.height;
-        card.style.height = "auto";
-        const contentH = card.scrollHeight || card.offsetHeight || 0;
-        card.style.height = prevH;
-        const neededSpan = Math.ceil((contentH + CELL_GAP) / (CELL_HEIGHT + CELL_GAP));
-        return Math.max(baseSpan, neededSpan);
-      }
+      card.classList.add("measuring-height");
+      const naturalHeight = card.getBoundingClientRect().height;
+      card.classList.remove("measuring-height");
 
-      return baseSpan;
+      // 数ピクセルの微小な誤差で1マス余分に増えるのを防ぐため -4px の許容を持たせる
+      const adjustedHeight = Math.max(40, naturalHeight - 4);
+      return Math.max(1, Math.ceil((adjustedHeight + CELL_GAP) / (CELL_HEIGHT + CELL_GAP)));
     }
 
+    // 特定のマス領域が空いているかチェック
     function isAreaFree(occupied, col, row, span, maxCols) {
       if (col < 1 || col > maxCols || row < 1) return false;
       for (let r = row; r < row + span; r++) {
@@ -1707,17 +1656,19 @@
       return true;
     }
 
+    // マス領域を占有済みにマーク
     function markOccupied(occupied, col, row, span, id) {
       for (let r = row; r < row + span; r++) {
         occupied[`${col},${r}`] = id;
       }
     }
 
+    // 編集モード時の背景マス目ガイドを描画
     function renderEditGridGuides(cols, maxRow) {
       widgets.querySelectorAll(".grid-cell-guide").forEach(el => el.remove());
       if (!editMode || cols <= 1) return;
 
-      const totalRows = Math.max(maxRow + 4, 14);
+      const totalRows = Math.max(maxRow + 4, 12);
       const frag = document.createDocumentFragment();
       for (let r = 1; r <= totalRows; r++) {
         for (let c = 1; c <= cols; c++) {
@@ -1731,6 +1682,7 @@
       widgets.appendChild(frag);
     }
 
+    // ★ メインの2Dグリッド配置計算関数
     function applyGridLayout(prioritizeCardId = null) {
       if (!widgets) return;
       isResizing = true;
@@ -1740,50 +1692,32 @@
 
       const cards = Array.from(widgets.querySelectorAll(".card")).filter(c => c.style.display !== "none");
 
+      // スマホ（1列）の場合はグリッド座標指定を解除して縦並びに任せる
       if (cols === 1) {
         cards.forEach(c => {
           c.style.gridColumn = "";
           c.style.gridRow = "";
-          c.style.height = "auto";
         });
         widgets.querySelectorAll(".grid-cell-guide").forEach(el => el.remove());
-        setTimeout(() => { isResizing = false; }, 40);
+        setTimeout(() => { isResizing = false; }, 50);
         return;
       }
-
-      cards.forEach(card => {
-        if (!card.style.gridColumn) {
-          card.style.gridColumn = "auto / span 1";
-        }
-      });
 
       const posData = getSavedPositions();
       const occupied = {};
       let maxRowUsed = 1;
 
-      // 上にあるカードから順番に配置し、地震カードなどが伸びた時は下のカードを自然に押し下げる
-      const sortedCards = [...cards].sort((a, b) => {
-        if (prioritizeCardId) {
-          if (a.id === prioritizeCardId) return -1;
-          if (b.id === prioritizeCardId) return 1;
-        }
-        const posA = posData[a.id];
-        const posB = posData[b.id];
-        if (posA && posB) {
-          if (posA.row !== posB.row) return posA.row - posB.row;
-          return posA.col - posB.col;
-        }
-        if (posA) return -1;
-        if (posB) return 1;
-        return 0;
-      });
+      // ドロップ直後のカードがあれば最優先でその座標を確保する
+      const sortedCards = [...cards];
+      if (prioritizeCardId) {
+        sortedCards.sort((a, b) => (a.id === prioritizeCardId ? -1 : b.id === prioritizeCardId ? 1 : 0));
+      }
 
       const pendingCards = [];
 
       sortedCards.forEach(card => {
         const span = calcCardSpan(card);
         card.dataset.span = span;
-        card.style.height = "100%";
         const saved = posData[card.id];
 
         if (saved && saved.col >= 1) {
@@ -1798,20 +1732,17 @@
             return;
           }
         }
-        pendingCards.push({
-          card,
-          span,
-          prefCol: saved ? Math.min(saved.col, cols) : null,
-          prefRow: saved ? Math.max(1, saved.row) : 1
-        });
+        pendingCards.push({ card, span, prefCol: saved ? Math.min(saved.col, cols) : null, prefRow: saved ? Math.max(1, saved.row) : 1 });
       });
 
+      // 座標未設定、または他のカードと重なったカードを空いているマスへ自動配置
       pendingCards.forEach(item => {
         const { card, span, prefCol, prefRow } = item;
         let placed = false;
 
+        // 元の希望位置の近くから探す
         if (prefCol) {
-          for (let r = prefRow; r < 200 && !placed; r++) {
+          for (let r = prefRow; r < 150 && !placed; r++) {
             if (isAreaFree(occupied, prefCol, r, span, cols)) {
               markOccupied(occupied, prefCol, r, span, card.id);
               card.style.gridColumn = `${prefCol} / span 1`;
@@ -1823,7 +1754,8 @@
           }
         }
 
-        for (let r = 1; r < 200 && !placed; r++) {
+        // 左上から空いているマスを探す
+        for (let r = 1; r < 150 && !placed; r++) {
           for (let c = 1; c <= cols && !placed; c++) {
             if (isAreaFree(occupied, c, r, span, cols)) {
               markOccupied(occupied, c, r, span, card.id);
@@ -1840,11 +1772,18 @@
       savePositions(posData);
       renderEditGridGuides(cols, maxRowUsed);
 
-      setTimeout(() => { isResizing = false; }, 40);
+      setTimeout(() => { isResizing = false; }, 60);
     }
 
-    window.resizeGridItem = applyGridLayout;
-    window.resizeAllGridItems = applyGridLayout;
+    // 既存のコードとの互換用関数
+    function resizeGridItem(item) {
+      applyGridLayout();
+    }
+    function resizeAllGridItems() {
+      applyGridLayout();
+    }
+    window.resizeGridItem = resizeGridItem;
+    window.resizeAllGridItems = resizeAllGridItems;
     window.applyGridLayout = applyGridLayout;
 
     // --- 編集用サブボタン作成 ---
@@ -1886,7 +1825,7 @@
       });
       updateHiddenCardsUI();
       updateButtonPositions();
-      applyGridLayout();
+      setTimeout(() => applyGridLayout(), 100);
     });
 
     window.addEventListener("load", () => {
@@ -1894,6 +1833,7 @@
       applyGridLayout();
     });
 
+    // 編集モード切り替え
     editBtn.addEventListener("click", () => {
       editMode = !editMode;
       widgets.classList.toggle("edit-grid-active", editMode);
@@ -1926,7 +1866,7 @@
       const hiddenCards = JSON.parse(localStorage.getItem(hiddenCardsKey) || "[]");
 
       document.querySelectorAll(".card").forEach(card => {
-        card.style.display = hiddenCards.includes(card.id) ? "none" : "flex";
+        card.style.display = hiddenCards.includes(card.id) ? "none" : "";
 
         if (editMode && !card.querySelector(".edit-delete")) {
           const btn = document.createElement("button");
@@ -1936,7 +1876,7 @@
             e.stopPropagation();
             hideCard(card);
           };
-          btn.style.cssText = "position:absolute;top:8px;right:8px;padding:3px 8px;cursor:pointer;background:#f44336;color:#fff;border:none;font-size:12px;border-radius:6px;z-index:10;";
+          btn.style.cssText = "position:absolute;top:6px;right:6px;padding:2px 7px;cursor:pointer;background:#f44336;color:#fff;border:none;font-size:11px;border-radius:5px;z-index:10;";
           card.appendChild(btn);
         } else if (!editMode) {
           const btn = card.querySelector(".edit-delete");
@@ -1955,6 +1895,7 @@
       applyGridLayout();
     }
 
+    // 非表示カードの再表示モーダル
     addBtn.addEventListener("click", () => {
       const hiddenCards = JSON.parse(localStorage.getItem(hiddenCardsKey) || "[]");
       if (hiddenCards.length === 0) {
@@ -2000,7 +1941,7 @@
         checkboxes.forEach(cb => {
           if (cb.checked) {
             const card = document.getElementById(cb.value);
-            if (card) card.style.display = "flex";
+            if (card) card.style.display = "";
             updatedHidden = updatedHidden.filter(id => id !== cb.value);
           }
         });
@@ -2022,6 +1963,7 @@
       document.body.appendChild(modal);
     });
 
+    // 順序変更 ＆ グリッド自動整列モーダル
     sortBtn.addEventListener("click", () => {
       const visibleCards = Array.from(widgets.querySelectorAll(".card"))
         .filter(c => c.style.display !== "none");
@@ -2105,7 +2047,9 @@
       document.body.appendChild(modal);
     });
 
-    // --- ドラッグ＆ドロップ制御 ---
+    // =====================================================
+    // ★ マス目スナップ対応 ドラッグ＆ドロップ制御（PC・タブレット対応）
+    // =====================================================
     let dragSrcEl = null;
     let dragOffsetY = 0;
     let dropPreviewEl = null;
@@ -2152,14 +2096,10 @@
       }
 
       const rect = widgets.getBoundingClientRect();
-      const padLeft = parseFloat(window.getComputedStyle(widgets).paddingLeft) || 0;
-      const padTop = parseFloat(window.getComputedStyle(widgets).paddingTop) || 0;
+      const colWidth = (rect.width - CELL_GAP * (cols - 1)) / cols;
 
-      const innerWidth = rect.width - padLeft * 2;
-      const colWidth = (innerWidth - CELL_GAP * (cols - 1)) / cols;
-
-      const relX = e.clientX - rect.left - padLeft;
-      const relY = (e.clientY - dragOffsetY + CELL_HEIGHT / 2) - rect.top - padTop;
+      const relX = e.clientX - rect.left;
+      const relY = (e.clientY - dragOffsetY + CELL_HEIGHT / 2) - rect.top;
 
       let col = Math.floor(relX / (colWidth + CELL_GAP)) + 1;
       col = Math.max(1, Math.min(cols, col));
@@ -2167,7 +2107,7 @@
       let row = Math.floor(Math.max(0, relY) / (CELL_HEIGHT + CELL_GAP)) + 1;
       row = Math.max(1, row);
 
-      const span = calcCardSpan(dragSrcEl);
+      const span = parseInt(dragSrcEl.dataset.span) || calcCardSpan(dragSrcEl);
       targetCell = { col, row, span };
 
       if (dropPreviewEl) {
@@ -2200,6 +2140,18 @@
       dragSrcEl = null;
       targetCell = null;
       applyGridLayout();
+    });
+
+    // カード内のコンテンツ量が変わった際（ニュース取得完了やアコーディオン開閉）に高さを自動調整
+    const observer = new MutationObserver(() => {
+      if (isResizing || dragSrcEl) return;
+      applyGridLayout();
+    });
+
+    observer.observe(widgets, {
+      childList: true,
+      subtree: true,
+      characterData: true
     });
   </script>
 
@@ -2270,8 +2222,8 @@
                     localStorage.setItem("widgetOrder", JSON.stringify(data.widgetOrder));
                 }
 
-                if (data.widgetGridPositions_v4) {
-                    localStorage.setItem("widgetGridPositions_v4", JSON.stringify(data.widgetGridPositions_v4));
+                if (data.widgetGridPositions) {
+                    localStorage.setItem("widgetGridPositions", JSON.stringify(data.widgetGridPositions));
                 }
 
                 if (data.portalMemo !== undefined) {
@@ -2285,12 +2237,18 @@
 
                 if (data.theme) {
                     localStorage.setItem("theme", data.theme);
-                    document.documentElement.setAttribute("data-theme", data.theme);
+                    if (typeof applyTheme === 'function') {
+                        applyTheme(data.theme);
+                    } else {
+                        document.documentElement.setAttribute("data-theme", data.theme);
+                    }
                 }
 
                 if (data.portalHeaderColor) {
                     localStorage.setItem("portalHeaderColor", data.portalHeaderColor);
                     document.documentElement.style.setProperty('--header-gradient', `linear-gradient(90deg, ${data.portalHeaderColor}, ${data.portalHeaderColor})`);
+                    const picker = document.getElementById('color-picker');
+                    if (picker) picker.value = data.portalHeaderColor;
                 }
 
                 if (data.autoRefreshIdx !== undefined) {
@@ -2309,6 +2267,7 @@
 
                 if (data.portalCountdown) {
                     localStorage.setItem('portalCountdown', JSON.stringify(data.portalCountdown));
+
                     const nameInput = document.getElementById('cnt-name');
                     const dateInput = document.getElementById('cnt-date');
                     const saveBtn = document.getElementById('cnt-save');
@@ -2336,7 +2295,7 @@
                 }
             }
 
-            if (typeof applyGridLayout === 'function') applyGridLayout();
+            if (typeof resizeAllGridItems === 'function') resizeAllGridItems();
 
         } catch (error) {
             console.error("データロード失敗:", error);
@@ -2348,7 +2307,7 @@
 
         const widgetsContainer = document.querySelector(".widgets");
         const order = Array.from(widgetsContainer.querySelectorAll(".card")).map(el => el.id).filter(Boolean);
-        const gridPositions = JSON.parse(localStorage.getItem("widgetGridPositions_v4") || "{}");
+        const gridPositions = JSON.parse(localStorage.getItem("widgetGridPositions") || "{}");
         const memoValue = document.getElementById('simple-memo')?.value || "";
         const themeValue = localStorage.getItem("theme") || "light";
         const colorValue = localStorage.getItem("portalHeaderColor") || "";
@@ -2372,7 +2331,7 @@
         try {
             await setDoc(doc(db, "users", currentUser.uid), {
                 widgetOrder: order,
-                widgetGridPositions_v4: gridPositions,
+                widgetGridPositions: gridPositions,
                 portalMemo: memoValue,
                 theme: themeValue,
                 portalHeaderColor: colorValue,
@@ -2383,6 +2342,7 @@
                 horoscopeCache: horoscopeCache,
                 updatedAt: new Date()
             }, { merge: true });
+            console.log("全設定がクラウドへ同期されました");
         } catch (e) {
             console.error("クラウドへの一括同期に失敗:", e);
         }
@@ -2397,10 +2357,12 @@
                 if (confirm("ポータルからログアウトしますか？\n（この端末に保存されているメモや設定もすべて初期化されます）")) {
                     try {
                         await signOut(auth);
+                        console.log("ログアウト成功");
                         localStorage.clear();
                         alert("ログアウトしました。ローカルデータを初期化します。");
                         window.location.replace("./login.html");
                     } catch (error) {
+                        console.error("ログアウトエラー:", error);
                         alert("ログアウトに失敗しました。");
                     }
                 }
@@ -2409,6 +2371,14 @@
             }
         });
     }
+
+    window.logoutPortal = function() {
+        sessionStorage.removeItem('skipLogin');
+        localStorage.clear();
+        signOut(auth).then(() => {
+            window.location.replace("./login.html");
+        });
+    };
 
     const memoElement = document.getElementById('simple-memo');
     if (memoElement) {
@@ -2432,32 +2402,60 @@
     const themeBtn = document.getElementById('theme-toggle');
     if (themeBtn) {
         themeBtn.addEventListener('click', () => {
-            setTimeout(() => window.saveWidgetDataToCloud(), 100);
+            setTimeout(() => {
+                window.saveWidgetDataToCloud();
+            }, 100);
         });
     }
 
     const cntSaveBtn = document.getElementById('cnt-save');
     if (cntSaveBtn) {
         cntSaveBtn.addEventListener('click', () => {
-            setTimeout(() => window.saveWidgetDataToCloud(), 200);
+            setTimeout(() => {
+                window.saveWidgetDataToCloud();
+            }, 200);
         });
     }
+
+    ['draw-horoscope', 'fortune-card'].forEach(id => {
+        const btn = document.getElementById(id) || (id === 'fortune-card' ? document.querySelector('#fortune-card button') : null);
+        if (btn) {
+            btn.addEventListener('click', () => {
+                setTimeout(() => {
+                    window.saveWidgetDataToCloud();
+                }, 200);
+            });
+        }
+    });
 
     window.enforceHiddenCards = function() {
         try {
             const hiddenCards = JSON.parse(localStorage.getItem("hiddenCards") || "[]");
             hiddenCards.forEach(id => {
                 const card = document.getElementById(id);
-                if (card) card.style.display = "none";
+                if (card) {
+                    card.style.display = "none";
+                }
             });
-        } catch(e) {}
+        } catch(e) {
+            console.error("非表示の強制適用に失敗:", e);
+        }
     };
 
-    [100, 500, 1500].forEach(delay => {
+    [100, 500, 1000, 2000, 3000, 5000].forEach(delay => {
         setTimeout(() => {
             window.enforceHiddenCards();
-            if (typeof applyGridLayout === 'function') applyGridLayout();
+            if (typeof resizeAllGridItems === 'function') resizeAllGridItems();
         }, delay);
+    });
+
+    document.addEventListener('click', (e) => {
+        if (e.target.classList.contains('edit-delete') || e.target.innerText === '追加' || e.target.id === 'cnt-save') {
+            setTimeout(() => {
+                window.enforceHiddenCards();
+                window.saveWidgetDataToCloud();
+            }, 300);
+        }
     });
   </script>
 
@@ -2500,7 +2498,7 @@
         let forecastRows = '';
         let added = 0;
 
-        for (let i = 0; i < hours.length && added < 5; i++) {
+        for (let i = 0; i < hours.length && added < 6; i++) {
           const d = new Date(hours[i]);
           if (d > now && d.getHours() % 3 === 0) {
             const emoji2 = weatherEmoji(codes[i], d.getHours());
@@ -2521,16 +2519,18 @@
         const weeklyData = await fetchWeeklyWeather();
 
         html += `
-        <h3 style="margin: 6px 0 2px; font-size: 0.9rem;">週間天気</h3>
+        <h3>週間天気</h3>
         <div class="weekly-weather">
           ${weeklyData}
         </div>
         `;
 
         container.innerHTML = html;
+        if (typeof resizeGridItem === 'function') resizeGridItem(document.getElementById('weather-card'));
 
       } catch (err) {
         container.innerHTML = `<div class="error">天気情報の取得に失敗しました。（${err.message}）</div>`;
+        if (typeof resizeGridItem === 'function') resizeGridItem(document.getElementById('weather-card'));
       }
     }
 
@@ -2683,8 +2683,8 @@
           li.innerHTML = `
             <div class="eq ${maxClass}">
               <div class="meta">
-                <strong>時刻:</strong> ${displayTime} ／ <strong>震源:</strong> ${h.name || "不明"}<br>
-                <strong>M:</strong> ${h.magnitude || "-"} ／ <strong>最大震度:</strong> ${sindo(e.maxScale)} ／ <strong>深さ:</strong> ${h.depth !== undefined ? h.depth + "km" : "-"}
+                <strong>${displayTime}</strong> ／ <strong>${h.name || "不明"}</strong><br>
+                M${h.magnitude || "-"} ／ 最大震度: <strong>${sindo(e.maxScale)}</strong>（深さ ${h.depth !== undefined ? h.depth + "km" : "-"}）
               </div>
             </div>
             <div class="ac-parent">各地の震度を表示</div>
@@ -2692,6 +2692,7 @@
           `;
 
           container.appendChild(li);
+          if (typeof resizeGridItem === 'function') resizeGridItem(document.getElementById('eq-card'));
 
           if (offset > 0) additionalItems.push(li);
         });
@@ -2699,20 +2700,20 @@
         $(document).off("click", ".ac-parent");
         $(document).on("click", ".ac-parent", function() {
           const $child = $(this).next(".ac-child");
+          const card = $(this).closest('.card')[0];
+
           if ($child.is(":hidden")) {
-            $child.slideDown(180, function() {
-              if (typeof applyGridLayout === 'function') applyGridLayout();
+            $child.slideDown(200, function() {
+              if (typeof resizeGridItem === 'function') resizeGridItem(card);
             });
           } else {
-            $child.slideUp(180, function() {
-              if (typeof applyGridLayout === 'function') applyGridLayout();
+            $child.slideUp(200, function() {
+              if (typeof resizeGridItem === 'function') resizeGridItem(card);
             });
           }
         });
 
         if (offset > 0 && additionalItems.length > 0) closeAllButton.style.display = "inline-block";
-
-        if (typeof applyGridLayout === 'function') applyGridLayout();
 
       } catch (err) {
         container.innerHTML = `<li class="error">地震情報の取得に失敗しました。（${err.message}）</li>`;
@@ -2733,7 +2734,8 @@
       additionalItems = [];
       this.style.display = "none";
       offset = 0;
-      if (typeof applyGridLayout === 'function') applyGridLayout();
+      const card = document.getElementById('eq-card');
+      if (typeof resizeGridItem === 'function') resizeGridItem(card);
     };
 
     setInterval(() => {
@@ -2750,19 +2752,18 @@
         if (data && data.rates && data.rates.JPY) {
           document.getElementById('exchange-rate').textContent = `1 ドル = ${data.rates.JPY.toFixed(2)} 円`;
         } else {
-          document.getElementById('exchange-rate').textContent = 'レート取得失敗';
+          document.getElementById('exchange-rate').textContent = 'レート取得に失敗しました';
         }
       } catch (err) {
-        document.getElementById('exchange-rate').textContent = 'レート取得失敗';
+        document.getElementById('exchange-rate').textContent = 'レート取得に失敗しました';
       }
     }
     async function convertCurrency() {
       const amt = parseFloat(document.getElementById('amount').value);
       const from = document.getElementById('from').value;
       const to = document.getElementById('to').value;
-      const rateEl = document.getElementById('exchange-rate');
       if (isNaN(amt)) {
-        rateEl.textContent = '金額を入力してください';
+        document.getElementById('currency-result').textContent = '金額を入力してください';
         return;
       }
       try {
@@ -2770,170 +2771,109 @@
         const data = await res.json();
         if (data && data.rates && data.rates[to]) {
           const result = amt * data.rates[to];
-          rateEl.textContent = `${amt} ${from} = ${result.toFixed(2)} ${to}`;
+          document.getElementById('currency-result').textContent = `${amt} ${from} = ${result.toFixed(2)} ${to}`;
         } else {
-          rateEl.textContent = '換算できませんでした';
+          document.getElementById('currency-result').textContent = '換算できませんでした';
         }
       } catch (err) {
-        rateEl.textContent = '換算エラー';
+        document.getElementById('currency-result').textContent = '換算エラー: ' + err;
       }
     }
     fetchRate();
     document.getElementById('convert').addEventListener('click', convertCurrency);
   </script>
 
-  <!-- ========================================================
-       ★ ニュース取得 & トレンド取得
-          （CORS制限・ServiceWorker干渉を100%回避する JSONP + 順次フォールバック方式）
-  ======================================================== -->
+  <!-- ★ ニュース取得 & トレンド取得（並列レース + 短時間タイムアウト + キャッシュ即時フォールバック） -->
   <script>
-    // JSONPを使ったクロスオリジン取得（<script>タグ経由なのでCORSブロックが絶対に起きない）
-    function fetchViaJsonp(url, timeoutMs = 6000) {
-      return new Promise((resolve, reject) => {
-        const cbName = "jsonp_cb_" + Math.random().toString(36).substring(2, 10);
-        const script = document.createElement("script");
-        let timer = setTimeout(() => {
-          cleanup();
-          reject(new Error("JSONP Timeout"));
-        }, timeoutMs);
-
-        function cleanup() {
-          clearTimeout(timer);
-          delete window[cbName];
-          if (script.parentNode) script.parentNode.removeChild(script);
-        }
-
-        window[cbName] = (data) => {
-          cleanup();
-          resolve(data);
-        };
-
-        script.onerror = () => {
-          cleanup();
-          reject(new Error("JSONP Script Error"));
-        };
-
-        script.src = url + (url.includes("?") ? "&" : "?") + "callback=" + cbName;
-        document.head.appendChild(script);
-      });
-    }
-
-    function parseXmlToItems(xmlString) {
-      if (!xmlString || !xmlString.includes("<item>")) {
-        throw new Error("Invalid XML");
-      }
-      const parser = new DOMParser();
-      const xml = parser.parseFromString(xmlString, "application/xml");
-      const nodes = Array.from(xml.querySelectorAll("item"));
-      if (nodes.length === 0) throw new Error("Empty items");
-
-      return nodes.map(node => ({
-        title: node.querySelector("title")?.textContent?.trim() || "情報なし",
-        link: node.querySelector("link")?.textContent?.trim() || "#"
-      }));
-    }
-
-    async function fetchRssReliable(rssUrl) {
+    function fetchFastestProxy(rssUrl, timeoutMs = 3500) {
       const encoded = encodeURIComponent(rssUrl);
+      const proxies = [
+        `https://corsproxy.io/?${encoded}`,
+        `https://api.allorigins.win/raw?url=${encoded}&t=${Date.now()}`,
+        `https://api.allorigins.win/get?url=${encoded}&t=${Date.now()}`,
+        `https://api.codetabs.com/v1/proxy?quest=${encoded}`
+      ];
 
-      // ルート1: AllOrigins JSONP (CORS制限なし)
-      try {
-        const data = await fetchViaJsonp(`https://api.allorigins.win/get?url=${encoded}`, 6000);
-        if (data && data.contents) {
-          return parseXmlToItems(data.contents);
-        }
-      } catch (e) {}
+      const fetchSingle = (url) => {
+        return new Promise((resolve, reject) => {
+          const controller = new AbortController();
+          const timer = setTimeout(() => {
+            controller.abort();
+            reject(new Error("Timeout"));
+          }, timeoutMs);
 
-      // ルート2: rss2json JSONP (CORS制限なし)
-      try {
-        const data = await fetchViaJsonp(`https://api.rss2json.com/v1/api.json?rss_url=${encoded}`, 6000);
-        if (data && data.status === "ok" && Array.isArray(data.items) && data.items.length > 0) {
-          return data.items.map(item => ({
-            title: item.title || "情報なし",
-            link: item.link || "#"
-          }));
-        }
-      } catch (e) {}
+          fetch(url, { signal: controller.signal })
+            .then(async (res) => {
+              clearTimeout(timer);
+              if (!res.ok) throw new Error("HTTP " + res.status);
+              const text = await res.text();
+              let xmlContent = text;
+              try {
+                const json = JSON.parse(text);
+                if (json && json.contents) xmlContent = json.contents;
+              } catch (_) {}
 
-      // ルート3: AllOrigins Raw (Fetch)
-      try {
-        const res = await fetch(`https://api.allorigins.win/raw?url=${encoded}`);
-        if (res.ok) {
-          const text = await res.text();
-          return parseXmlToItems(text);
-        }
-      } catch (e) {}
+              if (!xmlContent || !xmlContent.includes("<item>")) {
+                throw new Error("Invalid RSS content");
+              }
+              resolve(xmlContent);
+            })
+            .catch((err) => {
+              clearTimeout(timer);
+              reject(err);
+            });
+        });
+      };
 
-      // ルート4: CodeTabs (末尾スラッシュ付きでリダイレクトによるCORSエラーを防止)
-      try {
-        const res = await fetch(`https://api.codetabs.com/v1/proxy/?quest=${encoded}`);
-        if (res.ok) {
-          const text = await res.text();
-          return parseXmlToItems(text);
-        }
-      } catch (e) {}
-
-      // ルート5: ThingProxy
-      try {
-        const res = await fetch(`https://thingproxy.freeboard.io/fetch/${rssUrl}`);
-        if (res.ok) {
-          const text = await res.text();
-          return parseXmlToItems(text);
-        }
-      } catch (e) {}
-
-      throw new Error("すべてのRSS取得ルートが失敗しました");
+      return Promise.any(proxies.map(url => fetchSingle(url)));
     }
 
     async function fetchNews() {
       const container = document.getElementById('news-list');
-      const STORAGE_KEY = 'portalNewsItemsCache_v3';
-      const rssUrls = [
-        'https://news.yahoo.co.jp/rss/topics/domestic.xml',
-        'https://news.yahoo.co.jp/rss/topics/top-picks.xml',
-        'https://www3.nhk.or.jp/rss/news/cat0.xml'
-      ];
+      const STORAGE_KEY = 'portalNewsCache';
+      const rssUrl = 'https://news.yahoo.co.jp/rss/topics/domestic.xml';
 
-      let cachedItems = null;
-      try {
-        cachedItems = JSON.parse(localStorage.getItem(STORAGE_KEY));
-      } catch (e) {}
-
-      if (Array.isArray(cachedItems) && cachedItems.length > 0) {
-        renderNewsItems(cachedItems);
+      const cachedXML = localStorage.getItem(STORAGE_KEY);
+      if (cachedXML) {
+        renderNews(cachedXML);
       } else {
         container.innerHTML = '<li class="loading">ニュースを取得中…</li>';
       }
 
-      for (const url of rssUrls) {
-        try {
-          const items = await fetchRssReliable(url);
-          if (items && items.length > 0) {
-            localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
-            renderNewsItems(items);
-            return;
-          }
-        } catch (err) {
-          console.warn("ニュース取得リトライ:", url);
+      try {
+        const xmlText = await fetchFastestProxy(rssUrl, 3500);
+        localStorage.setItem(STORAGE_KEY, xmlText);
+        renderNews(xmlText);
+        if (typeof resizeGridItem === 'function') resizeGridItem(document.getElementById('news-card'));
+      } catch (err) {
+        if (cachedXML) {
+          renderNews(cachedXML);
+        } else {
+          container.innerHTML = `<li class="error">ニュース取得に失敗しました。<br>時間をおいてください。</li>`;
         }
-      }
-
-      if (!cachedItems || cachedItems.length === 0) {
-        container.innerHTML = `<li class="error">ニュース取得に失敗しました。<br>時間をおいてください。</li>`;
       }
     }
 
-    function renderNewsItems(items) {
+    function renderNews(xmlText) {
       const container = document.getElementById('news-list');
+      const parser = new DOMParser();
+      const xml = parser.parseFromString(xmlText, "application/xml");
+      const items = xml.querySelectorAll("item");
+
       container.innerHTML = '';
       if (!items || items.length === 0) {
         container.innerHTML = '<li>ニュース情報はありません。</li>';
         return;
       }
 
-      items.slice(0, 8).forEach(item => {
+      items.forEach((item, idx) => {
+        if (idx >= 8) return;
+
+        const title = item.querySelector("title")?.textContent || '情報なし';
+        const link = item.querySelector("link")?.textContent || '#';
+
         const li = document.createElement("li");
-        li.innerHTML = `<a href="${item.link}" target="_blank">${item.title}</a>`;
+        li.innerHTML = `<a href="${link}" target="_blank">${title}</a>`;
         container.appendChild(li);
       });
     }
@@ -2943,53 +2883,48 @@
 
     async function fetchTrends() {
       const container = document.getElementById("trend-list");
-      const STORAGE_KEY = "portalTrendItemsCache_v3";
-      const CACHE_DURATION = 20 * 60 * 1000;
+      const STORAGE_KEY = "portalTrendCache";
+      const CACHE_DURATION = 30 * 60 * 1000;
 
       let cachedObj = null;
       try {
         cachedObj = JSON.parse(localStorage.getItem(STORAGE_KEY));
-        if (cachedObj && Array.isArray(cachedObj.items) && cachedObj.items.length > 0) {
-          renderTrendItems(cachedObj.items);
+        if (cachedObj && cachedObj.data) {
+          renderTrends(cachedObj.data);
           if (Date.now() - cachedObj.timestamp < CACHE_DURATION) {
             return;
           }
         }
       } catch (e) {}
 
-      if (!cachedObj || !cachedObj.items) {
-        container.innerHTML = '<li class="loading">トレンドを取得中...</li>';
+      if (!cachedObj || !cachedObj.data) {
+        container.innerHTML = '<li class="loading">高速取得中...</li>';
       }
 
-      const trendUrls = [
-        "https://trends.google.co.jp/trending/rss?geo=JP",
-        "https://trends.google.com/trending/rss?geo=JP",
-        "https://news.yahoo.co.jp/rss/topics/top-picks.xml" // 万一Googleトレンドが遮断された場合のフォールバック
-      ];
+      const rssUrl = "https://trends.google.co.jp/trending/rss?geo=JP";
 
-      for (const url of trendUrls) {
-        try {
-          const items = await fetchRssReliable(url);
-          if (items && items.length > 0) {
-            localStorage.setItem(STORAGE_KEY, JSON.stringify({
-              timestamp: Date.now(),
-              items: items
-            }));
-            renderTrendItems(items);
-            return;
-          }
-        } catch (err) {
-          console.warn("トレンド取得リトライ:", url);
+      try {
+        const winnerResponse = await fetchFastestProxy(rssUrl, 3500);
+
+        localStorage.setItem(STORAGE_KEY, JSON.stringify({
+          timestamp: Date.now(),
+          data: winnerResponse
+        }));
+
+        renderTrends(winnerResponse);
+        if (typeof resizeGridItem === 'function') resizeGridItem(document.getElementById('trend-card'));
+
+      } catch (err) {
+        if (cachedObj && cachedObj.data) {
+          renderTrends(cachedObj.data);
+        } else {
+          container.innerHTML =
+            `<li class="error" style="font-size:0.85rem;">取得に失敗しました。<br>時間をおいてください。</li>`;
         }
-      }
-
-      if (!cachedObj || !cachedObj.items) {
-        container.innerHTML =
-          `<li class="error" style="font-size:0.85rem;">取得に失敗しました。<br>時間をおいてください。</li>`;
       }
     }
 
-    function renderTrendItems(items) {
+    function renderTrends(xmlText) {
       const container = document.getElementById("trend-list");
 
       const rainbow10 = [
@@ -3000,33 +2935,55 @@
         "rgba(160, 0, 255, 0.25)", "rgba(255, 80, 160, 0.25)"
       ];
 
-      container.innerHTML = "";
+      try {
+        const parser = new DOMParser();
+        const xml = parser.parseFromString(xmlText, "application/xml");
+        const items = xml.querySelectorAll("item");
 
-      if (!items || items.length === 0) {
-        container.innerHTML = "<li>トレンド情報はありません</li>";
-        return;
+        container.innerHTML = "";
+
+        if (!items || items.length === 0) {
+          container.innerHTML = "<li>データ形式エラー</li>";
+          return;
+        }
+
+        items.forEach((item, idx) => {
+          if (idx >= 10) return;
+
+          const title = item.querySelector("title")?.textContent || "情報なし";
+          const query = encodeURIComponent(title);
+          const googleLink = `https://www.google.com/search?q=${query}`;
+
+          const bg = rainbow10[idx];
+          const hoverBg = bg.replace("0.25", "0.40");
+
+          const li = document.createElement("li");
+          li.innerHTML = `
+              <a href="${googleLink}" target="_blank"
+                style="
+                  display: block;
+                  padding: 6px 10px;
+                  font-size: 0.85rem;
+                  line-height: 1.3;
+                  font-weight: 700;
+                  color: var(--text-color);
+                  background: ${bg};
+                  border-radius: 8px;
+                  cursor: pointer;
+                  text-decoration: none;
+                  transition: 0.2s;
+                "
+                onmouseover="this.style.background='${hoverBg}'"
+                onmouseout="this.style.background='${bg}'"
+              >
+                ${title}
+              </a>
+            `;
+          container.appendChild(li);
+        });
+      } catch (e) {
+        container.innerHTML = "<li>解析エラー</li>";
       }
-
-      items.slice(0, 10).forEach((item, idx) => {
-        const title = item.title || "情報なし";
-        const query = encodeURIComponent(title);
-        const googleLink = `https://www.google.com/search?q=${query}`;
-
-        const bg = rainbow10[idx % rainbow10.length];
-        const hoverBg = bg.replace("0.25", "0.40");
-
-        const li = document.createElement("li");
-        li.innerHTML = `
-            <a href="${googleLink}" target="_blank"
-              style="background: ${bg};"
-              onmouseover="this.style.background='${hoverBg}'"
-              onmouseout="this.style.background='${bg}'"
-            >
-              ${title}
-            </a>
-          `;
-        container.appendChild(li);
-      });
     }
 
     fetchTrends();
@@ -3036,6 +2993,7 @@
   <script>
     (function() {
       const STORAGE_KEY = 'portalCountdown';
+      const cardEl = document.getElementById('countdown-card');
       const labelEl = document.getElementById('countdown-label');
       const numEl = document.getElementById('countdown-number');
       const dateDispEl = document.getElementById('countdown-date-display');
@@ -3045,6 +3003,12 @@
       const nameInput = document.getElementById('cnt-name');
       const dateInput = document.getElementById('cnt-date');
       const saveBtn = document.getElementById('cnt-save');
+
+      function refreshGrid() {
+        if (typeof resizeGridItem === 'function' && cardEl) {
+          resizeGridItem(cardEl);
+        }
+      }
 
       function loadAndRender() {
         const data = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
@@ -3077,7 +3041,7 @@
           numEl.textContent = "--";
           dateDispEl.textContent = "----/--/--";
         }
-        if (typeof applyGridLayout === 'function') setTimeout(applyGridLayout, 40);
+        setTimeout(refreshGrid, 50);
       }
 
       $(toggleBtn).on('click', function() {
@@ -3087,12 +3051,13 @@
           const data = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
           nameInput.value = data.name || '';
           dateInput.value = data.date || '';
-          $settings.slideDown(180, function() {
-            if (typeof applyGridLayout === 'function') applyGridLayout();
+
+          $settings.slideDown(200, function() {
+            refreshGrid();
           });
         } else {
-          $settings.slideUp(180, function() {
-            if (typeof applyGridLayout === 'function') applyGridLayout();
+          $settings.slideUp(200, function() {
+            refreshGrid();
           });
         }
       });
@@ -3106,9 +3071,11 @@
             date
           }));
           loadAndRender();
-          $(settingsEl).slideUp(180, function() {
-            if (typeof applyGridLayout === 'function') applyGridLayout();
+
+          $(settingsEl).slideUp(200, function() {
+            refreshGrid();
           });
+
         } else {
           alert('イベント名と日付を入力してください');
         }
@@ -3136,6 +3103,7 @@
           imgEl.onload = () => {
             loadingEl.style.display = 'none';
             imgEl.style.display = 'block';
+            if (typeof resizeGridItem === 'function') resizeGridItem(document.getElementById('cat-card'));
           };
           imgEl.src = url;
         }
@@ -3238,6 +3206,7 @@
       }
 
       calendarContainer.appendChild(table);
+      if (typeof resizeGridItem === 'function') resizeGridItem(document.getElementById('calendar-card'));
     }
 
     document.addEventListener("DOMContentLoaded", async () => {
@@ -3275,7 +3244,7 @@
 
   <script>
     const HOROSCOPE_MESSAGES = [
-      "大吉：新しい挑戦に吉。一歩を踏み出そう。",
+      "大吉：新しい挑戦に吉。小さな一歩を踏み出そう。",
       "中吉：安定運。計画的に動くと吉。",
       "小吉：ゆっくり休むと運気回復。",
       "吉：平穏。焦らず一つずつ。",
@@ -3318,6 +3287,11 @@
         if (!response.ok) throw new Error("APIエラー: " + response.status);
         const data = await response.json();
 
+        if (!data.daily || !data.daily.sunrise || !data.daily.sunset) {
+          sunInfo.textContent = "データ取得失敗";
+          return;
+        }
+
         const sunrise = new Date(data.daily.sunrise[0]);
         const sunset = new Date(data.daily.sunset[0]);
 
@@ -3331,11 +3305,11 @@
         });
 
         sunInfo.innerHTML = `
-            <div>☀️ 日の出：<strong>${sunriseTime}</strong></div>
-            <div>🌇 日の入：<strong>${sunsetTime}</strong></div>
+            <span>☀️ 日の出：<strong>${sunriseTime}</strong></span>
+            <span>🌇 日の入：<strong>${sunsetTime}</strong></span>
           `;
       } catch (err) {
-        sunInfo.textContent = "取得に失敗しました。";
+        sunInfo.textContent = "取得失敗";
       }
     }
 
@@ -3347,11 +3321,11 @@
       const resultEl = document.getElementById("fortune-result");
 
       const fortunes = [
-        "大吉：最高の一日になりそう！",
-        "中吉：良いことがあります。",
-        "小吉：穏やかな日になりそう。",
-        "吉：いつも通りの平和な日。",
-        "凶：注意が必要な一日です。"
+        "大吉：最高の一日！",
+        "中吉：良いことあり！",
+        "小吉：穏やかな一日",
+        "吉：平和な一日です",
+        "凶：落ち着いて行動を"
       ];
 
       const result = fortunes[Math.floor(Math.random() * fortunes.length)];
@@ -3363,7 +3337,12 @@
 
         var duration = 3 * 1000;
         var animationEnd = Date.now() + duration;
-        var defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 9999 };
+        var defaults = {
+          startVelocity: 30,
+          spread: 360,
+          ticks: 60,
+          zIndex: 9999
+        };
 
         function randomInRange(min, max) {
           return Math.random() * (max - min) + min;
@@ -3371,17 +3350,27 @@
 
         var interval = setInterval(function() {
           var timeLeft = animationEnd - Date.now();
-          if (timeLeft <= 0) return clearInterval(interval);
+
+          if (timeLeft <= 0) {
+            return clearInterval(interval);
+          }
+
           var particleCount = 50 * (timeLeft / duration);
 
           confetti(Object.assign({}, defaults, {
             particleCount,
-            origin: { x: randomInRange(0.1, 0.3), y: Math.random() - 0.2 },
+            origin: {
+              x: randomInRange(0.1, 0.3),
+              y: Math.random() - 0.2
+            },
             colors: ['#2196f3', '#FFD700', '#ff0000']
           }));
           confetti(Object.assign({}, defaults, {
             particleCount,
-            origin: { x: randomInRange(0.7, 0.9), y: Math.random() - 0.2 },
+            origin: {
+              x: randomInRange(0.7, 0.9),
+              y: Math.random() - 0.2
+            },
             colors: ['#2196f3', '#FFD700', '#ff0000']
           }));
         }, 250);
@@ -3397,6 +3386,23 @@
   </script>
 
   <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', function() {
+        navigator.serviceWorker.register('./sw.js').then(function(reg) {
+          reg.addEventListener('updatefound', () => {
+            const newWorker = reg.installing;
+            newWorker.addEventListener('statechange', () => {
+              if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                window.location.reload();
+              }
+            });
+          });
+        });
+      });
+    }
+  </script>
+
+  <script>
     (function() {
       const fsBtn = document.getElementById("fullscreen-btn");
 
@@ -3404,7 +3410,9 @@
         if (!document.fullscreenElement) {
           document.documentElement.requestFullscreen().then(() => {
             fsBtn.textContent = "×";
-          }).catch(() => {});
+          }).catch(err => {
+            console.error(`全画面表示に失敗しました: ${err.message}`);
+          });
         } else {
           document.exitFullscreen().then(() => {
             fsBtn.textContent = "🖥️";
@@ -3449,8 +3457,10 @@
           const itemAngle = (parseInt(item.style.transform.replace('rotate(', '').replace('deg)', '')) + 360) % 360;
           let diff = Math.abs(targetAngle - itemAngle);
           if (diff > 180) diff = 360 - diff;
-          if (diff < 15 && diff < minDiff) {
-            minDiff = diff; closest = item; selectedIdx = idx;
+          if (diff < 15) {
+            if (diff < minDiff) {
+              minDiff = diff; closest = item; selectedIdx = idx;
+            }
           }
           item.classList.remove('selected');
           item.style.color = '';
@@ -3477,6 +3487,7 @@
         ring.style.transform = `translateX(-50%) scale(0) rotate(0deg)`;
         ring.classList.remove('active');
         overlay.style.display = 'none';
+
         guideline.classList.remove('active');
         guideline.classList.remove('highlight');
 
@@ -3492,17 +3503,24 @@
       trigger.addEventListener('touchstart', (e) => {
         if (e.cancelable) e.preventDefault();
         isDragging = true;
+
         ring.style.transition = 'transform 0.4s cubic-bezier(0.15, 1.15, 0.6, 1.0), opacity 0.2s';
         ring.style.transform = `translateX(-50%) scale(1) rotate(0deg)`;
         ring.style.backgroundImage = `conic-gradient(from -15deg, ${baseGrid})`;
+
         ring.classList.add('active');
         overlay.style.display = 'block';
-        if (window.innerWidth <= 480) guideline.classList.add('active');
+
+        if (window.innerWidth <= 480) {
+          guideline.classList.add('active');
+        }
+
         if (window.navigator.vibrate) window.navigator.vibrate(15);
       }, { passive: false });
 
       document.addEventListener('touchmove', (e) => {
         if (!isDragging) return;
+
         ring.style.transition = 'none';
         const touch = e.touches[0];
         const rect = trigger.getBoundingClientRect();
@@ -3511,13 +3529,17 @@
         const halfHeight = window.innerHeight / 2;
 
         if (window.innerWidth <= 480) {
-          if (touch.clientY < halfHeight) guideline.classList.add('highlight');
-          else guideline.classList.remove('highlight');
+          if (touch.clientY < halfHeight) {
+            guideline.classList.add('highlight');
+          } else {
+            guideline.classList.remove('highlight');
+          }
         }
 
         const angle = Math.atan2(touch.clientY - centerY, touch.clientX - centerX);
         const degree = angle * (180 / Math.PI) + 90;
         ring.style.transform = `translateX(-50%) scale(1) rotate(${degree}deg)`;
+
         updateSelection(degree);
         if (e.cancelable) e.preventDefault();
       }, { passive: false });
@@ -3529,11 +3551,13 @@
 
         if (window.innerWidth <= 480 && touchY < halfHeight) {
           window.scrollTo({ top: 0, behavior: 'smooth' });
+          if (window.navigator.vibrate) window.navigator.vibrate([20, 50, 20]);
         } else if (currentSelected) {
           const targetId = currentSelected.getAttribute('data-target');
           const targetEl = document.getElementById(targetId);
           if (targetEl) {
-            window.scrollTo({ top: targetEl.getBoundingClientRect().top + window.pageYOffset - 80, behavior: 'smooth' });
+            const offset = 80;
+            window.scrollTo({ top: targetEl.getBoundingClientRect().top + window.pageYOffset - offset, behavior: 'smooth' });
           }
         }
         resetAll();
@@ -3567,20 +3591,28 @@
         if (index === null || index === undefined || isNaN(index) || index < 0 || index >= refreshIntervals.length) {
           index = 0;
         }
+
         const config = refreshIntervals[index];
         if (refreshTimer) clearInterval(refreshTimer);
         if (!config) return;
+
         if (refreshValue) refreshValue.textContent = config.label;
+
         if (config.sec && config.sec > 0) {
-          refreshTimer = setInterval(() => window.location.reload(), config.sec * 1000);
+          refreshTimer = setInterval(() => {
+            window.location.reload();
+          }, config.sec * 1000);
         }
+
         localStorage.setItem('autoRefreshIdx', index);
       }
 
       window.setAutoRefresh = setAutoRefresh;
 
       if (refreshRange) {
-        refreshRange.addEventListener('input', (e) => setAutoRefresh(parseInt(e.target.value)));
+        refreshRange.addEventListener('input', (e) => {
+          setAutoRefresh(parseInt(e.target.value));
+        });
       }
 
       document.addEventListener('DOMContentLoaded', () => {
@@ -3605,12 +3637,37 @@
       if (typeof editMode !== 'undefined' && editMode) {
         if (typeof editBtn !== 'undefined') editBtn.click();
       }
+
       settingsModal.style.display = 'flex';
-      if (typeof window.resetAll === 'function') window.resetAll();
+
+      const menuRing = document.getElementById('circle-menu-ring');
+      const navBar = document.getElementById('mobile-nav-bar');
+      const cOverlay = document.getElementById('circle-overlay');
+      const editBtnEl = document.getElementById('edit-btn');
+
+      [menuRing, navBar, cOverlay, editBtnEl].forEach(el => {
+        if (el) {
+          el.classList.add('ring-hidden');
+          el.style.setProperty('display', 'none', 'important');
+        }
+      });
+
+      if (typeof window.resetAll === 'function') {
+        window.resetAll();
+      }
     });
 
     const hideSettingsModal = () => {
       settingsModal.style.display = 'none';
+
+      const selectors = ['#circle-menu-ring', '#mobile-nav-bar', '#circle-overlay', '#edit-btn'];
+      selectors.forEach(selector => {
+        const el = document.querySelector(selector);
+        if (el) {
+          el.classList.remove('ring-hidden');
+          el.style.removeProperty('display');
+        }
+      });
     };
 
     closeSettings.addEventListener('click', hideSettingsModal);
@@ -3621,24 +3678,36 @@
 
   <script>
     const resetBtn = document.getElementById('factory-reset-btn');
+
     if (resetBtn) {
       resetBtn.addEventListener('click', async () => {
-        if (!confirm("【本当に初期化しますか？】\n保存したメモや並び替え設定など全てが削除され、最初の状態に戻ります。")) return;
+        const isConfirmed = confirm("【本当に初期化しますか？】\n\n・保存したメモ\n・時間割\n・ヘッダーの色\n・並び替え設定\n\nこれら全てが削除され、最初の状態に戻ります。");
+
+        if (!isConfirmed) return;
+
         resetBtn.textContent = "初期化中...";
         resetBtn.disabled = true;
+
         try {
           localStorage.clear();
+
           if ('serviceWorker' in navigator) {
             const registrations = await navigator.serviceWorker.getRegistrations();
-            for (const reg of registrations) await reg.unregister();
+            for (const registration of registrations) {
+              await registration.unregister();
+            }
           }
+
           if ('caches' in window) {
             const keys = await caches.keys();
             await Promise.all(keys.map(key => caches.delete(key)));
           }
+
           alert("データを削除しました。ページを再読み込みします。");
           window.location.reload(true);
+
         } catch (e) {
+          alert("一部のデータ削除に失敗しましたが、リロードします。");
           window.location.reload(true);
         }
       });
@@ -3658,7 +3727,9 @@
       if (typeof applyGridLayout === 'function') setTimeout(applyGridLayout, 50);
     }
 
-    fontSizeRange.addEventListener('input', (e) => applyFontSize(e.target.value));
+    fontSizeRange.addEventListener('input', (e) => {
+      applyFontSize(e.target.value);
+    });
 
     window.addEventListener('load', () => {
       const savedSize = localStorage.getItem('userFontSizePercent');
