@@ -112,6 +112,7 @@
       position: relative;
       min-height: 80vh;
       box-sizing: border-box;
+      align-items: start; /* ★ カードの下に無駄な余白を作らず中身ピッタリの高さにする */
     }
 
     /* 編集モード時のグリッドパレット表示（PC/タブレット）
@@ -140,16 +141,18 @@
         border-radius: 10px;
         pointer-events: none;
         z-index: 0;
+        height: 100%;
+        box-sizing: border-box;
       }
       [data-theme="dark"] .grid-cell-guide {
         border-color: rgba(255, 255, 255, 0.12);
       }
     }
 
-    /* ★ カードの高さを割り当てられたグリッドマス数にピタッと固定し、はみ出し・重なりを防止 */
+    /* ★ カードの高さは中身ピッタリ(fit-content)にし、下の余白をなくす */
     .widgets .card {
       width: 100%;
-      height: 100%;
+      height: fit-content;
       margin: 0;
       background: var(--card-bg);
       border-radius: 12px;
@@ -159,19 +162,6 @@
       transition: transform 0.25s ease, box-shadow 0.25s ease;
       z-index: 2;
       position: relative;
-      display: flex;
-      flex-direction: column;
-      overflow-y: auto;
-      overflow-x: hidden;
-    }
-
-    /* カード内スクロールバーをスッキリ細く表示 */
-    .widgets .card::-webkit-scrollbar {
-      width: 6px;
-    }
-    .widgets .card::-webkit-scrollbar-thumb {
-      background: rgba(150, 150, 150, 0.35);
-      border-radius: 4px;
     }
 
     .widgets.edit-grid-active .card {
@@ -197,7 +187,6 @@
       }
       .widgets .card {
         height: auto !important;
-        overflow: visible !important;
         grid-column: auto !important;
         grid-row: auto !important;
       }
@@ -408,6 +397,10 @@
       font-size: 1.1rem;
       font-weight: bold;
       color: var(--text-color);
+    }
+
+    .currency-result:empty {
+      display: none; /* 空の時は余白を作らない */
     }
 
     button#edit-btn {
@@ -703,6 +696,7 @@
       cursor: pointer;
       transition: background-color 0.2s;
       border-radius: 8px;
+      width: 100%;
     }
 
     .Fort-btn:hover {
@@ -713,10 +707,6 @@
       margin: 8px 0;
       font-size: 1.05em;
       font-weight: bold;
-    }
-
-    #fortune-card button {
-      margin-right: 5px;
     }
 
     .eq.s1,
@@ -756,7 +746,7 @@
 
     .countdown-display {
       text-align: center;
-      margin: 0.6rem 0;
+      margin: 0.4rem 0;
     }
 
     .cnt-label {
@@ -837,7 +827,7 @@
 
     .cat-frame {
       width: 100%;
-      height: 210px;
+      height: 200px;
       background: rgba(0, 0, 0, 0.05);
       border-radius: 8px;
       overflow: hidden;
@@ -845,7 +835,6 @@
       align-items: center;
       justify-content: center;
       position: relative;
-      flex-shrink: 0;
     }
 
     .cat-loading {
@@ -1628,13 +1617,12 @@
           box-sizing: border-box;
           border-radius: 8px;
           border: 1px solid #ccc;
-          resize: none;
+          resize: vertical;
           background: var(--bg-color);
           color: var(--text-color);
           font-family: inherit;
           font-size: 0.95rem;
           outline: none;
-          flex-grow: 1;
         "></textarea>
         <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 6px;">
           <div id="memo-count" style="font-size: 0.85rem; color: var(--text-color); opacity: 0.8;">
@@ -1752,35 +1740,36 @@
   </script>
 
   <!-- ========================================================
-       ★ Androidホームランチャー型 2次元グリッドシステム（固定マス高さ方式）
+       ★ Androidホームランチャー型 2次元グリッドシステム
+          （初期最低マス保証 ＋ 中身の増減に応じた自動伸縮対応）
   ======================================================== -->
   <script>
     let editMode = false;
     const widgets = document.querySelector(".widgets");
     const editBtn = document.getElementById("edit-btn");
+    let isResizing = false;
 
     const hiddenCardsKey = "hiddenCards";
-    // 古いバグ座標と干渉しないよう新しい保存キーを使用
-    const GRID_POS_KEY = "widgetGridPositions_v2";
+    const GRID_POS_KEY = "widgetGridPositions_v3";
     const CELL_HEIGHT = 80; // 1マスの縦幅(px)
     const CELL_GAP = 16;    // マス同士の隙間(px)
 
-    // ★ 各カードの「決まった高さ（何マス分か）」を定義
-    const FIXED_CARD_SPANS = {
-      "campus-sites-card": 2, // 学内サイト（2マス）
-      "sun-card":          2, // 日の出・日の入（2マス）
-      "horoscope-card":    2, // 今日の星座占い（2マス）
-      "fortune-card":      2, // おみくじ（2マス）
-      "kawase-card":       3, // 為替（3マス）
-      "countdown-card":    3, // あと何日？（3マス）
-      "memo-card":         3, // 簡易メモ帳（3マス）
-      "app-download-card": 3, // アプリダウンロード（3マス）
-      "cat-card":          4, // 癒やしの猫（4マス）
-      "calendar-card":     5, // カレンダー（5マス）
-      "trend-card":        6, // 今日のトレンド（6マス）
-      "news-card":         6, // 日本のニュース（6マス）
-      "eq-card":           6, // 最新の地震情報（6マス）
-      "weather-card":      7  // 天気（7マス）
+    // ★ 読み込み前にカードが1マスに潰れて重なるのを防ぐ「最低マス数」
+    const MIN_CARD_SPANS = {
+      "campus-sites-card": 2,
+      "sun-card":          2,
+      "horoscope-card":    2,
+      "fortune-card":      2,
+      "kawase-card":       2,
+      "countdown-card":    2,
+      "memo-card":         3,
+      "app-download-card": 3,
+      "cat-card":          4,
+      "calendar-card":     4,
+      "trend-card":        5,
+      "news-card":         5,
+      "eq-card":           5,
+      "weather-card":      6
     };
 
     // 現在の画面幅に応じたグリッド列数を計算（スマホは1列、タブレット・PCは2〜5列）
@@ -1790,7 +1779,6 @@
       return Math.max(2, Math.min(5, Math.floor((w + CELL_GAP) / (300 + CELL_GAP))));
     }
 
-    // 座標データの取得・保存
     function getSavedPositions() {
       try {
         return JSON.parse(localStorage.getItem(GRID_POS_KEY) || "{}");
@@ -1803,10 +1791,15 @@
       localStorage.setItem(GRID_POS_KEY, JSON.stringify(pos));
     }
 
-    // ★ カードごとの決まった高さ（rowSpan）を返す
+    // ★ カードの実際の高さを測り、必要なマス数（2、3、4…）を算出する
+    // （地震の「もっと見る」やアコーディオンを開いた時は自動でマス数が増える）
     function calcCardSpan(card) {
       if (!card || card.style.display === "none") return 1;
-      return FIXED_CARD_SPANS[card.id] || 3;
+      const minSpan = MIN_CARD_SPANS[card.id] || 2;
+      const h = card.offsetHeight || card.getBoundingClientRect().height || 0;
+      if (h <= 40) return minSpan;
+      const actualSpan = Math.ceil((h + CELL_GAP) / (CELL_HEIGHT + CELL_GAP));
+      return Math.max(minSpan, actualSpan);
     }
 
     // 特定のマス領域が空いているかチェック
@@ -1847,6 +1840,7 @@
     // ★ メインの2Dグリッド配置計算関数
     function applyGridLayout(prioritizeCardId = null) {
       if (!widgets) return;
+      isResizing = true;
 
       const cols = getGridCols();
       widgets.style.setProperty("--grid-cols", cols);
@@ -1858,28 +1852,48 @@
         cards.forEach(c => {
           c.style.gridColumn = "";
           c.style.gridRow = "";
-          c.style.height = "auto";
         });
         widgets.querySelectorAll(".grid-cell-guide").forEach(el => el.remove());
+        setTimeout(() => { isResizing = false; }, 50);
         return;
       }
+
+      // 横幅を1列分に確定させてから正確な高さを測る
+      cards.forEach(card => {
+        if (!card.style.gridColumn) {
+          card.style.gridColumn = "auto / span 1";
+        }
+      });
 
       const posData = getSavedPositions();
       const occupied = {};
       let maxRowUsed = 1;
 
-      // ドロップ直後のカードがあれば最優先でその座標を確保する
-      const sortedCards = [...cards];
-      if (prioritizeCardId) {
-        sortedCards.sort((a, b) => (a.id === prioritizeCardId ? -1 : b.id === prioritizeCardId ? 1 : 0));
-      }
+      // 配置順序の決定：
+      // 1. ドラッグ直後のカードがあれば最優先
+      // 2. それ以外は「上の行（rowが小さい順）→左の列（colが小さい順）」に処理することで、
+      //    上のカード（地震情報など）が伸びた時に下のカードを自然に下へ押し下げる
+      const sortedCards = [...cards].sort((a, b) => {
+        if (prioritizeCardId) {
+          if (a.id === prioritizeCardId) return -1;
+          if (b.id === prioritizeCardId) return 1;
+        }
+        const posA = posData[a.id];
+        const posB = posData[b.id];
+        if (posA && posB) {
+          if (posA.row !== posB.row) return posA.row - posB.row;
+          return posA.col - posB.col;
+        }
+        if (posA) return -1;
+        if (posB) return 1;
+        return 0;
+      });
 
       const pendingCards = [];
 
       sortedCards.forEach(card => {
         const span = calcCardSpan(card);
         card.dataset.span = span;
-        card.style.height = "100%";
         const saved = posData[card.id];
 
         if (saved && saved.col >= 1) {
@@ -1902,14 +1916,14 @@
         });
       });
 
-      // 座標未設定、または他のカードと重なったカードを空いているマスへ自動配置
+      // 座標未設定、または上のカードが伸びて重なったカードを空いているマスへ自動配置
       pendingCards.forEach(item => {
         const { card, span, prefCol, prefRow } = item;
         let placed = false;
 
-        // 元の希望列の近くから探す
+        // 元の希望列の下方向から空きを探す（同じ列のまま下に押し下げる）
         if (prefCol) {
-          for (let r = prefRow; r < 150 && !placed; r++) {
+          for (let r = prefRow; r < 200 && !placed; r++) {
             if (isAreaFree(occupied, prefCol, r, span, cols)) {
               markOccupied(occupied, prefCol, r, span, card.id);
               card.style.gridColumn = `${prefCol} / span 1`;
@@ -1922,7 +1936,7 @@
         }
 
         // 左上から空いているマスを探す
-        for (let r = 1; r < 150 && !placed; r++) {
+        for (let r = 1; r < 200 && !placed; r++) {
           for (let c = 1; c <= cols && !placed; c++) {
             if (isAreaFree(occupied, c, r, span, cols)) {
               markOccupied(occupied, c, r, span, card.id);
@@ -1938,6 +1952,8 @@
 
       savePositions(posData);
       renderEditGridGuides(cols, maxRowUsed);
+
+      setTimeout(() => { isResizing = false; }, 50);
     }
 
     // 既存のコードとの互換用関数
@@ -2031,7 +2047,7 @@
       const hiddenCards = JSON.parse(localStorage.getItem(hiddenCardsKey) || "[]");
 
       document.querySelectorAll(".card").forEach(card => {
-        card.style.display = hiddenCards.includes(card.id) ? "none" : "flex";
+        card.style.display = hiddenCards.includes(card.id) ? "none" : "block";
 
         if (editMode && !card.querySelector(".edit-delete")) {
           const btn = document.createElement("button");
@@ -2106,7 +2122,7 @@
         checkboxes.forEach(cb => {
           if (cb.checked) {
             const card = document.getElementById(cb.value);
-            if (card) card.style.display = "flex";
+            if (card) card.style.display = "block";
             updatedHidden = updatedHidden.filter(id => id !== cb.value);
           }
         });
@@ -2148,7 +2164,6 @@
       title.style.marginTop = "0";
       box.appendChild(title);
 
-      // PC/タブレット向けに「隙間なく左上から綺麗に詰め直す」リセットボタンを提供
       const packBtn = document.createElement("button");
       packBtn.textContent = "🔄 隙間を詰めて左上から自動整列";
       packBtn.style.cssText = "width:100%;margin-bottom:12px;padding:8px;background:#2196f3;color:#fff;border:none;border-radius:6px;cursor:pointer;font-weight:bold;";
@@ -2197,7 +2212,7 @@
           if (card) widgets.appendChild(card);
         });
         localStorage.setItem("widgetOrder", JSON.stringify(newOrder));
-        localStorage.removeItem(GRID_POS_KEY); // 新しい順序で左上から再配置
+        localStorage.removeItem(GRID_POS_KEY);
         document.body.removeChild(modal);
         applyGridLayout();
       };
@@ -2251,7 +2266,6 @@
 
       const cols = getGridCols();
 
-      // スマホ（1列）の場合は上下入れ替え
       if (cols === 1) {
         const target = e.target.closest(".card");
         if (target && target !== dragSrcEl) {
@@ -2262,7 +2276,6 @@
         return;
       }
 
-      // PC/タブレット：マウス位置からグリッドの何列目・何行目かを計算
       const rect = widgets.getBoundingClientRect();
       const padLeft = parseFloat(window.getComputedStyle(widgets).paddingLeft) || 0;
       const padTop = parseFloat(window.getComputedStyle(widgets).paddingTop) || 0;
@@ -2313,6 +2326,17 @@
       targetCell = null;
       applyGridLayout();
     });
+
+    // ★ カードの高さ変化（地震のもっと見る・各地の震度・メモ帳リサイズ等）を検知して自動でグリッド再計算
+    if (window.ResizeObserver) {
+      let roTimer = null;
+      const ro = new ResizeObserver(() => {
+        if (isResizing || dragSrcEl) return;
+        clearTimeout(roTimer);
+        roTimer = setTimeout(() => applyGridLayout(), 40);
+      });
+      widgets.querySelectorAll(".card").forEach(card => ro.observe(card));
+    }
   </script>
 
   <!--アカウントスクリプト-->
@@ -2382,9 +2406,8 @@
                     localStorage.setItem("widgetOrder", JSON.stringify(data.widgetOrder));
                 }
 
-                // ★ 2Dグリッド座標データ(v2)の復元
-                if (data.widgetGridPositions_v2) {
-                    localStorage.setItem("widgetGridPositions_v2", JSON.stringify(data.widgetGridPositions_v2));
+                if (data.widgetGridPositions_v3) {
+                    localStorage.setItem("widgetGridPositions_v3", JSON.stringify(data.widgetGridPositions_v3));
                 }
 
                 if (data.portalMemo !== undefined) {
@@ -2468,7 +2491,7 @@
 
         const widgetsContainer = document.querySelector(".widgets");
         const order = Array.from(widgetsContainer.querySelectorAll(".card")).map(el => el.id).filter(Boolean);
-        const gridPositions = JSON.parse(localStorage.getItem("widgetGridPositions_v2") || "{}");
+        const gridPositions = JSON.parse(localStorage.getItem("widgetGridPositions_v3") || "{}");
         const memoValue = document.getElementById('simple-memo')?.value || "";
         const themeValue = localStorage.getItem("theme") || "light";
         const colorValue = localStorage.getItem("portalHeaderColor") || "";
@@ -2492,7 +2515,7 @@
         try {
             await setDoc(doc(db, "users", currentUser.uid), {
                 widgetOrder: order,
-                widgetGridPositions_v2: gridPositions,
+                widgetGridPositions_v3: gridPositions,
                 portalMemo: memoValue,
                 theme: themeValue,
                 portalHeaderColor: colorValue,
@@ -2695,9 +2718,11 @@
         `;
 
         container.innerHTML = html;
+        if (typeof applyGridLayout === 'function') applyGridLayout();
 
       } catch (err) {
         container.innerHTML = `<div class="error">天気情報の取得に失敗しました。（${err.message}）</div>`;
+        if (typeof applyGridLayout === 'function') applyGridLayout();
       }
     }
 
@@ -2768,46 +2793,6 @@
 
     fetchWeather();
     setInterval(fetchWeather, 10 * 60 * 1000);
-  </script>
-
-  <script>
-    (function() {
-      const imgEl = document.getElementById('kyoshin-img');
-      const timeEl = document.getElementById('kyoshin-time');
-
-      if (!imgEl || !timeEl) return;
-
-      function updateKyoshin() {
-        const now = new Date();
-        const delaySeconds = 2;
-        now.setSeconds(now.getSeconds() - delaySeconds);
-
-        const year = now.getFullYear();
-        const month = String(now.getMonth() + 1).padStart(2, '0');
-        const day = String(now.getDate()).padStart(2, '0');
-        const hour = String(now.getHours()).padStart(2, '0');
-        const minute = String(now.getMinutes()).padStart(2, '0');
-        const second = String(now.getSeconds()).padStart(2, '0');
-
-        const dateStr = `${year}${month}${day}`;
-        const timeStr = `${year}${month}${day}${hour}${minute}${second}`;
-
-        const url = `https://www.lmoni.bosai.go.jp/monitor/data/data/map/RealTimeImg/jma_s/${dateStr}/${timeStr}.jma_s.gif`;
-
-        const newImg = new Image();
-        newImg.onload = function() {
-          imgEl.src = url;
-          timeEl.textContent = `更新時刻: ${hour}:${minute}:${second}`;
-        };
-        newImg.onerror = function() {
-          setTimeout(updateKyoshin, 1000);
-        };
-        newImg.src = url;
-      }
-
-      updateKyoshin();
-      setInterval(updateKyoshin, 2000);
-    })();
   </script>
 
   <script>
@@ -2925,22 +2910,31 @@
           if (offset > 0) additionalItems.push(li);
         });
 
+        // ★ 各地の震度を開閉した時にグリッドのマス数を再計算して伸ばす
         $(document).off("click", ".ac-parent");
         $(document).on("click", ".ac-parent", function() {
           const $child = $(this).next(".ac-child");
           if ($child.is(":hidden")) {
-            $child.slideDown(200);
+            $child.slideDown(200, function() {
+              if (typeof applyGridLayout === 'function') applyGridLayout();
+            });
           } else {
-            $child.slideUp(200);
+            $child.slideUp(200, function() {
+              if (typeof applyGridLayout === 'function') applyGridLayout();
+            });
           }
         });
 
         if (offset > 0 && additionalItems.length > 0) closeAllButton.style.display = "inline-block";
 
+        // ★ 「もっと見る」で要素が増えた直後にグリッド高さを再計算して伸ばす
+        if (typeof applyGridLayout === 'function') applyGridLayout();
+
       } catch (err) {
         container.innerHTML = `<li class="error">地震情報の取得に失敗しました。（${err.message}）</li>`;
         moreButton.style.display = "none";
         closeAllButton.style.display = "none";
+        if (typeof applyGridLayout === 'function') applyGridLayout();
       }
     }
 
@@ -2956,6 +2950,7 @@
       additionalItems = [];
       this.style.display = "none";
       offset = 0;
+      if (typeof applyGridLayout === 'function') applyGridLayout();
     };
 
     setInterval(() => {
@@ -2996,6 +2991,7 @@
         } else {
           document.getElementById('currency-result').textContent = '換算できませんでした';
         }
+        if (typeof applyGridLayout === 'function') applyGridLayout();
       } catch (err) {
         document.getElementById('currency-result').textContent = '換算エラー: ' + err;
         console.error(err);
@@ -3005,104 +3001,113 @@
     document.getElementById('convert').addEventListener('click', convertCurrency);
   </script>
 
-  <!-- ★ ニュース取得 & トレンド取得（並列レース + 短時間タイムアウト + キャッシュ即時フォールバック） -->
+  <!-- ========================================================
+       ★ ニュース取得 & トレンド取得（rss2json API ＋ 複数CORSプロキシ自動フォールバック）
+  ======================================================== -->
   <script>
-    function fetchFastestProxy(rssUrl, timeoutMs = 4500) {
+    async function fetchRssItems(rssUrl, timeoutMs = 8000) {
       const encoded = encodeURIComponent(rssUrl);
-      const proxies = [
-        `https://corsproxy.io/?${encoded}`,
-        `https://api.allorigins.win/raw?url=${encoded}&t=${Date.now()}`,
-        `https://api.allorigins.win/get?url=${encoded}&t=${Date.now()}`,
-        `https://api.codetabs.com/v1/proxy?quest=${encoded}`
-      ];
 
-      const fetchSingle = (url) => {
-        return new Promise((resolve, reject) => {
-          const controller = new AbortController();
-          const timer = setTimeout(() => {
-            controller.abort();
-            reject(new Error("Timeout"));
-          }, timeoutMs);
+      const fetchWithTimeout = async (url, parseType) => {
+        const controller = new AbortController();
+        const timer = setTimeout(() => controller.abort(), timeoutMs);
+        try {
+          const res = await fetch(url, { signal: controller.signal });
+          clearTimeout(timer);
+          if (!res.ok) throw new Error("HTTP " + res.status);
 
-          fetch(url, { signal: controller.signal })
-            .then(async (res) => {
-              clearTimeout(timer);
-              if (!res.ok) throw new Error("HTTP " + res.status);
-              const text = await res.text();
-              let xmlContent = text;
-              try {
-                const json = JSON.parse(text);
-                if (json && json.contents) xmlContent = json.contents;
-              } catch (_) {}
+          if (parseType === "rss2json") {
+            const json = await res.json();
+            if (json && json.status === "ok" && Array.isArray(json.items) && json.items.length > 0) {
+              return json.items.map(item => ({
+                title: item.title || "情報なし",
+                link: item.link || "#"
+              }));
+            }
+            throw new Error("Invalid rss2json response");
+          }
 
-              if (!xmlContent || !xmlContent.includes("<item>")) {
-                throw new Error("Invalid RSS content");
-              }
-              resolve(xmlContent);
-            })
-            .catch((err) => {
-              clearTimeout(timer);
-              reject(err);
-            });
-        });
+          const text = await res.text();
+          let xmlContent = text;
+          if (parseType === "allorigins-get") {
+            const json = JSON.parse(text);
+            xmlContent = json.contents || "";
+          }
+
+          if (!xmlContent || !xmlContent.includes("<item>")) {
+            throw new Error("Invalid XML");
+          }
+
+          const parser = new DOMParser();
+          const xml = parser.parseFromString(xmlContent, "application/xml");
+          const nodes = Array.from(xml.querySelectorAll("item"));
+          if (nodes.length === 0) throw new Error("No items in XML");
+
+          return nodes.map(node => ({
+            title: node.querySelector("title")?.textContent || "情報なし",
+            link: node.querySelector("link")?.textContent || "#"
+          }));
+        } catch (err) {
+          clearTimeout(timer);
+          throw err;
+        }
       };
 
-      return Promise.any(proxies.map(url => fetchSingle(url)));
+      // 複数の取得ルートを並列で走らせ、一番早く成功したものを採用する
+      const tasks = [
+        fetchWithTimeout(`https://api.rss2json.com/v1/api.json?rss_url=${encoded}`, "rss2json"),
+        fetchWithTimeout(`https://api.allorigins.win/get?url=${encoded}&t=${Date.now()}`, "allorigins-get"),
+        fetchWithTimeout(`https://api.allorigins.win/raw?url=${encoded}&t=${Date.now()}`, "raw"),
+        fetchWithTimeout(`https://api.codetabs.com/v1/proxy?quest=${encoded}`, "raw"),
+        fetchWithTimeout(`https://corsproxy.io/?${encoded}`, "raw")
+      ];
+
+      return Promise.any(tasks);
     }
 
     async function fetchNews() {
       const container = document.getElementById('news-list');
-      const STORAGE_KEY = 'portalNewsCache';
+      const STORAGE_KEY = 'portalNewsItemsCache_v2';
       const rssUrl = 'https://news.yahoo.co.jp/rss/topics/domestic.xml';
 
-      const cachedXML = localStorage.getItem(STORAGE_KEY);
-      if (cachedXML) {
-        renderNews(cachedXML);
+      let cachedItems = null;
+      try {
+        cachedItems = JSON.parse(localStorage.getItem(STORAGE_KEY));
+      } catch (e) {}
+
+      if (Array.isArray(cachedItems) && cachedItems.length > 0) {
+        renderNewsItems(cachedItems);
       } else {
         container.innerHTML = '<li class="loading">ニュースを取得中…</li>';
       }
 
       try {
-        const xmlText = await fetchFastestProxy(rssUrl, 4500);
-        localStorage.setItem(STORAGE_KEY, xmlText);
-        renderNews(xmlText);
+        const items = await fetchRssItems(rssUrl, 8000);
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
+        renderNewsItems(items);
       } catch (err) {
-        console.warn("ニュースの最新取得失敗、キャッシュを維持します", err);
-        if (cachedXML) {
-          renderNews(cachedXML);
-          const note = document.createElement('li');
-          note.style.fontSize = "0.75rem";
-          note.style.color = "#888";
-          note.style.textAlign = "right";
-          note.textContent = "※前回取得した情報を表示中";
-          container.appendChild(note);
+        console.warn("ニュースの最新取得失敗:", err);
+        if (Array.isArray(cachedItems) && cachedItems.length > 0) {
+          renderNewsItems(cachedItems);
         } else {
           container.innerHTML = `<li class="error">ニュース取得に失敗しました。<br>時間をおいてください。</li>`;
         }
       }
+      if (typeof applyGridLayout === 'function') applyGridLayout();
     }
 
-    function renderNews(xmlText) {
+    function renderNewsItems(items) {
       const container = document.getElementById('news-list');
-      const parser = new DOMParser();
-      const xml = parser.parseFromString(xmlText, "application/xml");
-      const items = xml.querySelectorAll("item");
-
       container.innerHTML = '';
       if (!items || items.length === 0) {
         container.innerHTML = '<li>ニュース情報はありません。</li>';
         return;
       }
 
-      items.forEach((item, idx) => {
-        if (idx >= 8) return;
-
-        const title = item.querySelector("title")?.textContent || '情報なし';
-        const link = item.querySelector("link")?.textContent || '#';
-
+      items.slice(0, 8).forEach(item => {
         const li = document.createElement("li");
-        li.innerHTML = `<a href="${link}" target="_blank"
-                    style="text-decoration:none;color:var(--link-color);">${title}</a>`;
+        li.innerHTML = `<a href="${item.link}" target="_blank"
+                    style="text-decoration:none;color:var(--link-color);">${item.title}</a>`;
         container.appendChild(li);
       });
     }
@@ -3112,48 +3117,56 @@
 
     async function fetchTrends() {
       const container = document.getElementById("trend-list");
-      const STORAGE_KEY = "portalTrendCache";
-      const CACHE_DURATION = 30 * 60 * 1000;
+      const STORAGE_KEY = "portalTrendItemsCache_v2";
+      const CACHE_DURATION = 20 * 60 * 1000;
 
       let cachedObj = null;
       try {
         cachedObj = JSON.parse(localStorage.getItem(STORAGE_KEY));
-        if (cachedObj && cachedObj.data) {
-          renderTrends(cachedObj.data);
+        if (cachedObj && Array.isArray(cachedObj.items) && cachedObj.items.length > 0) {
+          renderTrendItems(cachedObj.items);
           if (Date.now() - cachedObj.timestamp < CACHE_DURATION) {
+            if (typeof applyGridLayout === 'function') applyGridLayout();
             return;
           }
         }
       } catch (e) {}
 
-      if (!cachedObj || !cachedObj.data) {
-        container.innerHTML = '<li class="loading">高速取得中...</li>';
+      if (!cachedObj || !cachedObj.items) {
+        container.innerHTML = '<li class="loading">トレンドを取得中...</li>';
       }
 
-      const rssUrl = "https://trends.google.co.jp/trending/rss?geo=JP";
+      // GoogleトレンドのRSSURL（旧URLと新URLの両方を試行）
+      const rssUrlPrimary = "https://trends.google.co.jp/trending/rss?geo=JP";
+      const rssUrlFallback = "https://trends.google.com/trends/trendingsearches/daily/rss?geo=JP";
 
       try {
-        const winnerResponse = await fetchFastestProxy(rssUrl, 4500);
+        let items;
+        try {
+          items = await fetchRssItems(rssUrlPrimary, 8000);
+        } catch (_) {
+          items = await fetchRssItems(rssUrlFallback, 8000);
+        }
 
         localStorage.setItem(STORAGE_KEY, JSON.stringify({
           timestamp: Date.now(),
-          data: winnerResponse
+          items: items
         }));
 
-        renderTrends(winnerResponse);
-
+        renderTrendItems(items);
       } catch (err) {
         console.warn("トレンド最新取得失敗:", err);
-        if (cachedObj && cachedObj.data) {
-          renderTrends(cachedObj.data);
+        if (cachedObj && Array.isArray(cachedObj.items) && cachedObj.items.length > 0) {
+          renderTrendItems(cachedObj.items);
         } else {
           container.innerHTML =
             `<li class="error" style="font-size:0.85rem;">取得に失敗しました。<br>時間をおいてください。</li>`;
         }
       }
+      if (typeof applyGridLayout === 'function') applyGridLayout();
     }
 
-    function renderTrends(xmlText) {
+    function renderTrendItems(items) {
       const container = document.getElementById("trend-list");
 
       const rainbow10 = [
@@ -3164,55 +3177,45 @@
         "rgba(160, 0, 255, 0.25)", "rgba(255, 80, 160, 0.25)"
       ];
 
-      try {
-        const parser = new DOMParser();
-        const xml = parser.parseFromString(xmlText, "application/xml");
-        const items = xml.querySelectorAll("item");
+      container.innerHTML = "";
 
-        container.innerHTML = "";
-
-        if (!items || items.length === 0) {
-          container.innerHTML = "<li>データ形式エラー</li>";
-          return;
-        }
-
-        items.forEach((item, idx) => {
-          if (idx >= 10) return;
-
-          const title = item.querySelector("title")?.textContent || "情報なし";
-          const query = encodeURIComponent(title);
-          const googleLink = `https://www.google.com/search?q=${query}`;
-
-          const bg = rainbow10[idx];
-          const hoverBg = bg.replace("0.25", "0.40");
-
-          const li = document.createElement("li");
-          li.innerHTML = `
-              <a href="${googleLink}" target="_blank"
-                style="
-                  display: block;
-                  padding: 9px 12px;
-                  margin: 6px 0;
-                  font-weight: 900;
-                  font-size: 0.9rem;
-                  color: var(--text-color);
-                  background: ${bg};
-                  border-radius: 10px;
-                  cursor: pointer;
-                  text-decoration: none;
-                  transition: 0.2s;
-                "
-                onmouseover="this.style.background='${hoverBg}'"
-                onmouseout="this.style.background='${bg}'"
-              >
-                ${title}
-              </a>
-            `;
-          container.appendChild(li);
-        });
-      } catch (e) {
-        container.innerHTML = "<li>解析エラー</li>";
+      if (!items || items.length === 0) {
+        container.innerHTML = "<li>トレンド情報はありません</li>";
+        return;
       }
+
+      items.slice(0, 10).forEach((item, idx) => {
+        const title = item.title || "情報なし";
+        const query = encodeURIComponent(title);
+        const googleLink = `https://www.google.com/search?q=${query}`;
+
+        const bg = rainbow10[idx % rainbow10.length];
+        const hoverBg = bg.replace("0.25", "0.40");
+
+        const li = document.createElement("li");
+        li.innerHTML = `
+            <a href="${googleLink}" target="_blank"
+              style="
+                display: block;
+                padding: 9px 12px;
+                margin: 6px 0;
+                font-weight: 900;
+                font-size: 0.9rem;
+                color: var(--text-color);
+                background: ${bg};
+                border-radius: 10px;
+                cursor: pointer;
+                text-decoration: none;
+                transition: 0.2s;
+              "
+              onmouseover="this.style.background='${hoverBg}'"
+              onmouseout="this.style.background='${bg}'"
+            >
+              ${title}
+            </a>
+          `;
+        container.appendChild(li);
+      });
     }
 
     fetchTrends();
@@ -3263,6 +3266,7 @@
           numEl.textContent = "--";
           dateDispEl.textContent = "";
         }
+        if (typeof applyGridLayout === 'function') setTimeout(applyGridLayout, 50);
       }
 
       $(toggleBtn).on('click', function() {
@@ -3272,9 +3276,13 @@
           const data = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
           nameInput.value = data.name || '';
           dateInput.value = data.date || '';
-          $settings.slideDown(200);
+          $settings.slideDown(200, function() {
+            if (typeof applyGridLayout === 'function') applyGridLayout();
+          });
         } else {
-          $settings.slideUp(200);
+          $settings.slideUp(200, function() {
+            if (typeof applyGridLayout === 'function') applyGridLayout();
+          });
         }
       });
 
@@ -3287,7 +3295,9 @@
             date
           }));
           loadAndRender();
-          $(settingsEl).slideUp(200);
+          $(settingsEl).slideUp(200, function() {
+            if (typeof applyGridLayout === 'function') applyGridLayout();
+          });
         } else {
           alert('イベント名と日付を入力してください');
         }
@@ -3315,6 +3325,7 @@
           imgEl.onload = () => {
             loadingEl.style.display = 'none';
             imgEl.style.display = 'block';
+            if (typeof applyGridLayout === 'function') applyGridLayout();
           };
           imgEl.src = url;
         }
@@ -3423,6 +3434,7 @@
       }
 
       calendarContainer.appendChild(table);
+      if (typeof applyGridLayout === 'function') applyGridLayout();
     }
 
     document.addEventListener("DOMContentLoaded", async () => {
@@ -3489,6 +3501,7 @@
         localStorage.setItem(storageKey, msg);
       }
       el.textContent = `${select.options[select.selectedIndex].text} — ${msg}`;
+      if (typeof applyGridLayout === 'function') applyGridLayout();
     }
 
     document.getElementById('draw-horoscope').addEventListener('click', drawHoroscope);
@@ -3611,13 +3624,14 @@
         resultEl.style.textShadow = "none";
         resultEl.style.transform = "scale(1.0)";
       }
+      if (typeof applyGridLayout === 'function') applyGridLayout();
     }
 
     window.addEventListener("DOMContentLoaded", () => {
       const visibility = JSON.parse(localStorage.getItem("cardVisibility") || "{}");
       const card = document.getElementById("fortune-card");
       if (card && visibility.hasOwnProperty("fortune-card")) {
-        card.style.display = visibility["fortune-card"] ? "flex" : "none";
+        card.style.display = visibility["fortune-card"] ? "block" : "none";
       }
 
       const resultEl = document.getElementById("fortune-result");
@@ -3965,6 +3979,7 @@
       root.style.setProperty('--base-font-size', pxValue + 'px');
       fontSizeValue.textContent = percent + '%';
       localStorage.setItem('userFontSizePercent', percent);
+      if (typeof applyGridLayout === 'function') setTimeout(applyGridLayout, 50);
     }
 
     fontSizeRange.addEventListener('input', (e) => {
