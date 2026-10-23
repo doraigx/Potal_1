@@ -2589,7 +2589,7 @@ observer.observe(document.querySelector(".widgets"), {
     }
 </script>
 
-  <script>
+ <script>
     async function fetchWeather() {
       const container = document.getElementById('weather');
       container.innerHTML = '<div class="loading">天気情報を取得中…</div>';
@@ -2717,7 +2717,7 @@ observer.observe(document.querySelector(".widgets"), {
           const daysOfWeek = ['日', '月', '火', '水', '木', '金', '土'];
           const dayOfWeek = daysOfWeek[d.getDay()];
 
-          // 最高気温と_最低気温の色を変更
+          // 最高気温と最低気温の色を変更
           const maxTemp = Math.floor(daily.temperature_2m_max[i]);
           const minTemp = Math.floor(daily.temperature_2m_min[i]);
 
@@ -2744,70 +2744,48 @@ observer.observe(document.querySelector(".widgets"), {
   </script>
 
   <script>
-    // --- 2. 簡易メモ帳（自動保存） ---
-    const memoArea = document.getElementById('simple-memo');
-    const MEMO_KEY = 'portalMemo';
+    (function() {
+      const imgEl = document.getElementById('kyoshin-img');
+      const timeEl = document.getElementById('kyoshin-time');
+      const kyoshinCard = document.getElementById('kyoshin-card');
 
-    // ページ読み込み時に保存されたメモを復元
-    const savedMemo = localStorage.getItem(MEMO_KEY);
-    if (savedMemo) {
-      memoArea.value = savedMemo;
-    }
+      // ★修正：HTML内に強震モニタの要素が存在しない場合は処理を完全に停止する（404エラー防止）
+      if (!imgEl || !timeEl || !kyoshinCard) return;
 
-    // 入力するたびに保存
-    memoArea.addEventListener('input', () => {
-      localStorage.setItem(MEMO_KEY, memoArea.value);
-    });
+      function updateKyoshin() {
+        const now = new Date();
+        const delaySeconds = 3; // NIEDの更新ラグに合わせる（安定のため3秒）
+        now.setSeconds(now.getSeconds() - delaySeconds);
+
+        const year = now.getFullYear();
+        const month = String(now.getMonth() + 1).padStart(2, '0');
+        const day = String(now.getDate()).padStart(2, '0');
+        const hour = String(now.getHours()).padStart(2, '0');
+        const minute = String(now.getMinutes()).padStart(2, '0');
+        const second = String(now.getSeconds()).padStart(2, '0');
+
+        const dateStr = `${year}${month}${day}`;
+        const timeStr = `${year}${month}${day}${hour}${minute}${second}`;
+
+        const url = `https://www.lmoni.bosai.go.jp/monitor/data/data/map/RealTimeImg/jma_s/${dateStr}/${timeStr}.jma_s.gif`;
+
+        const newImg = new Image();
+        newImg.onload = function() {
+          imgEl.src = url;
+          timeEl.textContent = `更新時刻: ${hour}:${minute}:${second}`;
+          
+          if (typeof resizeGridItem === 'function') {
+            resizeGridItem(kyoshinCard);
+          }
+        };
+        // ★修正：setIntervalで定期実行されているため、onerrorでのsetTimeout再試行（増殖バグの原因）を削除
+        newImg.src = url;
+      }
+
+      updateKyoshin();
+      setInterval(updateKyoshin, 2000);
+    })();
   </script>
-
-<script>
-  (function() {
-    const imgEl = document.getElementById('kyoshin-img');
-    const timeEl = document.getElementById('kyoshin-time');
-    const kyoshinCard = document.getElementById('kyoshin-card');
-
-    function updateKyoshin() {
-      // 強震モニタの画像URLは1秒単位で生成されるため、現在時刻から数秒（遅延分）引いた時刻を使用
-      const now = new Date();
-      const delaySeconds = 2; // NIEDの更新ラグに合わせる
-      now.setSeconds(now.getSeconds() - delaySeconds);
-
-      const year = now.getFullYear();
-      const month = String(now.getMonth() + 1).padStart(2, '0');
-      const day = String(now.getDate()).padStart(2, '0');
-      const hour = String(now.getHours()).padStart(2, '0');
-      const minute = String(now.getMinutes()).padStart(2, '0');
-      const second = String(now.getSeconds()).padStart(2, '0');
-
-      const dateStr = `${year}${month}${day}`;
-      const timeStr = `${year}${month}${day}${hour}${minute}${second}`;
-
-      // NIEDの強震モニタ画像URL（地表・リアルタイム震度）
-      const url = `https://www.lmoni.bosai.go.jp/monitor/data/data/map/RealTimeImg/jma_s/${dateStr}/${timeStr}.jma_s.gif`;
-
-      // 新しい画像オブジェクトを作成して読み込み完了を待つ（チラつき防止）
-      const newImg = new Image();
-      newImg.onload = function() {
-        imgEl.src = url;
-        timeEl.textContent = `更新時刻: ${hour}:${minute}:${second}`;
-        
-        // カードの高さ再計算（Masonryレイアウト用）
-        if (typeof resizeGridItem === 'function') {
-          resizeGridItem(kyoshinCard);
-        }
-      };
-      newImg.onerror = function() {
-        // 画像がない（まだ生成されていない）場合は1秒後に再試行
-        setTimeout(updateKyoshin, 1000);
-      };
-      newImg.src = url;
-    }
-
-    // 初回実行と1秒ごとの更新
-    updateKyoshin();
-    setInterval(updateKyoshin, 2000); // サーバー負荷軽減のため2秒間隔
-  })();
-</script>
 
   <script>
     /* =========================
@@ -2894,9 +2872,7 @@ observer.observe(document.querySelector(".widgets"), {
           const p = d.points || [];
           const maxClass = sindoClass(e.maxScale);
 
-          // ★追加：時刻から秒数を消す処理 (YYYY/MM/DD HH:mm:ss -> YYYY/MM/DD HH:mm)
           const displayTime = e.time ? e.time.substring(0, 16) : "不明";
-
           const sortedPoints = [...p].sort((a, b) => b.scale - a.scale);
 
           let pointsHtml = "";
@@ -2983,8 +2959,7 @@ observer.observe(document.querySelector(".widgets"), {
       offset = 0;
       fetchEarthquake();
     }, 5 * 60 * 1000);
-</script>
-
+  </script>
 
   <script>
     async function fetchRate() {
@@ -3033,25 +3008,20 @@ observer.observe(document.querySelector(".widgets"), {
       if (!canvas) return;
 
       try {
-        // 代替API: 最近の推移を取得（Frankfurterがダメな場合の予備案）
-        // 注意: Frankfurter以外の無料APIは「過去10日分」を一度に取れないことが多いため
-        // ここでは現在のレート取得を優先し、グラフ構造を維持する形にします。
         const url = `https://open.er-api.com/v6/latest/USD`;
         const res = await fetch(url);
         const data = await res.json();
 
         if (!data || !data.rates) throw new Error("データ取得失敗");
 
-        // グラフ用のダミー/簡易データ生成（APIが制限されている場合でも枠を表示するため）
         const labels = ["10日前", "7日前", "5日前", "3日前", "現在"];
         const currentRate = data.rates.JPY;
-        // 過去データが取れない無料APIの場合、現在の値をベースに微変動させたグラフを表示
         const values = [currentRate - 0.5, currentRate + 0.2, currentRate - 0.1, currentRate - 0.3, currentRate];
 
         const ctx = canvas.getContext('2d');
-        if (rateChartInstance) rateChartInstance.destroy();
+        if (typeof rateChartInstance !== 'undefined' && rateChartInstance) rateChartInstance.destroy();
 
-        rateChartInstance = new Chart(ctx, {
+        window.rateChartInstance = new Chart(ctx, {
           type: 'line',
           data: {
             labels: labels,
@@ -3092,9 +3062,16 @@ observer.observe(document.querySelector(".widgets"), {
           });
           clearTimeout(id);
 
-          if (res.ok) return await res.text();
+          if (res.ok) {
+            const text = await res.text();
+            // allorigins (/get) などのJSONラップ形式にも対応
+            try {
+              const json = JSON.parse(text);
+              if (json.contents) return json.contents;
+            } catch (e) {}
+            return text;
+          }
         } catch (e) {
-          // 次の URL を試す
           console.warn("Proxy failed, trying next...", e);
         }
       }
@@ -3105,37 +3082,28 @@ observer.observe(document.querySelector(".widgets"), {
       const container = document.getElementById('news-list');
       const STORAGE_KEY = 'portalNewsCache';
 
-      // とりあえずロード中表示（ただしキャッシュがあればそれを先に表示しても良い）
       container.innerHTML = '<li class="loading">ニュースを取得中…</li>';
 
       const rssUrl = 'https://news.yahoo.co.jp/rss/topics/domestic.xml';
 
-      // ★強化ポイント1: プロキシを増量（上から順に試します）
+      // ★修正：CORSエラーになりにくい順に変更
       const proxyList = [
-        `https://api.allorigins.win/raw?url=${encodeURIComponent(rssUrl)}`,
-        `https://corsproxy.io/?${encodeURIComponent(rssUrl)}`,
-        `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(rssUrl)}`
+        `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(rssUrl)}`,
+        `https://api.allorigins.win/get?url=${encodeURIComponent(rssUrl)}&t=${Date.now()}`
       ];
 
       try {
-        // 通信開始
         const xmlText = await fetchWithFallback(proxyList);
-
-        // 成功したらキャッシュに保存
         localStorage.setItem(STORAGE_KEY, xmlText);
-
-        // 描画
         renderNews(xmlText);
         console.log("ニュース: 最新取得成功");
 
       } catch (err) {
         console.warn("ニュース取得失敗、キャッシュを試みます", err);
 
-        // ★強化ポイント2: 失敗したらキャッシュを確認
         const cachedXML = localStorage.getItem(STORAGE_KEY);
         if (cachedXML) {
           renderNews(cachedXML);
-          // キャッシュであることを表示
           const note = document.createElement('li');
           note.style.fontSize = "0.75rem";
           note.style.color = "#888";
@@ -3143,7 +3111,6 @@ observer.observe(document.querySelector(".widgets"), {
           note.textContent = "※前回取得した情報を表示中";
           container.appendChild(note);
         } else {
-          // キャッシュもなければエラー表示
           container.innerHTML = `<li class="error">ニュース取得に失敗しました。<br>時間をおいてください。</li>`;
         }
       }
@@ -3162,7 +3129,7 @@ observer.observe(document.querySelector(".widgets"), {
       }
 
       items.forEach((item, idx) => {
-        if (idx >= 8) return; // 8件まで表示
+        if (idx >= 8) return;
 
         const title = item.querySelector("title")?.textContent || '情報なし';
         const link = item.querySelector("link")?.textContent || '#';
@@ -3174,9 +3141,7 @@ observer.observe(document.querySelector(".widgets"), {
       });
     }
 
-    // 初回実行
     fetchNews();
-    // 15分おきに更新
     setInterval(fetchNews, 15 * 60 * 1000);
   </script>
 
@@ -3194,14 +3159,12 @@ observer.observe(document.querySelector(".widgets"), {
       const dateInput = document.getElementById('cnt-date');
       const saveBtn = document.getElementById('cnt-save');
 
-      // 高さ再計算用の関数
       function refreshGrid() {
         if (typeof resizeGridItem === 'function' && cardEl) {
           resizeGridItem(cardEl);
         }
       }
 
-      // 読み込みと表示更新
       function loadAndRender() {
         const data = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
         if (data.name && data.date) {
@@ -3233,46 +3196,36 @@ observer.observe(document.querySelector(".widgets"), {
           numEl.textContent = "--";
           dateDispEl.textContent = "";
         }
-        // 表示更新後に高さを合わせる
         setTimeout(refreshGrid, 50);
       }
 
-      // ★設定エリアの開閉アニメーション（ここを変更）
       $(toggleBtn).on('click', function() {
         const $settings = $(settingsEl);
 
         if ($settings.is(':hidden')) {
-          // === 開くとき ===
-          // 1. 先に今の設定値を入力欄に入れる
           const data = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
           nameInput.value = data.name || '';
           dateInput.value = data.date || '';
 
-          // 2. グリッドの場所確保：一瞬だけ見えない状態で開いて、高さを計算させる
           $settings.css({
             display: 'block',
             visibility: 'hidden'
           });
           refreshGrid();
 
-          // 3. アニメーション開始：見えない状態を解除して、slideDown
           $settings.css({
             display: 'none',
             visibility: 'visible'
           });
-          $settings.slideDown(300); // 0.3秒かけて開く
+          $settings.slideDown(300);
 
         } else {
-          // === 閉じるとき ===
-          // 1. slideUpで閉じる
           $settings.slideUp(300, function() {
-            // 2. アニメ終了後にグリッドを縮める
             refreshGrid();
           });
         }
       });
 
-      // 保存処理
       $(saveBtn).on('click', function() {
         const name = nameInput.value;
         const date = dateInput.value;
@@ -3283,7 +3236,6 @@ observer.observe(document.querySelector(".widgets"), {
           }));
           loadAndRender();
 
-          // 保存したら閉じる（アニメーション付き）
           $(settingsEl).slideUp(300, function() {
             refreshGrid();
           });
@@ -3293,7 +3245,6 @@ observer.observe(document.querySelector(".widgets"), {
         }
       });
 
-      // 初回実行
       loadAndRender();
     })();
   </script>
@@ -3303,19 +3254,16 @@ observer.observe(document.querySelector(".widgets"), {
       const imgEl = document.getElementById('cat-img');
       const loadingEl = document.getElementById('cat-loading');
 
-      // 画像を隠してロード中を表示
       imgEl.style.display = 'none';
       loadingEl.style.display = 'block';
 
       try {
-        // The Cat API (登録なしでもランダム取得は可能)
         const res = await fetch('https://api.thecatapi.com/v1/images/search');
         const data = await res.json();
 
         if (data && data.length > 0) {
           const url = data[0].url;
 
-          // 画像の読み込み完了を待ってから表示
           imgEl.onload = () => {
             loadingEl.style.display = 'none';
             imgEl.style.display = 'block';
@@ -3328,14 +3276,12 @@ observer.observe(document.querySelector(".widgets"), {
       }
     }
 
-    // 初回ロード
     fetchCat();
   </script>
 
-
   <script>
     let currentYear, currentMonth;
-    let holidaysData = {}; // 祝日を保持するオブジェクト
+    let holidaysData = {};
 
     async function fetchHolidays(year) {
       try {
@@ -3381,7 +3327,7 @@ observer.observe(document.querySelector(".widgets"), {
       let row = document.createElement("tr");
       for (let i = 0; i < date.getDay(); i++) {
         const emptyCell = document.createElement("td");
-        emptyCell.classList.add("empty"); // 空セル
+        emptyCell.classList.add("empty");
         row.appendChild(emptyCell);
       }
 
@@ -3399,7 +3345,7 @@ observer.observe(document.querySelector(".widgets"), {
         const key = `${year}-${mm}-${dd}`;
         if (holidaysData[key]) {
           cell.classList.add("holiday");
-          cell.title = holidaysData[key]; // ホバーで祝日名表示
+          cell.title = holidaysData[key];
         }
 
         if (
@@ -3419,11 +3365,10 @@ observer.observe(document.querySelector(".widgets"), {
         date.setDate(d + 1);
       }
 
-      // 月末の残り空セルを埋める
       if (row.children.length > 0 && row.children.length < 7) {
         for (let i = row.children.length; i < 7; i++) {
           const emptyCell = document.createElement("td");
-          emptyCell.classList.add("empty"); // 空セル
+          emptyCell.classList.add("empty");
           row.appendChild(emptyCell);
         }
         table.appendChild(row);
@@ -3469,12 +3414,10 @@ observer.observe(document.querySelector(".widgets"), {
     /* 空セルの背景色（ダークモード用） */
     body.dark .calendar td.empty {
       background-color: #2a2a2a;
-      /* お好みの明るめ灰色 */
     }
   </style>
 
   <script>
-    // 占いメッセージ一覧
     const HOROSCOPE_MESSAGES = [
       "大吉：新しい挑戦に吉。小さな一歩を踏み出そう。",
       "中吉：安定運。計画的に動くと吉。",
@@ -3501,7 +3444,6 @@ observer.observe(document.querySelector(".widgets"), {
       el.textContent = `${select.options[select.selectedIndex].text} — ${msg}`;
     }
 
-    // ボタンにイベント
     document.getElementById('draw-horoscope').addEventListener('click', drawHoroscope);
   </script>
 
@@ -3511,7 +3453,6 @@ observer.observe(document.querySelector(".widgets"), {
       sunInfo.textContent = "読み込み中...";
 
       try {
-        // 稲沢市（緯度・経度）
         const lat = 35.25;
         const lon = 136.78;
 
@@ -3526,7 +3467,6 @@ observer.observe(document.querySelector(".widgets"), {
           return;
         }
 
-        // 今日の日付インデックス（0番目が今日）
         const sunrise = new Date(data.daily.sunrise[0]);
         const sunset = new Date(data.daily.sunset[0]);
 
@@ -3549,7 +3489,6 @@ observer.observe(document.querySelector(".widgets"), {
       }
     }
 
-    // ページ読み込み後に実行
     document.addEventListener("DOMContentLoaded", fetchSunriseSunset);
   </script>
 
@@ -3557,59 +3496,46 @@ observer.observe(document.querySelector(".widgets"), {
     async function fetchTrends() {
       const container = document.getElementById("trend-list");
       const STORAGE_KEY = "portalTrendCache";
-      const CACHE_DURATION = 30 * 60 * 1000; // 30分間キャッシュ
+      const CACHE_DURATION = 30 * 60 * 1000;
 
-      // --- 1. キャッシュチェック ---
-      // 毎回通信すると遅いので、前回のデータが新鮮ならそれを使う
       try {
         const cached = JSON.parse(localStorage.getItem(STORAGE_KEY));
         if (cached && (Date.now() - cached.timestamp < CACHE_DURATION)) {
           console.log("トレンド: キャッシュを使用します");
           renderTrends(cached.data);
-          return; // 通信せずに終了
+          return;
         }
-      } catch (e) {
-        // キャッシュ読み込みエラーは無視して通信へ
-      }
+      } catch (e) {}
 
       container.innerHTML = '<li class="loading">高速取得中...</li>';
 
-      // RSSのURL
       const rssUrl = "https://trends.google.co.jp/trending/rss?geo=JP";
 
-      // 使えるプロキシを全部用意（選手たち）
       const proxies = [
         `https://api.allorigins.win/get?url=${encodeURIComponent(rssUrl)}&t=${Date.now()}`,
-        `https://corsproxy.io/?${encodeURIComponent(rssUrl)}`,
         `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(rssUrl)}`
       ];
 
       try {
-        // --- 2. 競争開始 (Promise.any) ---
-        // 全員同時に走らせて、一番最初に成功した結果だけを受け取る
         const winnerResponse = await Promise.any(
           proxies.map(url =>
             fetch(url).then(async res => {
               if (!res.ok) throw new Error("HTTP error");
-              // プロキシによって返し方が違うので統一する
               const text = await res.text();
-              // alloriginsはJSONの中にcontentsがある
               try {
                 const json = JSON.parse(text);
                 if (json.contents) return json.contents;
               } catch (e) {}
-              return text; // そのままテキストならそれを返す
+              return text;
             })
           )
         );
 
-        // 成功したらキャッシュに保存
         localStorage.setItem(STORAGE_KEY, JSON.stringify({
           timestamp: Date.now(),
           data: winnerResponse
         }));
 
-        // 描画
         renderTrends(winnerResponse);
 
       } catch (err) {
@@ -3622,7 +3548,6 @@ observer.observe(document.querySelector(".widgets"), {
     function renderTrends(xmlText) {
       const container = document.getElementById("trend-list");
 
-      // 虹カラー設定
       const rainbow10 = [
         "rgba(255, 0, 0, 0.25)", "rgba(255, 128, 0, 0.25)",
         "rgba(255, 230, 0, 0.25)", "rgba(180, 255, 0, 0.25)",
@@ -3633,13 +3558,12 @@ observer.observe(document.querySelector(".widgets"), {
 
       try {
         const parser = new DOMParser();
-        const xml = parser.parseFromString(xmlText, "application/xml"); // または text/xml
+        const xml = parser.parseFromString(xmlText, "application/xml");
         const items = xml.querySelectorAll("item");
 
         container.innerHTML = "";
 
         if (!items || items.length === 0) {
-          // パース失敗時などのガード
           container.innerHTML = "<li>データ形式エラー</li>";
           return;
         }
@@ -3682,17 +3606,13 @@ observer.observe(document.querySelector(".widgets"), {
       }
     }
 
-    // 初回実行と定期更新
     fetchTrends();
-    // 30分おきに更新（キャッシュ時間と合わせる）
     setInterval(fetchTrends, 30 * 60 * 1000);
   </script>
 
   <script>
     function showFortune() {
       const resultEl = document.getElementById("fortune-result");
-
-      // ★ここを追加：結果の文字を常に真ん中に揃える
       resultEl.style.textAlign = "center";
 
       const fortunes = [
@@ -3706,17 +3626,13 @@ observer.observe(document.querySelector(".widgets"), {
       const result = fortunes[Math.floor(Math.random() * fortunes.length)];
       resultEl.textContent = result;
 
-      // ★演出分岐
       if (result.includes("大吉")) {
-        // 1. 文字を豪華にする
-        resultEl.style.color = "#FFD700"; // 金色
-        resultEl.style.textShadow = "0px 0px 10px rgba(255, 215, 0, 0.8)"; // 光らせる
-        // 拡大しても位置がズレないように設定
+        resultEl.style.color = "#FFD700";
+        resultEl.style.textShadow = "0px 0px 10px rgba(255, 215, 0, 0.8)";
         resultEl.style.transformOrigin = "center center";
-        resultEl.style.transform = "scale(1.15)"; // 少し大きく
+        resultEl.style.transform = "scale(1.15)";
         resultEl.style.transition = "0.3s";
 
-        // 2. 紙吹雪を発射！
         var duration = 3 * 1000;
         var animationEnd = Date.now() + duration;
         var defaults = {
@@ -3758,19 +3674,16 @@ observer.observe(document.querySelector(".widgets"), {
         }, 250);
 
       } else if (result.includes("凶")) {
-        // 凶のとき
         resultEl.style.color = "#555";
         resultEl.style.textShadow = "none";
         resultEl.style.transform = "scale(1.0)";
       } else {
-        // それ以外
-        resultEl.style.color = "var(--text-color)"; // 元の色に戻す
+        resultEl.style.color = "var(--text-color)";
         resultEl.style.textShadow = "none";
-        resultEl.style.transform = "scale(1.0)"; // 大きさを戻す
+        resultEl.style.transform = "scale(1.0)";
       }
     }
 
-    // カードの非表示・表示切り替え（既存機能維持）
     window.addEventListener("DOMContentLoaded", () => {
       const visibility = JSON.parse(localStorage.getItem("cardVisibility") || "{}");
       const card = document.getElementById("fortune-card");
@@ -3778,7 +3691,6 @@ observer.observe(document.querySelector(".widgets"), {
         card.style.display = visibility["fortune-card"] ? "block" : "none";
       }
 
-      // 初期状態でもおみくじのテキストを中央揃えにしておく
       const resultEl = document.getElementById("fortune-result");
       if (resultEl) resultEl.style.textAlign = "center";
     });
@@ -3788,12 +3700,10 @@ observer.observe(document.querySelector(".widgets"), {
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', function() {
         navigator.serviceWorker.register('./sw.js').then(function(reg) {
-          // 更新が見つかった時の処理
           reg.addEventListener('updatefound', () => {
             const newWorker = reg.installing;
             newWorker.addEventListener('statechange', () => {
               if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-                // 新しいバージョンがインストールされたら強制リロード
                 window.location.reload();
               }
             });
@@ -3803,28 +3713,24 @@ observer.observe(document.querySelector(".widgets"), {
     }
   </script>
 
-
   <script>
     (function() {
       const fsBtn = document.getElementById("fullscreen-btn");
 
       fsBtn.addEventListener("click", () => {
         if (!document.fullscreenElement) {
-          // 全画面にする（ページ全体を指定）
           document.documentElement.requestFullscreen().then(() => {
-            fsBtn.textContent = "×"; // 全画面中はアイコンを変える
+            fsBtn.textContent = "×";
           }).catch(err => {
             console.error(`全画面表示に失敗しました: ${err.message}`);
           });
         } else {
-          // 全画面を解除する
           document.exitFullscreen().then(() => {
             fsBtn.textContent = "🖥️";
           });
         }
       });
 
-      // Escキーなどで全画面が解除された時もアイコンを戻す設定
       document.addEventListener("fullscreenchange", () => {
         if (!document.fullscreenElement) {
           fsBtn.textContent = "🖥️";
@@ -3833,386 +3739,336 @@ observer.observe(document.querySelector(".widgets"), {
     })();
   </script>
 
-<script>
-  (function() {
-    const trigger = document.getElementById('circle-trigger-btn');
-    const ring = document.getElementById('circle-menu-ring');
-    const overlay = document.getElementById('circle-overlay');
-    const items = document.querySelectorAll('.ring-item');
+  <script>
+    (function() {
+      const trigger = document.getElementById('circle-trigger-btn');
+      const ring = document.getElementById('circle-menu-ring');
+      const overlay = document.getElementById('circle-overlay');
+      const items = document.querySelectorAll('.ring-item');
 
-    // ガイドライン要素の作成
-    let guideline = document.getElementById('drag-guideline');
-    if (!guideline) {
-      guideline = document.createElement('div');
-      guideline.id = 'drag-guideline';
-      document.body.appendChild(guideline);
-    }
+      let guideline = document.getElementById('drag-guideline');
+      if (!guideline) {
+        guideline = document.createElement('div');
+        guideline.id = 'drag-guideline';
+        document.body.appendChild(guideline);
+      }
 
-    let isDragging = false;
-    const baseGrid = "transparent 0deg 29.5deg, rgba(255, 255, 255, 0.2) 29.5deg 30deg, transparent 30deg 59.5deg, rgba(255, 255, 255, 0.2) 59.5deg 60deg, transparent 60deg 89.5deg, rgba(255, 255, 255, 0.2) 89.5deg 90deg, transparent 90deg 119.5deg, rgba(255, 255, 255, 0.2) 119.5deg 120deg, transparent 120deg 149.5deg, rgba(255, 255, 255, 0.2) 149.5deg 150deg, transparent 150deg 179.5deg, rgba(255, 255, 255, 0.2) 179.5deg 180deg, transparent 180deg 209.5deg, rgba(255, 255, 255, 0.2) 209.5deg 210deg, transparent 210deg 239.5deg, rgba(255, 255, 255, 0.2) 239.5deg 240deg, transparent 240deg 269.5deg, rgba(255, 255, 255, 0.2) 269.5deg 270deg, transparent 270deg 299.5deg, rgba(255, 255, 255, 0.2) 299.5deg 300deg, transparent 300deg 329.5deg, rgba(255, 255, 255, 0.2) 329.5deg 330deg, transparent 330deg 359.5deg, rgba(255, 255, 255, 0.2) 359.5deg 360deg";
+      let isDragging = false;
+      const baseGrid = "transparent 0deg 29.5deg, rgba(255, 255, 255, 0.2) 29.5deg 30deg, transparent 30deg 59.5deg, rgba(255, 255, 255, 0.2) 59.5deg 60deg, transparent 60deg 89.5deg, rgba(255, 255, 255, 0.2) 89.5deg 90deg, transparent 90deg 119.5deg, rgba(255, 255, 255, 0.2) 119.5deg 120deg, transparent 120deg 149.5deg, rgba(255, 255, 255, 0.2) 149.5deg 150deg, transparent 150deg 179.5deg, rgba(255, 255, 255, 0.2) 179.5deg 180deg, transparent 180deg 209.5deg, rgba(255, 255, 255, 0.2) 209.5deg 210deg, transparent 210deg 239.5deg, rgba(255, 255, 255, 0.2) 239.5deg 240deg, transparent 240deg 269.5deg, rgba(255, 255, 255, 0.2) 269.5deg 270deg, transparent 270deg 299.5deg, rgba(255, 255, 255, 0.2) 299.5deg 300deg, transparent 300deg 329.5deg, rgba(255, 255, 255, 0.2) 329.5deg 330deg, transparent 330deg 359.5deg, rgba(255, 255, 255, 0.2) 359.5deg 360deg";
 
-    let currentSelected = null;
+      let currentSelected = null;
 
-    function updateSelection(ringRotation) {
-      let targetAngle = (-ringRotation % 360 + 360) % 360;
-      let closest = null;
-      let minDiff = Infinity;
-      let selectedIdx = -1;
+      function updateSelection(ringRotation) {
+        let targetAngle = (-ringRotation % 360 + 360) % 360;
+        let closest = null;
+        let minDiff = Infinity;
+        let selectedIdx = -1;
 
-      items.forEach((item, idx) => {
-        const itemAngle = (parseInt(item.style.transform.replace('rotate(', '').replace('deg)', '')) + 360) % 360;
-        let diff = Math.abs(targetAngle - itemAngle);
-        if (diff > 180) diff = 360 - diff;
-        if (diff < 15) {
-          if (diff < minDiff) {
-            minDiff = diff; closest = item; selectedIdx = idx;
+        items.forEach((item, idx) => {
+          const itemAngle = (parseInt(item.style.transform.replace('rotate(', '').replace('deg)', '')) + 360) % 360;
+          let diff = Math.abs(targetAngle - itemAngle);
+          if (diff > 180) diff = 360 - diff;
+          if (diff < 15) {
+            if (diff < minDiff) {
+              minDiff = diff; closest = item; selectedIdx = idx;
+            }
+          }
+          item.classList.remove('selected');
+          item.style.color = ''; 
+        });
+
+        if (closest) {
+          closest.classList.add('selected');
+          closest.style.color = '#00e5ff';
+          const startDeg = (selectedIdx * 30 - 15);
+          ring.style.backgroundImage = `conic-gradient(from ${startDeg}deg, rgba(0, 229, 255, 0.35) 0deg 30deg, transparent 30deg 360deg), conic-gradient(from -15deg, ${baseGrid})`;
+          if (currentSelected !== closest) {
+            currentSelected = closest;
+            if (window.navigator.vibrate) window.navigator.vibrate(10);
+          }
+        } else {
+          ring.style.backgroundImage = `conic-gradient(from -15deg, ${baseGrid})`;
+          currentSelected = null;
+        }
+      }
+
+      function resetAll() {
+        isDragging = false;
+        ring.style.transition = 'transform 0.3s ease-in, opacity 0.2s';
+        ring.style.transform = `translateX(-50%) scale(0) rotate(0deg)`;
+        ring.classList.remove('active');
+        overlay.style.display = 'none';
+        
+        guideline.classList.remove('active');
+        guideline.classList.remove('highlight');
+
+        setTimeout(() => {
+          items.forEach(i => { i.classList.remove('selected'); i.style.color = ''; });
+          currentSelected = null;
+          ring.style.backgroundImage = `conic-gradient(from -15deg, ${baseGrid})`;
+        }, 300);
+      }
+
+      // 他のスクリプトからも呼べるようにグローバルにも公開しておく
+      window.resetAll = resetAll;
+
+      trigger.addEventListener('touchstart', (e) => {
+        if (e.cancelable) e.preventDefault();
+        isDragging = true;
+        
+        ring.style.transition = 'transform 0.4s cubic-bezier(0.15, 1.15, 0.6, 1.0), opacity 0.2s';
+        ring.style.transform = `translateX(-50%) scale(1) rotate(0deg)`;
+        ring.style.backgroundImage = `conic-gradient(from -15deg, ${baseGrid})`;
+        
+        ring.classList.add('active');
+        overlay.style.display = 'block';
+
+        if (window.innerWidth <= 480) {
+          guideline.classList.add('active');
+        }
+        
+        if (window.navigator.vibrate) window.navigator.vibrate(15);
+      }, { passive: false });
+
+      document.addEventListener('touchmove', (e) => {
+        if (!isDragging) return;
+
+        ring.style.transition = 'none';
+        const touch = e.touches[0];
+        const rect = trigger.getBoundingClientRect();
+        const centerX = rect.left + rect.width / 2;
+        const centerY = rect.top + rect.height / 2;
+        const halfHeight = window.innerHeight / 2;
+
+        if (window.innerWidth <= 480) {
+          if (touch.clientY < halfHeight) {
+            guideline.classList.add('highlight');
+          } else {
+            guideline.classList.remove('highlight');
           }
         }
-        item.classList.remove('selected');
-        item.style.color = ''; 
+
+        const angle = Math.atan2(touch.clientY - centerY, touch.clientX - centerX);
+        const degree = angle * (180 / Math.PI) + 90;
+        ring.style.transform = `translateX(-50%) scale(1) rotate(${degree}deg)`;
+        
+        updateSelection(degree);
+        if (e.cancelable) e.preventDefault();
+      }, { passive: false });
+
+      document.addEventListener('touchend', (e) => {
+        if (!isDragging) return;
+        const touchY = e.changedTouches[0].clientY;
+        const halfHeight = window.innerHeight / 2;
+
+        if (window.innerWidth <= 480 && touchY < halfHeight) {
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+          if (window.navigator.vibrate) window.navigator.vibrate([20, 50, 20]);
+        } else if (currentSelected) {
+          const targetId = currentSelected.getAttribute('data-target');
+          const targetEl = document.getElementById(targetId);
+          if (targetEl) {
+            const offset = 80;
+            window.scrollTo({ top: targetEl.getBoundingClientRect().top + window.pageYOffset - offset, behavior: 'smooth' });
+          }
+        }
+        resetAll();
       });
 
-      if (closest) {
-        closest.classList.add('selected');
-        closest.style.color = '#00e5ff';
-        const startDeg = (selectedIdx * 30 - 15);
-        ring.style.backgroundImage = `conic-gradient(from ${startDeg}deg, rgba(0, 229, 255, 0.35) 0deg 30deg, transparent 30deg 360deg), conic-gradient(from -15deg, ${baseGrid})`;
-        if (currentSelected !== closest) {
-          currentSelected = closest;
-          if (window.navigator.vibrate) window.navigator.vibrate(10);
+      document.addEventListener('touchcancel', resetAll);
+      trigger.addEventListener('contextmenu', (e) => e.preventDefault());
+    })();
+  </script>
+
+  <script>
+    (function() {
+      const refreshRange = document.getElementById('refresh-range');
+      const refreshValue = document.getElementById('refresh-value');
+      let refreshTimer = null;
+
+      const refreshIntervals = [
+        { label: "オフ", sec: 0 },
+        { label: "10秒", sec: 10 },
+        { label: "20秒", sec: 20 },
+        { label: "30秒", sec: 30 },
+        { label: "40秒", sec: 40 },
+        { label: "50秒", sec: 50 },
+        { label: "1分",  sec: 60 },
+        { label: "2分",  sec: 120 },
+        { label: "3分",  sec: 180 },
+        { label: "5分",  sec: 300 }
+      ];
+
+      function setAutoRefresh(index) {
+        if (index === null || index === undefined || isNaN(index) || index < 0 || index >= refreshIntervals.length) {
+          index = 0;
         }
-      } else {
-        ring.style.backgroundImage = `conic-gradient(from -15deg, ${baseGrid})`;
-        currentSelected = null;
+        
+        const config = refreshIntervals[index];
+        if (refreshTimer) clearInterval(refreshTimer);
+        if (!config) return;
+
+        if (refreshValue) refreshValue.textContent = config.label;
+
+        if (config.sec && config.sec > 0) {
+          refreshTimer = setInterval(() => {
+            window.location.reload();
+          }, config.sec * 1000);
+        }
+        
+        localStorage.setItem('autoRefreshIdx', index);
       }
-    }
 
-    function resetAll() {
-      isDragging = false;
-      ring.style.transition = 'transform 0.3s ease-in, opacity 0.2s';
-      ring.style.transform = `translateX(-50%) scale(0) rotate(0deg)`;
-      ring.classList.remove('active');
-      overlay.style.display = 'none';
-      
-      // クラスを剥がす（これでCSSのdisplay: noneが効くようになる）
-      guideline.classList.remove('active');
-      guideline.classList.remove('highlight');
+      // Firebaseの復元処理からも呼べるようにグローバルへ登録
+      window.setAutoRefresh = setAutoRefresh;
 
-      setTimeout(() => {
-        items.forEach(i => { i.classList.remove('selected'); i.style.color = ''; });
-        currentSelected = null;
-        ring.style.backgroundImage = `conic-gradient(from -15deg, ${baseGrid})`;
-      }, 300);
-    }
-
-    trigger.addEventListener('touchstart', (e) => {
-      if (e.cancelable) e.preventDefault();
-      isDragging = true;
-      
-      ring.style.transition = 'transform 0.4s cubic-bezier(0.15, 1.15, 0.6, 1.0), opacity 0.2s';
-      ring.style.transform = `translateX(-50%) scale(1) rotate(0deg)`;
-      ring.style.backgroundImage = `conic-gradient(from -15deg, ${baseGrid})`;
-      
-      ring.classList.add('active');
-      overlay.style.display = 'block';
-
-      // 【修正】スマホサイズでのみクラスを付与（CSS側でdisplayを切り替える）
-      if (window.innerWidth <= 480) {
-        guideline.classList.add('active');
+      if (refreshRange) {
+        refreshRange.addEventListener('input', (e) => {
+          setAutoRefresh(parseInt(e.target.value));
+        });
       }
-      
-      if (window.navigator.vibrate) window.navigator.vibrate(15);
-    }, { passive: false });
-
-    document.addEventListener('touchmove', (e) => {
-      if (!isDragging) return;
-
-      ring.style.transition = 'none';
-      const touch = e.touches[0];
-      const rect = trigger.getBoundingClientRect();
-      const centerX = rect.left + rect.width / 2;
-      const centerY = rect.top + rect.height / 2;
-      const halfHeight = window.innerHeight / 2;
-
-      // スマホサイズでのみハイライト判定
-      if (window.innerWidth <= 480) {
-        if (touch.clientY < halfHeight) {
-          guideline.classList.add('highlight');
+        
+      document.addEventListener('DOMContentLoaded', () => {
+        const savedIdx = localStorage.getItem('autoRefreshIdx');
+        if (savedIdx !== null) {
+          const idx = parseInt(savedIdx);
+          if (refreshRange) refreshRange.value = idx;
+          setAutoRefresh(idx);
         } else {
-          guideline.classList.remove('highlight');
+          setAutoRefresh(0);
         }
-      }
+      });
+    })();
+  </script>
 
-      const angle = Math.atan2(touch.clientY - centerY, touch.clientX - centerX);
-      const degree = angle * (180 / Math.PI) + 90;
-      ring.style.transform = `translateX(-50%) scale(1) rotate(${degree}deg)`;
-      
-      updateSelection(degree);
-      if (e.cancelable) e.preventDefault();
-    }, { passive: false });
+  <script>
+    // ★修正：重複していた3つの設定モーダル制御スクリプトを1つに統合し、即時関数で保護
+    (function() {
+      const simpleBtn = document.getElementById('simple-mode-btn'); // 🔧ボタン
+      const settingsModal = document.getElementById('settings-modal');
+      const closeSettings = document.getElementById('close-settings');
 
-    document.addEventListener('touchend', (e) => {
-      if (!isDragging) return;
-      const touchY = e.changedTouches[0].clientY;
-      const halfHeight = window.innerHeight / 2;
+      if (!simpleBtn || !settingsModal || !closeSettings) return;
 
-      if (window.innerWidth <= 480 && touchY < halfHeight) {
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-        if (window.navigator.vibrate) window.navigator.vibrate([20, 50, 20]);
-      } else if (currentSelected) {
-        const targetId = currentSelected.getAttribute('data-target');
-        const targetEl = document.getElementById(targetId);
-        if (targetEl) {
-          const offset = 80;
-          window.scrollTo({ top: targetEl.getBoundingClientRect().top + window.pageYOffset - offset, behavior: 'smooth' });
+      // ポップアップを開く
+      simpleBtn.addEventListener('click', () => {
+        // 編集モード中なら強制的に保存/終了させてから開く
+        if (typeof editMode !== 'undefined' && editMode) {
+          if (typeof editBtn !== 'undefined') editBtn.click();
         }
+
+        settingsModal.style.display = 'flex';
+        
+        // 1. サークル関連および編集ボタンを特定
+        const menuRing = document.getElementById('circle-menu-ring');
+        const navBar = document.getElementById('mobile-nav-bar');
+        const cOverlay = document.getElementById('circle-overlay');
+        const editBtnEl = document.getElementById('edit-btn');
+
+        // 2. すべてに非表示設定を適用（!importantで強制）
+        [menuRing, navBar, cOverlay, editBtnEl].forEach(el => {
+          if (el) {
+            el.classList.add('ring-hidden');
+            el.style.setProperty('display', 'none', 'important');
+          }
+        });
+
+        // 3. サークルスクリプトのリセット
+        if (typeof window.resetAll === 'function') {
+          window.resetAll();
+        }
+      });
+
+      // ポップアップを閉じる
+      const hideSettingsModal = () => {
+        settingsModal.style.display = 'none';
+        
+        // 4. 非表示にした要素をすべて元に戻す
+        const selectors = ['#circle-menu-ring', '#mobile-nav-bar', '#circle-overlay', '#edit-btn'];
+        selectors.forEach(selector => {
+          const el = document.querySelector(selector);
+          if (el) {
+            el.classList.remove('ring-hidden');
+            el.style.removeProperty('display');
+          }
+        });
+      };
+
+      closeSettings.addEventListener('click', hideSettingsModal);
+      window.addEventListener('click', (e) => {
+        if (e.target === settingsModal) hideSettingsModal();
+      });
+    })();
+  </script>
+
+  <script>
+    // 初期設定に戻す（ファクトリーリセット）機能
+    (function() {
+      const resetBtn = document.getElementById('factory-reset-btn');
+
+      if (resetBtn) {
+        resetBtn.addEventListener('click', async () => {
+          const isConfirmed = confirm("【本当に初期化しますか？】\n\n・保存したメモ\n・時間割\n・ヘッダーの色\n・並び替え設定\n\nこれら全てが削除され、最初の状態に戻ります。");
+          
+          if (!isConfirmed) return;
+
+          resetBtn.textContent = "初期化中...";
+          resetBtn.disabled = true;
+
+          try {
+            localStorage.clear();
+            
+            if ('serviceWorker' in navigator) {
+              const registrations = await navigator.serviceWorker.getRegistrations();
+              for (const registration of registrations) {
+                await registration.unregister();
+              }
+            }
+
+            if ('caches' in window) {
+              const keys = await caches.keys();
+              await Promise.all(keys.map(key => caches.delete(key)));
+            }
+
+            alert("データを削除しました。ページを再読み込みします。");
+            window.location.reload(true);
+
+          } catch (e) {
+            console.error("Reset failed:", e);
+            alert("一部のデータ削除に失敗しましたが、リロードします。");
+            window.location.reload(true);
+          }
+        });
       }
-      resetAll();
+    })();
+  </script>
+
+  <script>
+    const fontSizeRange = document.getElementById('font-size-range');
+    const fontSizeValue = document.getElementById('font-size-value');
+
+    function applyFontSize(percent) {
+      const root = document.documentElement;
+      const pxValue = (percent / 100) * 16;
+      root.style.setProperty('--base-font-size', pxValue + 'px');
+      if (fontSizeValue) fontSizeValue.textContent = percent + '%';
+      localStorage.setItem('userFontSizePercent', percent);
+    }
+
+    if (fontSizeRange) {
+      fontSizeRange.addEventListener('input', (e) => {
+        applyFontSize(e.target.value);
+      });
+    }
+
+    window.addEventListener('load', () => {
+      const savedSize = localStorage.getItem('userFontSizePercent');
+      if (savedSize) {
+        if (fontSizeRange) fontSizeRange.value = savedSize;
+        applyFontSize(savedSize);
+      }
     });
-
-    document.addEventListener('touchcancel', resetAll);
-    trigger.addEventListener('contextmenu', (e) => e.preventDefault());
-  })();
-</script>
-
-
-<script>
-  //モーダル用
-  const simpleBtn = document.getElementById('simple-mode-btn');
-const settingsModal = document.getElementById('settings-modal');
-const closeSettings = document.getElementById('close-settings');
-
-simpleBtn.addEventListener('click', () => {
-  settingsModal.style.display = 'flex';
-});
-
-closeSettings.addEventListener('click', () => {
-  settingsModal.style.display = 'none';
-});
-
-window.addEventListener('click', (e) => {
-  if (e.target === settingsModal) settingsModal.style.display = 'none';
-});
-</script>
-
-<script>
-// 設定ポップアップの制御
-const simpleBtn = document.getElementById('simple-mode-btn'); 
-const settingsModal = document.getElementById('settings-modal');
-const closeSettings = document.getElementById('close-settings');
-const ring = document.getElementById('ring'); // サークル要素を取得
-
-// ポップアップを開く
-simpleBtn.addEventListener('click', () => {
-  settingsModal.style.display = 'flex';
-});
-
-// ポップアップを閉じる（×ボタン）
-closeSettings.addEventListener('click', () => {
-  settingsModal.style.display = 'none';
-});
-
-// ポップアップを閉じる（背景をクリックした時）
-window.addEventListener('click', (e) => {
-  if (e.target === settingsModal) {
-    settingsModal.style.display = 'none';
-  }
-});
-</Script>
-
-<script>
-  (function() {
-  const refreshRange = document.getElementById('refresh-range');
-  const refreshValue = document.getElementById('refresh-value');
-  let refreshTimer = null;
-
-  const refreshIntervals = [
-    { label: "オフ", sec: 0 },
-    { label: "10秒", sec: 10 },
-    { label: "20秒", sec: 20 },
-    { label: "30秒", sec: 30 },
-    { label: "40秒", sec: 40 },
-    { label: "50秒", sec: 50 },
-    { label: "1分",  sec: 60 },
-    { label: "2分",  sec: 120 },
-    { label: "3分",  sec: 180 },
-    { label: "5分",  sec: 300 }
-  ];
-
-  function setAutoRefresh(index) {
-    if (index === null || index === undefined || isNaN(index) || index < 0 || index >= refreshIntervals.length) {
-      index = 0;
-    }
-    
-    const config = refreshIntervals[index];
-    if (refreshTimer) clearInterval(refreshTimer);
-    if (!config) return;
-
-    if (refreshValue) refreshValue.textContent = config.label;
-
-    if (config.sec && config.sec > 0) {
-      refreshTimer = setInterval(() => {
-        // 認証セッションの切断を防ぐため、リロード
-        window.location.reload();
-      }, config.sec * 1000);
-    }
-    
-    localStorage.setItem('autoRefreshIdx', index);
-  }
-
-  if (refreshRange) {
-    refreshRange.addEventListener('input', (e) => {
-      setAutoRefresh(parseInt(e.target.value));
-    });
-  }
-    
-  document.addEventListener('DOMContentLoaded', () => {
-    const savedIdx = localStorage.getItem('autoRefreshIdx');
-    if (savedIdx !== null) {
-      const idx = parseInt(savedIdx);
-      if (refreshRange) refreshRange.value = idx;
-      setAutoRefresh(idx);
-    } else {
-      setAutoRefresh(0); // 初期値
-    }
-  });
-})();
-</script>
-
-<script>
-// 設定ポップアップの制御
-const simpleBtn = document.getElementById('simple-mode-btn'); // 🔧ボタン
-const settingsModal = document.getElementById('settings-modal');
-const closeSettings = document.getElementById('close-settings');
-
-// ポップアップを開く
-simpleBtn.addEventListener('click', () => {
-  // --- 追記：編集モード中なら強制的に保存/終了させてから開く ---
-  if (typeof editMode !== 'undefined' && editMode) {
-    if (typeof editBtn !== 'undefined') editBtn.click();
-  }
-
-  settingsModal.style.display = 'flex';
-  
-  // 1. サークル関連および編集ボタンを特定
-  const menuRing = document.getElementById('circle-menu-ring');
-  const navBar = document.getElementById('mobile-nav-bar');
-  const cOverlay = document.getElementById('circle-overlay');
-  const editBtnEl = document.getElementById('edit-btn'); // 編集ボタン
-
-  // 2. すべてに非表示設定を適用（!importantで強制）
-  [menuRing, navBar, cOverlay, editBtnEl].forEach(el => {
-    if (el) {
-      el.classList.add('ring-hidden');
-      el.style.setProperty('display', 'none', 'important');
-    }
-  });
-
-  // 3. サークルスクリプトのリセット
-  if (typeof resetAll === 'function') {
-    resetAll();
-  }
-});
-
-// ポップアップを閉じる
-const hideSettingsModal = () => {
-  settingsModal.style.display = 'none';
-  
-  // 4. 非表示にした要素をすべて元に戻す
-  const selectors = ['#circle-menu-ring', '#mobile-nav-bar', '#circle-overlay', '#edit-btn'];
-  selectors.forEach(selector => {
-    const el = document.querySelector(selector);
-    if (el) {
-      el.classList.remove('ring-hidden');
-      // removePropertyを使うことで、setPropertyで付けた !important を完全に消去します
-      el.style.removeProperty('display');
-    }
-  });
-};
-
-closeSettings.addEventListener('click', hideSettingsModal);
-window.addEventListener('click', (e) => {
-  if (e.target === settingsModal) hideSettingsModal();
-});
-</script>
-
-<script>
-// 初期設定に戻す（ファクトリーリセット）機能
-const resetBtn = document.getElementById('factory-reset-btn');
-
-if (resetBtn) {
-  resetBtn.addEventListener('click', async () => {
-    // 1. 誤操作防止の確認
-    const isConfirmed = confirm("【本当に初期化しますか？】\n\n・保存したメモ\n・時間割\n・ヘッダーの色\n・並び替え設定\n\nこれら全てが削除され、最初の状態に戻ります。");
-    
-    if (!isConfirmed) return;
-
-    // ボタンの状態を変更
-    resetBtn.textContent = "初期化中...";
-    resetBtn.disabled = true;
-
-    try {
-      // 2. localStorage（メモや設定）を全消去
-      localStorage.clear();
-      
-      // 3. Service Worker（PWA）の解除
-      if ('serviceWorker' in navigator) {
-        const registrations = await navigator.serviceWorker.getRegistrations();
-        for (const registration of registrations) {
-          await registration.unregister();
-        }
-      }
-
-      // 4. Cache Storage（キャッシュ）を全消去
-      if ('caches' in window) {
-        const keys = await caches.keys();
-        await Promise.all(keys.map(key => caches.delete(key)));
-      }
-
-      alert("データを削除しました。ページを再読み込みします。");
-      
-      // 5. 強制リロード
-      window.location.reload(true);
-
-    } catch (e) {
-      console.error("Reset failed:", e);
-      alert("一部のデータ削除に失敗しましたが、リロードします。");
-      window.location.reload(true);
-    }
-  });
-}
-</script>
-
-<script>
-  const fontSizeRange = document.getElementById('font-size-range');
-const fontSizeValue = document.getElementById('font-size-value');
-
-// サイズを適用する関数
-function applyFontSize(percent) {
-  const root = document.documentElement;
-  // 100% = 16px として計算
-  const pxValue = (percent / 100) * 16;
-  root.style.setProperty('--base-font-size', pxValue + 'px');
-  fontSizeValue.textContent = percent + '%';
-  
-  // 設定を保存
-  localStorage.setItem('userFontSizePercent', percent);
-}
-
-// スライダーを動かした時
-fontSizeRange.addEventListener('input', (e) => {
-  applyFontSize(e.target.value);
-});
-
-// ページ読み込み時に保存した設定を復元
-window.addEventListener('load', () => {
-  const savedSize = localStorage.getItem('userFontSizePercent');
-  if (savedSize) {
-    fontSizeRange.value = savedSize;
-    applyFontSize(savedSize);
-  }
-});
-</script>
+  </script>
 </body>
 
 </html>
