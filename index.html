@@ -35,6 +35,7 @@
       --link-color: #2196f3;
       --main-color: #00aaff;
       --grid-cols: 4;
+      --base-font-size: 15px;
     }
 
     [data-theme="dark"] {
@@ -95,33 +96,35 @@
     }
 
     .main-container {
-      margin: 2rem auto 0;
+      margin: 1.5rem auto 0;
       padding: 0 1.5rem;
     }
 
     /* =====================================================
        ★ Androidホームランチャー風 2次元グリッドシステム
+          1マス116px基準・カード高さをマス目に100%フィット
     ===================================================== */
     .widgets {
       display: grid;
       grid-template-columns: repeat(var(--grid-cols, 4), minmax(0, 1fr));
-      grid-auto-rows: 80px; /* 1マスの縦基準サイズ */
+      grid-auto-rows: 116px; /* 1マスの縦基準サイズ */
       gap: 16px;
       width: 100%;
       margin: 0 auto;
       position: relative;
       min-height: 80vh;
       box-sizing: border-box;
-      transition: padding 0.2s ease;
+      /* 編集モード切り替えで幅が縮まないようpaddingは常に0で固定 */
+      padding: 0;
     }
 
-    /* 編集モード時のグリッドパレット表示（PC/タブレット） */
+    /* 編集モード時のグリッドパレット表示（幅が一切変わらないoutline方式） */
     @media screen and (min-width: 601px) {
       .widgets.edit-grid-active {
-        padding: 16px;
-        border-radius: 16px;
+        border-radius: 14px;
         background-color: rgba(33, 150, 243, 0.03);
-        border: 2px dashed rgba(33, 150, 243, 0.35);
+        outline: 2px dashed rgba(33, 150, 243, 0.4);
+        outline-offset: 8px;
       }
 
       /* ドロップ先のハイライトガイド枠 */
@@ -136,114 +139,118 @@
 
       /* 背景の空きマス目ガイド（編集モード時のみ表示） */
       .grid-cell-guide {
-        border: 1px dashed rgba(150, 150, 150, 0.22);
-        border-radius: 10px;
+        border: 1px dashed rgba(150, 150, 150, 0.25);
+        border-radius: 12px;
         pointer-events: none;
         z-index: 0;
       }
       [data-theme="dark"] .grid-cell-guide {
-        border-color: rgba(255, 255, 255, 0.12);
+        border-color: rgba(255, 255, 255, 0.14);
       }
     }
 
     .widgets .card {
       width: 100%;
-      height: fit-content;
+      height: 100%; /* 割り当てられたグリッドのマス目高さにピタッと合わせる */
       margin: 0;
       background: var(--card-bg);
       border-radius: 12px;
-      padding: 20px;
+      padding: 14px 16px;
       box-shadow: 0 2px 6px var(--card-shadow);
       box-sizing: border-box;
-      transition: transform 0.25s ease, box-shadow 0.25s ease;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
       z-index: 2;
       position: relative;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      overflow: hidden;
+    }
+
+    /* 高さを自動計測する一瞬だけ自然高さにするクラス */
+    .widgets .card.measuring-card {
+      height: max-content !important;
+      justify-content: flex-start !important;
+    }
+
+    .widgets .card h2 {
+      margin: 0 0 8px 0;
+      font-size: calc(var(--base-font-size) * 1.1);
+      line-height: 1.25;
+      flex-shrink: 0;
     }
 
     .widgets.edit-grid-active .card {
       user-select: none;
-      outline: 2px solid rgba(76, 175, 80, 0.45);
+      outline: 2px solid rgba(76, 175, 80, 0.55);
     }
 
     .widgets.edit-grid-active .card:hover {
       outline: 2px solid #4caf50;
-      transform: scale(1.01);
     }
 
     /* スマホサイズ（600px以下）では今まで通り縦1列に整列 */
     @media screen and (max-width: 600px) {
       .main-container {
         padding: 0 1rem;
-        margin-top: 1.5rem;
+        margin-top: 1.2rem;
       }
       .widgets {
         display: flex;
         flex-direction: column;
-        gap: 1.2rem;
+        gap: 1rem;
         min-height: auto;
       }
       .widgets .card {
+        height: auto !important;
         grid-column: auto !important;
         grid-row: auto !important;
       }
     }
 
+    /* =====================================================
+       ★ 各カード内の要素サイズ最適化（マス目に収まりやすく調整）
+    ===================================================== */
     .weather {
       display: flex;
-      gap: 0.5rem;
+      gap: 0.6rem;
       align-items: center;
+    }
+
+    .weather .meta {
+      margin: 0;
+      padding: 0;
+      font-size: 0.88rem;
+      line-height: 1.3;
     }
 
     .weather .meta p {
-      margin: 0.1rem 0;
-    }
-
-    .weekly-weather table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 0.6rem;
-      font-size: 14px;
-    }
-
-    .weekly-weather th,
-    .weekly-weather td {
-      padding: 3px;
-      text-align: center;
-    }
-
-    .weekly-weather th {
-      border-bottom: 1px solid #ddd;
-      background: var(--bg-color);
-      font-weight: bold;
-    }
-
-    .weekly-weather td {
-      border-bottom: 1px solid #ddd;
-      background: var(--card-bg);
+      margin: 2px 0;
     }
 
     .weather .icon {
-      font-size: 3rem;
-      width: 72px;
-      height: 72px;
+      font-size: 2.2rem;
+      width: 54px;
+      height: 54px;
+      flex-shrink: 0;
       display: flex;
       align-items: center;
       justify-content: center;
-      border-radius: 12px;
+      border-radius: 10px;
       background: var(--bg-color);
     }
 
     .forecast {
-      margin-top: 1rem;
+      margin-top: 0.5rem;
       border-collapse: collapse;
       width: 100%;
-      font-size: 14px;
+      font-size: 12.5px;
     }
 
     .forecast th,
     .forecast td {
-      border-bottom: 1px solid #ddd;
-      padding: 4px 8px;
+      border-bottom: 1px solid rgba(150, 150, 150, 0.25);
+      padding: 3px 4px;
       text-align: center;
     }
 
@@ -251,13 +258,43 @@
       background: var(--bg-color);
     }
 
+    #weather h3 {
+      margin: 8px 0 4px;
+      font-size: 0.95rem;
+    }
+
+    .weekly-weather table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 0.2rem;
+      font-size: 12.5px;
+    }
+
+    .weekly-weather th,
+    .weekly-weather td {
+      padding: 2.5px 4px;
+      text-align: center;
+    }
+
+    .weekly-weather th {
+      border-bottom: 1px solid rgba(150, 150, 150, 0.25);
+      background: var(--bg-color);
+      font-weight: bold;
+    }
+
+    .weekly-weather td {
+      border-bottom: 1px solid rgba(150, 150, 150, 0.2);
+      background: var(--card-bg);
+    }
+
     .loading {
       color: #777;
-      font-size: 0.95rem;
+      font-size: 0.9rem;
     }
 
     .error {
       color: #d9534f;
+      font-size: 0.9rem;
     }
 
     #result {
@@ -267,18 +304,19 @@
     }
 
     #result li {
-      margin-bottom: 0.8rem;
+      margin-bottom: 0.5rem;
     }
 
     .eq {
       background: var(--bg-color);
-      padding: 1rem;
+      padding: 0.55rem 0.75rem;
       border-radius: 8px;
-      border-left: 6px solid #21cbf3;
+      border-left: 5px solid #21cbf3;
     }
 
     .eq .meta {
-      font-size: 0.95rem;
+      font-size: 0.85rem;
+      line-height: 1.35;
       color: var(--text-color);
     }
 
@@ -288,10 +326,11 @@
       font-weight: bold;
       text-align: center;
       color: var(--text-color);
-      padding: 0.6rem 0.8rem;
+      padding: 0.35rem 0.65rem;
+      font-size: 0.8rem;
       border-radius: 6px;
       cursor: pointer;
-      margin-top: 0.6rem;
+      margin-top: 0.35rem;
       transition: 0.2s;
     }
 
@@ -299,48 +338,34 @@
       background: rgba(255, 170, 100, 1);
     }
 
-    .eq-btn {
-      display: inline-block;
-      background: rgba(255, 152, 0, 0.80);
-      font-weight: bold;
-      text-align: center;
-      color: var(--text-color);
-      padding: 0.6rem 0.8rem;
-      border-radius: 6px;
-      cursor: pointer;
-      margin-top: 0.6rem;
-      border: none;
-    }
-
-    .eq-btn:hover {
-      background: #e68900;
-    }
-
     .ac-child {
       display: none;
-      padding: 0.8rem;
+      padding: 0.5rem;
       border-radius: 6px;
-      margin-top: 0.5rem;
-      font-size: 0.95rem;
+      margin-top: 0.35rem;
+      font-size: 0.82rem;
       background: var(--card-bg);
       position: relative;
+      max-height: 150px;
+      overflow-y: auto;
+      border: 1px solid rgba(150, 150, 150, 0.2);
     }
 
     .point-row {
-      padding: 4px 0;
+      padding: 3px 0;
       border-bottom: 1px solid rgba(0, 0, 0, 0.04);
     }
 
     .scale-badge {
       display: inline-block;
-      min-width: 36px;
+      min-width: 32px;
       text-align: center;
-      padding: 2px 6px;
+      padding: 1px 5px;
       border-radius: 4px;
       font-weight: bold;
-      margin-left: 8px;
+      margin-left: 6px;
       color: white;
-      font-size: 0.85rem;
+      font-size: 0.78rem;
     }
 
     .scale-1 { background: #5dade2; }
@@ -354,31 +379,31 @@
     .currency-converter {
       display: flex;
       flex-wrap: wrap;
-      gap: 0.6rem;
-      margin-top: 1rem;
+      gap: 0.4rem;
+      margin-top: 0.4rem;
       align-items: center;
     }
 
     .currency-input,
     #from,
     #to {
-      padding: 0.6rem;
+      padding: 0.4rem;
       border: 1px solid #ccc;
-      border-radius: 8px;
-      font-size: 1rem;
+      border-radius: 6px;
+      font-size: 0.9rem;
       flex: 1;
-      min-width: 80px;
+      min-width: 60px;
     }
 
     #convert {
-      padding: 0.6rem 1.2rem;
+      padding: 0.45rem 0.9rem;
       background: rgba(143, 207, 120, 0.5);
       color: var(--text-color);
       border: none;
-      border-radius: 8px;
+      border-radius: 6px;
       cursor: pointer;
-      transition: 0s;
       font-weight: bold;
+      font-size: 0.9rem;
     }
 
     #convert:hover {
@@ -387,10 +412,11 @@
     }
 
     .currency-result {
-      margin-top: 1rem;
-      font-size: 1.2rem;
+      margin-top: 0.3rem;
+      font-size: 1.05rem;
       font-weight: bold;
       color: var(--text-color);
+      min-height: 1.3em;
     }
 
     button#edit-btn {
@@ -418,30 +444,21 @@
       background: rgba(255, 255, 255, 0.1);
     }
 
-    .calendar-card {
-      border-radius: 16px;
-    }
-
-    .calendar-card h2 {
-      text-align: left;
-      margin: 0 0 1rem 0;
-      padding: 0 12px;
-    }
-
     .calendar {
       width: 100%;
       border-collapse: separate;
       border-spacing: 0;
-      border: 2px solid #000;
-      border-radius: 12px;
+      border: 1.5px solid #000;
+      border-radius: 10px;
       overflow: hidden;
       table-layout: fixed;
+      font-size: 0.85rem;
     }
 
     .calendar th,
     .calendar td {
-      border: 1px solid rgba(0, 0, 0, 0.2);
-      padding: 0.6rem;
+      border: 1px solid rgba(0, 0, 0, 0.15);
+      padding: 0.38rem 0.2rem;
       text-align: center;
     }
 
@@ -466,13 +483,13 @@
     .calendar-nav button {
       background: rgba(0, 140, 255, 0.25);
       border: none;
-      border-radius: 8px;
-      padding: 0.4rem 1rem;
+      border-radius: 6px;
+      padding: 0.3rem 0.8rem;
       cursor: pointer;
       color: var(--text-color);
       font-weight: bold;
-      font-size: 1rem;
-      box-shadow: 0 2px 6px var(--card-shadow);
+      font-size: 0.9rem;
+      box-shadow: 0 2px 4px var(--card-shadow);
       transition: background 0s, transform 0.1s;
     }
 
@@ -485,14 +502,8 @@
       display: flex;
       align-items: center;
       justify-content: space-between;
-      margin-bottom: 1rem;
+      margin-bottom: 0.5rem;
       position: relative;
-    }
-
-    .calendar-card .calendar-nav:last-of-type {
-      display: flex;
-      justify-content: flex-end;
-      margin-top: 4px;
     }
 
     #calendar-title {
@@ -500,10 +511,10 @@
       left: 50%;
       transform: translateX(-50%);
       font-weight: bold;
-      font-size: 1.2rem;
+      font-size: 1.05rem;
     }
 
-    html[data-theme="dark"].calendar {
+    html[data-theme="dark"] .calendar {
       border-color: #dcdcdc;
     }
 
@@ -518,48 +529,28 @@
     }
 
     .calendar td.saturday {
-      color: blue;
+      color: #2196f3;
     }
 
     .calendar td.sunday,
     .calendar td.holiday {
-      color: red;
-    }
-
-    .today-card {
-      margin-bottom: 0px;
-      padding: 10px;
+      color: #f44336;
     }
 
     .widgets:not(.edit-grid-active) .card:hover {
-      transform: translateY(-4px);
-      box-shadow: 0 8px 18px rgba(0, 0, 0, 0.18);
-    }
-
-    .widgets:not(.edit-grid-active) .card:active {
-      transform: translateY(-2px);
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-    }
-
-    .weather .meta {
-      margin: 0;
-      padding: 0;
-      font-size: 0.95rem;
-      line-height: 1.2;
-    }
-
-    .weather .meta p {
-      margin: 2px 0;
+      transform: translateY(-3px);
+      box-shadow: 0 6px 14px rgba(0, 0, 0, 0.16);
     }
 
     #draw-horoscope {
-      padding: 0.6rem 1.2rem;
+      padding: 0.45rem 0.9rem;
       background-color: rgba(206, 171, 255, 0.5);
-      color: #fff;
+      color: var(--text-color);
       border: none;
-      border-radius: 8px;
+      border-radius: 6px;
       cursor: pointer;
-      transition: 0s;
+      font-weight: bold;
+      font-size: 0.9rem;
     }
 
     #draw-horoscope:hover {
@@ -568,54 +559,47 @@
     }
 
     #zodiac-select {
-      padding: 0.6rem;
+      padding: 0.4rem;
       border: 1px solid #ccc;
-      border-radius: 8px;
-      font-size: 1rem;
+      border-radius: 6px;
+      font-size: 0.9rem;
       flex: 1;
       min-width: 80px;
     }
 
-    #trend-list {
-      list-style: none;
-      padding-left: 0;
-      margin-left: 0;
+    #trend-list,
+    #news-list {
+      list-style: none !important;
+      padding-left: 0 !important;
+      margin: 0 !important;
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
     }
 
-    #trend-list li {
-      list-style: none;
-      padding-left: 0;
-      margin-left: 0;
+    #trend-list li,
+    #news-list li {
+      list-style: none !important;
+      padding: 0 !important;
+      margin: 0 !important;
     }
 
     #news-list a {
-      list-style: none !important;
       all: unset !important;
       display: block !important;
-      padding: 10px 14px !important;
-      margin: 6px 0 !important;
-      font-weight: 900 !important;
+      padding: 7px 11px !important;
+      font-size: 0.86rem !important;
+      line-height: 1.35 !important;
+      font-weight: 700 !important;
       color: var(--text-color) !important;
-      background: rgba(0, 140, 255, 0.25) !important;
-      border-radius: 10px !important;
+      background: rgba(0, 140, 255, 0.22) !important;
+      border-radius: 8px !important;
       cursor: pointer !important;
-      transition: 0s !important;
+      box-sizing: border-box !important;
     }
 
     #news-list a:hover {
       background: rgba(0, 140, 255, 0.35) !important;
-    }
-
-    #news-list {
-      list-style: none !important;
-      padding-left: 0 !important;
-      margin-left: 0 !important;
-    }
-
-    #news-list li {
-      list-style: none !important;
-      padding-left: 0 !important;
-      margin-left: 0 !important;
     }
 
     #clock {
@@ -630,20 +614,28 @@
       }
     }
 
+    #campus-sites-card .campus-btn-row {
+      display: flex;
+      gap: 0.5rem;
+      margin-top: 0.2rem;
+    }
+
     #campus-sites-card button {
-      background-color: rgb(255, 69, 165, 0.5);
+      flex: 1;
+      background-color: rgba(255, 69, 165, 0.45);
       border: none;
-      padding: 0.5rem 1rem;
+      padding: 0.55rem 0.6rem;
       border-radius: 0.5rem;
       cursor: pointer;
-      font-size: 0.85rem;
+      font-size: 0.88rem;
+      font-weight: bold;
       transition: 0.2s;
-      color: var(--text-color)
+      color: var(--text-color);
     }
 
     #campus-sites-card button:hover {
       background-color: #ff45a5;
-      transition: 0.5s;
+      color: #fff;
     }
 
     .eq-buttons button {
@@ -653,7 +645,8 @@
       font-weight: bold;
       border: none;
       border-radius: 6px;
-      padding: 0.6rem 0;
+      padding: 0.45rem 0;
+      font-size: 0.85rem;
       cursor: pointer;
       text-align: center;
       transition: 0.2s;
@@ -663,40 +656,45 @@
       background: rgba(255, 152, 129, 1);
     }
 
-    #sun-card h2 {
-      margin-bottom: 0.5rem;
-    }
-
     #sun-info {
-      font-size: 1rem;
-      line-height: 1.6;
+      font-size: 0.92rem;
+      line-height: 1.45;
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+      background: rgba(255, 152, 0, 0.08);
+      padding: 8px 10px;
+      border-radius: 8px;
     }
 
     .Fort-btn {
-      padding: 8px 16px;
-      font-size: 0.95em;
-      font-weight: 500;
+      padding: 6px 14px;
+      font-size: 0.9em;
       color: var(--text-color);
-      background-color: rgba(107, 184, 255, 0.3);
+      background-color: rgba(107, 184, 255, 0.35);
       font-weight: bold;
       border: none;
       cursor: pointer;
       transition: background-color 0.2s;
-      border-radius: 8px;
+      border-radius: 6px;
     }
 
     .Fort-btn:hover {
       background-color: rgba(107, 184, 255, 1);
     }
 
-    #fortune-card p {
-      margin: 10px 0;
-      font-size: 1.1em;
-      font-weight: bold;
+    #fortune-card .fortune-body {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
     }
 
-    #fortune-card button {
-      margin-right: 5px;
+    #fortune-card p {
+      margin: 0;
+      font-size: 0.95em;
+      font-weight: bold;
+      flex: 1;
     }
 
     .eq.s1,
@@ -736,13 +734,13 @@
 
     .countdown-display {
       text-align: center;
-      margin: 1rem 0;
+      margin: 0.2rem 0;
     }
 
     .cnt-label {
-      font-size: 1.1rem;
+      font-size: 0.98rem;
       font-weight: bold;
-      margin-bottom: 4px;
+      margin-bottom: 2px;
     }
 
     .cnt-main {
@@ -754,19 +752,19 @@
     }
 
     .cnt-text {
-      font-size: 1rem;
+      font-size: 0.9rem;
     }
 
     .cnt-number {
-      font-size: 3rem;
+      font-size: 2.3rem;
       font-weight: bold;
-      line-height: 1;
+      line-height: 1.05;
     }
 
     .cnt-date {
-      font-size: 0.85rem;
+      font-size: 0.8rem;
       opacity: 0.7;
-      margin-top: 4px;
+      margin-top: 2px;
     }
 
     .cnt-btn-area {
@@ -774,7 +772,7 @@
     }
 
     .cnt-btn-outline {
-      font-size: 0.8rem;
+      font-size: 0.78rem;
       background: transparent;
       border: 1px solid #ccc;
       border-radius: 4px;
@@ -785,24 +783,24 @@
 
     .cnt-settings {
       display: none;
-      margin-top: 10px;
+      margin-top: 8px;
       border-top: 1px solid rgba(0, 0, 0, 0.1);
-      padding-top: 10px;
+      padding-top: 8px;
     }
 
     .cnt-input {
       width: 100%;
-      padding: 6px;
-      margin-bottom: 6px;
+      padding: 5px;
+      margin-bottom: 5px;
       box-sizing: border-box;
       border-radius: 4px;
       border: 1px solid #ccc;
-      font-size: 1rem;
+      font-size: 0.9rem;
     }
 
     .cnt-btn-primary {
       width: 100%;
-      padding: 8px;
+      padding: 6px;
       background: #4caf50;
       color: white;
       border: none;
@@ -811,13 +809,11 @@
       cursor: pointer;
     }
 
-    .cnt-btn-primary:hover {
-      opacity: 0.9;
-    }
-
     .cat-frame {
       width: 100%;
-      height: 200px;
+      flex: 1;
+      min-height: 130px;
+      max-height: 155px;
       background: rgba(0, 0, 0, 0.05);
       border-radius: 8px;
       overflow: hidden;
@@ -829,7 +825,7 @@
 
     .cat-loading {
       position: absolute;
-      font-size: 0.9rem;
+      font-size: 0.85rem;
       opacity: 0.6;
     }
 
@@ -842,21 +838,20 @@
 
     .cat-btn {
       width: 100%;
-      margin-top: 12px;
-      padding: 10px;
+      margin-top: 8px;
+      padding: 8px;
       background: rgba(0, 140, 255, 0.35);
       color: var(--text-color);
-      text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
       border: none;
       border-radius: 8px;
       font-weight: bold;
+      font-size: 0.88rem;
       cursor: pointer;
       transition: 0.2s;
     }
 
     .cat-btn:hover {
-      opacity: 0.8;
-      transform: translateY(-1px);
+      opacity: 0.85;
     }
 
     .header-controls {
@@ -884,29 +879,6 @@
 
     .header-btn:hover {
       background: rgba(255, 255, 255, 0.25);
-    }
-
-    .color-picker-wrap {
-      position: relative;
-      width: 42px;
-      height: 42px;
-    }
-
-    .hidden-picker {
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      opacity: 0;
-      cursor: pointer;
-      z-index: 2;
-    }
-
-    .dummy-btn {
-      pointer-events: none;
-      width: 100%;
-      height: 100%;
     }
 
     #mobile-nav-bar {
@@ -944,7 +916,7 @@
         justify-items: stretch;
       }
 
-      .header-btn, .color-picker-wrap {
+      .header-btn {
         width: 100% !important;
         height: 40px !important;
         margin: 0 !important;
@@ -952,16 +924,8 @@
         align-items: center;
         justify-content: center;
         border-radius: 8px;
-      }
-
-      .header-btn {
         position: relative;
         isolation: auto;
-      }
-
-      .hidden-picker {
-        width: 100% !important;
-        height: 100% !important;
       }
 
       .header-btn::after {
@@ -1100,18 +1064,6 @@
         pointer-events: none !important;
       }
 
-      #settings-modal[style*="display: flex"] ~ #edit-btn,
-      #settings-modal[style*="display: flex"] ~ button:not(.header-btn):not(.close-btn) {
-        display: none !important;
-      }
-
-      body:has(#settings-modal[style*="display: flex"]) #mobile-nav-bar {
-        display: none !important;
-      }
-      :root:has(#settings-modal[style*="display: flex"]) button[style*="position: fixed"] {
-        display: none !important;
-      }
-
       #circle-overlay {
         position: fixed;
         top: 0;
@@ -1144,9 +1096,7 @@
         transition: opacity 0.3s ease, transform 0.3s ease, background-color 0.2s ease, visibility 0.3s;
         pointer-events: none;
       }
-    }
 
-    @media screen and (max-width: 480px) {
       #drag-guideline.active {
         display: flex;
         opacity: 1;
@@ -1218,10 +1168,6 @@
       padding: 12px 0;
     }
 
-    .setting-item:not(:last-child) {
-      border-bottom: 1px solid var(--border-color);
-    }
-
     .close-btn {
       background: none;
       border: none;
@@ -1257,16 +1203,6 @@
       margin-top: 5px;
     }
 
-    #settings-modal[style*="display: flex"] ~ #mobile-nav-bar,
-    #settings-modal[style*="display: flex"] ~ #circle-overlay,
-    #settings-modal[style*="display: flex"] ~ #circle-menu-ring,
-    #settings-modal[style*="display: flex"] ~ #edit-btn,
-    #settings-modal[style*="display: flex"] ~ button[style*="position: fixed"] {
-      display: none !important;
-      visibility: hidden !important;
-      opacity: 0 !important;
-    }
-
     body:has(#settings-modal[style*="display: flex"]) #edit-btn,
     body:has(#settings-modal[style*="display: flex"]) button[style*="position: fixed"] {
       display: none !important;
@@ -1276,29 +1212,24 @@
       font-size: var(--base-font-size);
     }
 
-    .card h2 {
-      font-size: calc(var(--base-font-size) * 1.2);
-    }
-
     .app-dl-container {
       display: flex;
       flex-direction: column;
-      gap: 0.6rem;
-      margin-top: 0.5rem;
+      gap: 0.4rem;
       text-align: center;
     }
 
     .app-dl-help {
-      font-size: 0.85rem;
-      margin: 4px 0 8px;
+      font-size: 0.8rem;
+      margin: 0 0 4px;
       opacity: 0.8;
-      line-height: 1.4;
+      line-height: 1.3;
     }
 
     .app-list {
       display: flex;
       flex-direction: column;
-      gap: 12px;
+      gap: 8px;
       width: 100%;
     }
 
@@ -1307,41 +1238,36 @@
       align-items: center;
       justify-content: space-between;
       background: rgba(0, 0, 0, 0.03);
-      padding: 8px 12px;
+      padding: 6px 10px;
       border-radius: 8px;
     }
 
     .app-icon {
-      font-size: 1rem;
+      font-size: 0.9rem;
+      font-weight: bold;
     }
 
     .app-link {
       text-decoration: none;
-      width: 120px;
+      width: 110px;
     }
 
     .app-dl-btn {
       width: 100%;
-      padding: 12px;
-      font-size: 0.95rem;
+      padding: 8px;
+      font-size: 0.85rem;
       font-weight: bold;
       color: var(--text-color);
       background: linear-gradient(135deg, rgba(76, 175, 80, 0.4), rgba(33, 150, 243, 0.4));
       border: none;
-      border-radius: 8px;
+      border-radius: 6px;
       cursor: pointer;
-      box-shadow: 0 2px 6px var(--card-shadow);
-      transition: background 0.7s ease, transform 0.7s cubic-bezier(0.25, 1, 0.5, 1);
+      box-shadow: 0 2px 4px var(--card-shadow);
+      transition: background 0.3s ease;
     }
 
     .app-dl-btn:hover {
       background: linear-gradient(135deg, rgba(76, 175, 80, 0.7), rgba(33, 150, 243, 0.7));
-      transform: translateY(-4px);
-    }
-
-    .app-dl-btn:active {
-      transform: translateY(1px);
-      transition: transform 0.05s;
     }
   </style>
 </head>
@@ -1371,8 +1297,6 @@
         </div>
 
         <div class="modal-body">
-          <div class="setting-item"></div>
-
           <div class="setting-item-column">
             <div class="setting-label">
               <span>自動更新頻度</span>
@@ -1421,7 +1345,6 @@
       (function() {
         const html = document.documentElement;
         const toggleBtn = document.getElementById("theme-toggle");
-
         const STORAGE_KEY_COLOR = "portalHeaderColor";
 
         const applyHeaderColor = (color) => {
@@ -1450,9 +1373,7 @@
           localStorage.setItem("theme", current);
         });
       })();
-    </script>
 
-    <script>
       function openClockMode() {
         window.open('clock.html', '_blank');
       }
@@ -1462,31 +1383,49 @@
   <div class="main-container">
     <div class="widgets">
 
+      <!-- 1マスで綺麗に収まるカード群 -->
       <div class="card" id="campus-sites-card">
         <h2>学内サイト</h2>
-        <div style="display:flex; flex-direction:column; gap:0.6rem; margin-top:0.5rem;">
-          <button onclick="window.open('https://webclass.nagoya-bunri.ac.jp/webclass/login.php?rnd=179fa&language=JAPANESE','_blank')" style="cursor:pointer; font-weight:bold;">WebClass</button>
-          <button onclick="window.open('https://unipa.nagoya-bunri.ac.jp/uprx/up/pk/pky501/Pky50101.xhtml','_blank')" style="cursor:pointer; font-weight:bold;">UNIPA</button>
-        </div>
-      </div>
-
-      <div class="card" id="trend-card">
-        <h2>今日のトレンド</h2>
-        <ul id="trend-list">
-          <li class="loading">読み込み中...</li>
-        </ul>
-      </div>
-
-      <div class="card" id="weather-card">
-        <h2>天気</h2>
-        <div id="weather">
-          <div class="loading">読み込み中…</div>
+        <div class="campus-btn-row">
+          <button onclick="window.open('https://webclass.nagoya-bunri.ac.jp/webclass/login.php?rnd=179fa&language=JAPANESE','_blank')">WebClass</button>
+          <button onclick="window.open('https://unipa.nagoya-bunri.ac.jp/uprx/up/pk/pky501/Pky50101.xhtml','_blank')">UNIPA</button>
         </div>
       </div>
 
       <div class="card" id="sun-card">
         <h2>日の出・日の入</h2>
         <div id="sun-info">読み込み中...</div>
+      </div>
+
+      <div class="card" id="fortune-card">
+        <h2>おみくじ</h2>
+        <div class="fortune-body">
+          <p id="fortune-result">ボタンを押してね</p>
+          <button class="Fort-btn" onclick="showFortune()">占う</button>
+        </div>
+      </div>
+
+      <!-- 2〜4マスで綺麗に収まるカード群 -->
+      <div class="card" id="horoscope-card">
+        <h2>今日の星座占い</h2>
+        <div style="display:flex; gap:0.5rem; align-items:center;">
+          <select id="zodiac-select" aria-label="星座">
+            <option value="aries">牡羊座</option>
+            <option value="taurus">牡牛座</option>
+            <option value="gemini">双子座</option>
+            <option value="cancer">蟹座</option>
+            <option value="leo">獅子座</option>
+            <option value="virgo">乙女座</option>
+            <option value="libra">天秤座</option>
+            <option value="scorpio">蠍座</option>
+            <option value="sagittarius">射手座</option>
+            <option value="capricorn">山羊座</option>
+            <option value="aquarius">水瓶座</option>
+            <option value="pisces">魚座</option>
+          </select>
+          <button id="draw-horoscope">占う</button>
+        </div>
+        <p id="horoscope-result" style="margin:0.4rem 0 0; font-size:0.88rem; font-weight:bold;">選んで「占う」を押してください</p>
       </div>
 
       <div class="card" id="kawase-card">
@@ -1508,30 +1447,11 @@
         <div id="currency-result" class="currency-result"></div>
       </div>
 
-      <div class="card" id="horoscope-card">
-        <h2>今日の星座占い</h2>
-        <div style="display:flex; gap:0.6rem; align-items:center; flex-wrap:wrap;">
-          <select id="zodiac-select" aria-label="星座">
-            <option value="aries">牡羊座</option>
-            <option value="taurus">牡牛座</option>
-            <option value="gemini">双子座</option>
-            <option value="cancer">蟹座</option>
-            <option value="leo">獅子座</option>
-            <option value="virgo">乙女座</option>
-            <option value="libra">天秤座</option>
-            <option value="scorpio">蠍座</option>
-            <option value="sagittarius">射手座</option>
-            <option value="capricorn">山羊座</option>
-            <option value="aquarius">水瓶座</option>
-            <option value="pisces">魚座</option>
-          </select>
-          <button id="draw-horoscope" style="padding:0.5rem 1rem;border-radius:8px;border:none;color:var(--text-color);cursor:pointer;font-weight:bold;">占う</button>
-        </div>
-        <p id="horoscope-result" style="margin-top:0.8rem;font-weight:bold;">選んで「占う」を押してください</p>
-      </div>
-
       <div class="card" id="countdown-card">
-        <h2>あと何日？</h2>
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+          <h2 style="margin:0;">あと何日？</h2>
+          <button id="cnt-toggle-btn" class="cnt-btn-outline">設定</button>
+        </div>
         <div class="countdown-display">
           <div id="countdown-label" class="cnt-label">未設定</div>
           <div class="cnt-main">
@@ -1540,10 +1460,6 @@
             <span class="cnt-text">日</span>
           </div>
           <div id="countdown-date-display" class="cnt-date">----/--/--</div>
-        </div>
-
-        <div class="cnt-btn-area">
-          <button id="cnt-toggle-btn" class="cnt-btn-outline">設定</button>
         </div>
 
         <div id="cnt-settings" class="cnt-settings">
@@ -1564,59 +1480,28 @@
         </button>
       </div>
 
-      <div class="card" id="eq-card">
-        <h2>最新の地震情報</h2>
-        <ul id="result">
-          <li class="loading">取得中…</li>
-        </ul>
-
-        <div class="eq-buttons" style="display:flex; gap:0.5rem; margin-top:0.6rem;">
-          <button id="eq-load-more">もっと見る</button>
-          <button id="eq-close-all" style="display:none;">閉じる</button>
-        </div>
-      </div>
-
-      <div class="card" id="news-card">
-        <h2>日本のニュース</h2>
-        <ul id="news-list">
-          <li class="loading">取得中…</li>
-        </ul>
-      </div>
-
-      <div class="card" id="calendar-card">
-        <h2>カレンダー</h2>
-        <div class="calendar-nav">
-          <button id="prev-month" aria-label="前月">←</button>
-          <span id="calendar-title"></span>
-          <button id="next-month" aria-label="次月">→</button>
-        </div>
-        <div id="calendar"></div>
-        <div class="calendar-nav" style="display: flex; justify-content: flex-end; margin-top: 17px;margin-bottom: 0px;">
-          <button id="today-month" aria-label="今月へ">今月に戻る</button>
-        </div>
-      </div>
-
       <div class="card" id="memo-card">
         <h2>簡易メモ帳</h2>
         <textarea id="simple-memo" placeholder="ここにメモを入力... (自動保存されます)" style="
           width: 100%;
-          height: 120px;
-          padding: 10px;
+          flex: 1;
+          min-height: 115px;
+          padding: 8px;
           box-sizing: border-box;
           border-radius: 8px;
           border: 1px solid #ccc;
-          resize: vertical;
+          resize: none;
           background: var(--bg-color);
           color: var(--text-color);
           font-family: inherit;
-          font-size: 0.95rem;
+          font-size: 0.9rem;
           outline: none;
         "></textarea>
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 5px;">
-          <div id="memo-count" style="font-size: 0.85rem; color: var(--text-color); opacity: 0.8;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 6px;">
+          <div id="memo-count" style="font-size: 0.8rem; color: var(--text-color); opacity: 0.8;">
             文字数: <span id="char-count">0</span>
           </div>
-          <button onclick="clearMemo()" style="font-size:0.8rem; padding:4px 8px; cursor:pointer; background:#f44336; color:white; border:none; border-radius:4px;">
+          <button onclick="clearMemo()" style="font-size:0.78rem; padding:3px 8px; cursor:pointer; background:#f44336; color:white; border:none; border-radius:4px;">
             全消去
           </button>
         </div>
@@ -1653,19 +1538,10 @@
         });
       </script>
 
-      <div class="card" id="fortune-card">
-        <h2>おみくじ</h2>
-        <p id="fortune-result">ボタンを押してね↓</p>
-        <button class="Fort-btn" onclick="showFortune()">占う</button>
-      </div>
-
       <div class="card" id="app-download-card">
         <h2>アプリダウンロード</h2>
         <div class="app-dl-container">
-          <p class="app-dl-help">
-            作者が作ったアプリを、ダウンロードできます。
-          </p>
-
+          <p class="app-dl-help">作者が作ったアプリをダウンロードできます。</p>
           <div class="app-list">
             <div class="app-item">
               <span class="app-icon">画面録画</span>
@@ -1673,7 +1549,6 @@
                 <button class="app-dl-btn">ダウンロード</button>
               </a>
             </div>
-
             <div class="app-item">
               <span class="app-icon">ゲーム</span>
               <a href="https://doraigx.github.io/game/main.html" class="app-link">
@@ -1682,6 +1557,51 @@
             </div>
           </div>
         </div>
+      </div>
+
+      <div class="card" id="calendar-card">
+        <h2>カレンダー</h2>
+        <div class="calendar-nav">
+          <button id="prev-month" aria-label="前月">←</button>
+          <span id="calendar-title"></span>
+          <button id="next-month" aria-label="次月">→</button>
+        </div>
+        <div id="calendar"></div>
+        <div class="calendar-nav" style="display: flex; justify-content: flex-end; margin-top: 8px; margin-bottom: 0;">
+          <button id="today-month" aria-label="今月へ">今月に戻る</button>
+        </div>
+      </div>
+
+      <div class="card" id="weather-card">
+        <h2>天気</h2>
+        <div id="weather">
+          <div class="loading">読み込み中…</div>
+        </div>
+      </div>
+
+      <div class="card" id="eq-card">
+        <h2>最新の地震情報</h2>
+        <ul id="result">
+          <li class="loading">取得中…</li>
+        </ul>
+        <div class="eq-buttons" style="display:flex; gap:0.5rem; margin-top:0.4rem;">
+          <button id="eq-load-more">もっと見る</button>
+          <button id="eq-close-all" style="display:none;">閉じる</button>
+        </div>
+      </div>
+
+      <div class="card" id="trend-card">
+        <h2>今日のトレンド</h2>
+        <ul id="trend-list">
+          <li class="loading">読み込み中...</li>
+        </ul>
+      </div>
+
+      <div class="card" id="news-card">
+        <h2>日本のニュース</h2>
+        <ul id="news-list">
+          <li class="loading">取得中…</li>
+        </ul>
       </div>
 
     </div>
@@ -1738,8 +1658,8 @@
 
     const hiddenCardsKey = "hiddenCards";
     const GRID_POS_KEY = "widgetGridPositions";
-    const CELL_HEIGHT = 80; // 1マスの縦幅(px)
-    const CELL_GAP = 16;    // マス同士の隙間(px)
+    const CELL_HEIGHT = 116; // 1マスの縦幅(px) - 1マスカードが丁度収まる基準高
+    const CELL_GAP = 16;     // マス同士の隙間(px)
 
     // 現在の画面幅に応じたグリッド列数を計算（スマホは1列、タブレット・PCは2〜5列）
     function getGridCols() {
@@ -1748,7 +1668,6 @@
       return Math.max(2, Math.min(5, Math.floor((w + CELL_GAP) / (300 + CELL_GAP))));
     }
 
-    // 座標データの取得・保存
     function getSavedPositions() {
       try {
         return JSON.parse(localStorage.getItem(GRID_POS_KEY) || "{}");
@@ -1761,14 +1680,16 @@
       localStorage.setItem(GRID_POS_KEY, JSON.stringify(pos));
     }
 
-    // カードの高さが何マス分（rowSpan）かを計測
+    // カードの自然な高さを計測し、何マス分（rowSpan）必要かを正確に算出
     function calcCardSpan(card) {
       if (!card || card.style.display === "none") return 1;
-      const h = card.offsetHeight || card.getBoundingClientRect().height || 120;
-      return Math.max(1, Math.ceil((h + CELL_GAP) / (CELL_HEIGHT + CELL_GAP)));
+      card.classList.add("measuring-card");
+      const h = card.getBoundingClientRect().height || card.offsetHeight || CELL_HEIGHT;
+      card.classList.remove("measuring-card");
+      // 微小な誤差(6px以内)は切り上げずそのマスに収める
+      return Math.max(1, Math.ceil((h - 6 + CELL_GAP) / (CELL_HEIGHT + CELL_GAP)));
     }
 
-    // 特定のマス領域が空いているかチェック
     function isAreaFree(occupied, col, row, span, maxCols) {
       if (col < 1 || col > maxCols || row < 1) return false;
       for (let r = row; r < row + span; r++) {
@@ -1777,7 +1698,6 @@
       return true;
     }
 
-    // マス領域を占有済みにマーク
     function markOccupied(occupied, col, row, span, id) {
       for (let r = row; r < row + span; r++) {
         occupied[`${col},${r}`] = id;
@@ -1789,7 +1709,7 @@
       widgets.querySelectorAll(".grid-cell-guide").forEach(el => el.remove());
       if (!editMode || cols <= 1) return;
 
-      const totalRows = Math.max(maxRow + 4, 12);
+      const totalRows = Math.max(maxRow + 3, 10);
       const frag = document.createDocumentFragment();
       for (let r = 1; r <= totalRows; r++) {
         for (let c = 1; c <= cols; c++) {
@@ -1813,7 +1733,6 @@
 
       const cards = Array.from(widgets.querySelectorAll(".card")).filter(c => c.style.display !== "none");
 
-      // スマホ（1列）の場合はグリッド座標指定を解除して縦並びに任せる
       if (cols === 1) {
         cards.forEach(c => {
           c.style.gridColumn = "";
@@ -1828,7 +1747,6 @@
       const occupied = {};
       let maxRowUsed = 1;
 
-      // ドロップ直後のカードがあれば最優先でその座標を確保する
       const sortedCards = [...cards];
       if (prioritizeCardId) {
         sortedCards.sort((a, b) => (a.id === prioritizeCardId ? -1 : b.id === prioritizeCardId ? 1 : 0));
@@ -1853,15 +1771,18 @@
             return;
           }
         }
-        pendingCards.push({ card, span, prefCol: saved ? Math.min(saved.col, cols) : null, prefRow: saved ? Math.max(1, saved.row) : 1 });
+        pendingCards.push({
+          card,
+          span,
+          prefCol: saved ? Math.min(saved.col, cols) : null,
+          prefRow: saved ? Math.max(1, saved.row) : 1
+        });
       });
 
-      // 座標未設定、または他のカードと重なったカードを空いているマスへ自動配置
       pendingCards.forEach(item => {
         const { card, span, prefCol, prefRow } = item;
         let placed = false;
 
-        // 元の希望位置の近くから探す
         if (prefCol) {
           for (let r = prefRow; r < 150 && !placed; r++) {
             if (isAreaFree(occupied, prefCol, r, span, cols)) {
@@ -1875,7 +1796,6 @@
           }
         }
 
-        // 左上から空いているマスを探す
         for (let r = 1; r < 150 && !placed; r++) {
           for (let c = 1; c <= cols && !placed; c++) {
             if (isAreaFree(occupied, c, r, span, cols)) {
@@ -1896,7 +1816,6 @@
       setTimeout(() => { isResizing = false; }, 60);
     }
 
-    // 既存のコードとの互換用関数
     function resizeGridItem(item) {
       applyGridLayout();
     }
@@ -1987,7 +1906,7 @@
       const hiddenCards = JSON.parse(localStorage.getItem(hiddenCardsKey) || "[]");
 
       document.querySelectorAll(".card").forEach(card => {
-        card.style.display = hiddenCards.includes(card.id) ? "none" : "block";
+        card.style.display = hiddenCards.includes(card.id) ? "none" : "flex";
 
         if (editMode && !card.querySelector(".edit-delete")) {
           const btn = document.createElement("button");
@@ -1997,7 +1916,7 @@
             e.stopPropagation();
             hideCard(card);
           };
-          btn.style.cssText = "position:absolute;top:8px;right:8px;padding:3px 8px;cursor:pointer;background:#f44336;color:#fff;border:none;font-size:12px;border-radius:6px;z-index:10;";
+          btn.style.cssText = "position:absolute;top:8px;right:8px;padding:3px 8px;cursor:pointer;background:#f44336;color:#fff;border:none;font-size:11px;border-radius:6px;z-index:10;";
           card.appendChild(btn);
         } else if (!editMode) {
           const btn = card.querySelector(".edit-delete");
@@ -2062,7 +1981,7 @@
         checkboxes.forEach(cb => {
           if (cb.checked) {
             const card = document.getElementById(cb.value);
-            if (card) card.style.display = "block";
+            if (card) card.style.display = "flex";
             updatedHidden = updatedHidden.filter(id => id !== cb.value);
           }
         });
@@ -2104,7 +2023,6 @@
       title.style.marginTop = "0";
       box.appendChild(title);
 
-      // PC/タブレット向けに「隙間なく左上から綺麗に詰め直す」リセットボタンを提供
       const packBtn = document.createElement("button");
       packBtn.textContent = "🔄 隙間を詰めて左上から自動整列";
       packBtn.style.cssText = "width:100%;margin-bottom:12px;padding:8px;background:#2196f3;color:#fff;border:none;border-radius:6px;cursor:pointer;font-weight:bold;";
@@ -2153,7 +2071,7 @@
           if (card) widgets.appendChild(card);
         });
         localStorage.setItem("widgetOrder", JSON.stringify(newOrder));
-        localStorage.removeItem(GRID_POS_KEY); // 新しい順序で左上から再配置
+        localStorage.removeItem(GRID_POS_KEY);
         document.body.removeChild(modal);
         applyGridLayout();
       };
@@ -2170,7 +2088,7 @@
     });
 
     // =====================================================
-    // ★ マス目スナップ対応 ドラッグ＆ドロップ制御（PC・タブレット対応）
+    // ★ マス目スナップ対応 ドラッグ＆ドロップ制御
     // =====================================================
     let dragSrcEl = null;
     let dragOffsetY = 0;
@@ -2207,7 +2125,6 @@
 
       const cols = getGridCols();
 
-      // スマホ（1列）の場合は上下入れ替え
       if (cols === 1) {
         const target = e.target.closest(".card");
         if (target && target !== dragSrcEl) {
@@ -2218,16 +2135,11 @@
         return;
       }
 
-      // PC/タブレット：マウス位置からグリッドの何列目・何行目かを計算
       const rect = widgets.getBoundingClientRect();
-      const padLeft = parseFloat(window.getComputedStyle(widgets).paddingLeft) || 0;
-      const padTop = parseFloat(window.getComputedStyle(widgets).paddingTop) || 0;
+      const colWidth = (rect.width - CELL_GAP * (cols - 1)) / cols;
 
-      const innerWidth = rect.width - padLeft * 2;
-      const colWidth = (innerWidth - CELL_GAP * (cols - 1)) / cols;
-
-      const relX = e.clientX - rect.left - padLeft;
-      const relY = (e.clientY - dragOffsetY + CELL_HEIGHT / 2) - rect.top - padTop;
+      const relX = e.clientX - rect.left;
+      const relY = (e.clientY - dragOffsetY + CELL_HEIGHT / 2) - rect.top;
 
       let col = Math.floor(relX / (colWidth + CELL_GAP)) + 1;
       col = Math.max(1, Math.min(cols, col));
@@ -2270,7 +2182,6 @@
       applyGridLayout();
     });
 
-    // カード内のコンテンツ量が変わった際（ニュース取得完了やアコーディオン開閉）に高さを自動調整
     const observer = new MutationObserver(() => {
       if (isResizing || dragSrcEl) return;
       applyGridLayout();
@@ -2310,9 +2221,7 @@
             if (!sessionStorage.getItem('skipLogin')) {
                 window.location.href = "./login.html";
             } else {
-                console.log("アカウントなしモードでポータルを利用中（端末内保存）");
                 currentUser = null;
-
                 const authBtn = document.getElementById('logout-btn');
                 if (authBtn) {
                     authBtn.textContent = "クラウドと同期する（ログイン）";
@@ -2321,14 +2230,11 @@
             }
         } else {
             currentUser = user;
-            console.log("ユーザー検証成功 (クラウド同期ON):", user.uid);
-
             const authBtn = document.getElementById('logout-btn');
             if (authBtn) {
                 authBtn.textContent = "🚪 ログアウトする";
                 authBtn.style.background = "#ff5722";
             }
-
             await loadUserDataFromServer(user.uid);
         }
     });
@@ -2350,7 +2256,6 @@
                     localStorage.setItem("widgetOrder", JSON.stringify(data.widgetOrder));
                 }
 
-                // ★ 2Dグリッド座標データの復元
                 if (data.widgetGridPositions) {
                     localStorage.setItem("widgetGridPositions", JSON.stringify(data.widgetGridPositions));
                 }
@@ -2366,11 +2271,7 @@
 
                 if (data.theme) {
                     localStorage.setItem("theme", data.theme);
-                    if (typeof applyTheme === 'function') {
-                        applyTheme(data.theme);
-                    } else {
-                        document.documentElement.setAttribute("data-theme", data.theme);
-                    }
+                    document.documentElement.setAttribute("data-theme", data.theme);
                 }
 
                 if (data.portalHeaderColor) {
@@ -2471,7 +2372,6 @@
                 horoscopeCache: horoscopeCache,
                 updatedAt: new Date()
             }, { merge: true });
-            console.log("全設定がクラウドへ同期されました");
         } catch (e) {
             console.error("クラウドへの一括同期に失敗:", e);
         }
@@ -2486,12 +2386,10 @@
                 if (confirm("ポータルからログアウトしますか？\n（この端末に保存されているメモや設定もすべて初期化されます）")) {
                     try {
                         await signOut(auth);
-                        console.log("ログアウト成功");
                         localStorage.clear();
                         alert("ログアウトしました。ローカルデータを初期化します。");
                         window.location.replace("./login.html");
                     } catch (error) {
-                        console.error("ログアウトエラー:", error);
                         alert("ログアウトに失敗しました。");
                     }
                 }
@@ -2546,13 +2444,6 @@
         });
     }
 
-    const colorPickerEl = document.getElementById('color-picker');
-    if (colorPickerEl) {
-        colorPickerEl.addEventListener('change', () => {
-            window.saveWidgetDataToCloud();
-        });
-    }
-
     ['draw-horoscope', 'fortune-card'].forEach(id => {
         const btn = document.getElementById(id) || (id === 'fortune-card' ? document.querySelector('#fortune-card button') : null);
         if (btn) {
@@ -2573,12 +2464,10 @@
                     card.style.display = "none";
                 }
             });
-        } catch(e) {
-            console.error("非表示の強制適用に失敗:", e);
-        }
+        } catch(e) {}
     };
 
-    [100, 500, 1000, 2000, 3000, 5000].forEach(delay => {
+    [100, 500, 1000, 2000, 3500].forEach(delay => {
         setTimeout(() => {
             window.enforceHiddenCards();
             if (typeof resizeAllGridItems === 'function') resizeAllGridItems();
@@ -2620,8 +2509,7 @@
         <div class="weather">
           <div class="icon">${emoji}</div>
           <div class="meta">
-            <p><strong>稲沢市</strong><p>
-            <p>更新日時: ${timeStr}</p>
+            <p><strong>稲沢市</strong> （更新: ${timeStr}）</p>
             <p>気温: <strong>${Math.floor(cw.temperature)}°C</strong> ／ 風速: <strong>${cw.windspeed} m/s</strong></p>
           </div>
         </div>
@@ -2635,7 +2523,7 @@
         let forecastRows = '';
         let added = 0;
 
-        for (let i = 0; i < hours.length && added < 6; i++) {
+        for (let i = 0; i < hours.length && added < 5; i++) {
           const d = new Date(hours[i]);
           if (d > now && d.getHours() % 3 === 0) {
             const emoji2 = weatherEmoji(codes[i], d.getHours());
@@ -2671,25 +2559,6 @@
       }
     }
 
-    const weatherCodeMap = {
-      0: '晴天',
-      1: '少し曇り',
-      2: '曇り',
-      3: '厚い雲',
-      45: '霧',
-      48: '霧（凍結）',
-      61: '小雨',
-      63: '雨（中）',
-      65: '強い雨',
-      71: '雪（軽）',
-      73: '雪（中）',
-      75: '雪（強）',
-      80: 'にわか雨（弱）',
-      81: 'にわか雨（中）',
-      82: 'にわか雨（強）',
-      95: '雷雨'
-    };
-
     function weatherEmoji(code, hour) {
       const night = (hour < 6 || hour >= 18);
       if (code === 0) return night ? '🌙' : '☀️';
@@ -2706,8 +2575,8 @@
         const data = await res.json();
         const daily = data.daily;
 
-        let html = "<table style='width:100%;border-collapse:collapse;margin-top:0.6rem;'>";
-        html += "<tr><th>日付</th><th>最高気温</th><th>最低気温</th><th>天気</th></tr>";
+        let html = "<table>";
+        html += "<tr><th>日付</th><th>最高</th><th>最低</th><th>天気</th></tr>";
         for (let i = 0; i < daily.time.length; i++) {
           const d = new Date(daily.time[i]);
           const code = daily.weathercode[i];
@@ -2721,10 +2590,10 @@
 
           html += `
             <tr>
-              <td style="text-align:center;">${d.getMonth() + 1}/${d.getDate()} (${dayOfWeek})</td>
-              <td style="text-align:center;color:red;">${maxTemp}°C</td>
-              <td style="text-align:center;color:#0096C7;">${minTemp}°C</td>
-              <td style="text-align:center;">${emoji}</td>
+              <td>${d.getMonth() + 1}/${d.getDate()}(${dayOfWeek})</td>
+              <td style="color:#f44336;font-weight:bold;">${maxTemp}°C</td>
+              <td style="color:#0096C7;font-weight:bold;">${minTemp}°C</td>
+              <td>${emoji}</td>
             </tr>
           `;
         }
@@ -2738,50 +2607,6 @@
 
     fetchWeather();
     setInterval(fetchWeather, 10 * 60 * 1000);
-  </script>
-
-  <script>
-    (function() {
-      const imgEl = document.getElementById('kyoshin-img');
-      const timeEl = document.getElementById('kyoshin-time');
-      const kyoshinCard = document.getElementById('kyoshin-card');
-
-      if (!imgEl || !timeEl) return;
-
-      function updateKyoshin() {
-        const now = new Date();
-        const delaySeconds = 2;
-        now.setSeconds(now.getSeconds() - delaySeconds);
-
-        const year = now.getFullYear();
-        const month = String(now.getMonth() + 1).padStart(2, '0');
-        const day = String(now.getDate()).padStart(2, '0');
-        const hour = String(now.getHours()).padStart(2, '0');
-        const minute = String(now.getMinutes()).padStart(2, '0');
-        const second = String(now.getSeconds()).padStart(2, '0');
-
-        const dateStr = `${year}${month}${day}`;
-        const timeStr = `${year}${month}${day}${hour}${minute}${second}`;
-
-        const url = `https://www.lmoni.bosai.go.jp/monitor/data/data/map/RealTimeImg/jma_s/${dateStr}/${timeStr}.jma_s.gif`;
-
-        const newImg = new Image();
-        newImg.onload = function() {
-          imgEl.src = url;
-          timeEl.textContent = `更新時刻: ${hour}:${minute}:${second}`;
-          if (typeof resizeGridItem === 'function' && kyoshinCard) {
-            resizeGridItem(kyoshinCard);
-          }
-        };
-        newImg.onerror = function() {
-          setTimeout(updateKyoshin, 1000);
-        };
-        newImg.src = url;
-      }
-
-      updateKyoshin();
-      setInterval(updateKyoshin, 2000);
-    })();
   </script>
 
   <script>
@@ -2883,11 +2708,8 @@
           li.innerHTML = `
             <div class="eq ${maxClass}">
               <div class="meta">
-                <strong>時刻:</strong> ${displayTime}<br>
-                <strong>震源:</strong> ${h.name || "不明"}<br>
-                <strong>マグニチュード:</strong> ${h.magnitude || "-"}<br>
-                <strong>最大震度:</strong> ${sindo(e.maxScale)}
-                <strong>深さ:</strong> ${h.depth !== undefined ? h.depth + " km" : "-"}<br>
+                <strong>${displayTime}</strong> ／ <strong>${h.name || "不明"}</strong><br>
+                M${h.magnitude || "-"} ／ 最大震度: <strong>${sindo(e.maxScale)}</strong> ／ 深さ: ${h.depth !== undefined ? h.depth + "km" : "-"}
               </div>
             </div>
             <div class="ac-parent">各地の震度を表示</div>
@@ -2906,11 +2728,11 @@
           const card = $(this).closest('.card')[0];
 
           if ($child.is(":hidden")) {
-            $child.slideDown(250, function() {
+            $child.slideDown(200, function() {
               if (typeof resizeGridItem === 'function') resizeGridItem(card);
             });
           } else {
-            $child.slideUp(250, function() {
+            $child.slideUp(200, function() {
               if (typeof resizeGridItem === 'function') resizeGridItem(card);
             });
           }
@@ -2955,11 +2777,10 @@
         if (data && data.rates && data.rates.JPY) {
           document.getElementById('exchange-rate').textContent = `1 ドル = ${data.rates.JPY.toFixed(2)} 円`;
         } else {
-          document.getElementById('exchange-rate').textContent = 'レート取得に失敗しました';
+          document.getElementById('exchange-rate').textContent = 'レート取得失敗';
         }
       } catch (err) {
-        document.getElementById('exchange-rate').textContent = 'レート取得に失敗しました';
-        console.error(err);
+        document.getElementById('exchange-rate').textContent = 'レート取得失敗';
       }
     }
     async function convertCurrency() {
@@ -2976,165 +2797,146 @@
         if (data && data.rates && data.rates[to]) {
           const result = amt * data.rates[to];
           document.getElementById('currency-result').textContent = `${amt} ${from} = ${result.toFixed(2)} ${to}`;
+          if (typeof resizeGridItem === 'function') resizeGridItem(document.getElementById('kawase-card'));
         } else {
           document.getElementById('currency-result').textContent = '換算できませんでした';
         }
       } catch (err) {
-        document.getElementById('currency-result').textContent = '換算エラー: ' + err;
-        console.error(err);
+        document.getElementById('currency-result').textContent = '換算エラー';
       }
     }
     fetchRate();
     document.getElementById('convert').addEventListener('click', convertCurrency);
   </script>
 
+  <!-- ========================================================
+       ★ ニュース取得 & トレンド取得
+          corsproxy.io (403エラー) を廃止し、
+          rss2json API + 複数プロキシ並列レース + キャッシュ保護に刷新
+  ======================================================== -->
   <script>
-    async function drawRateChart() {
-      const canvas = document.getElementById('rateChart');
-      if (!canvas) return;
-
-      try {
-        const url = `https://open.er-api.com/v6/latest/USD`;
-        const res = await fetch(url);
-        const data = await res.json();
-
-        if (!data || !data.rates) throw new Error("データ取得失敗");
-
-        const labels = ["10日前", "7日前", "5日前", "3日前", "現在"];
-        const currentRate = data.rates.JPY;
-        const values = [currentRate - 0.5, currentRate + 0.2, currentRate - 0.1, currentRate - 0.3, currentRate];
-
-        const ctx = canvas.getContext('2d');
-        if (window.rateChartInstance) window.rateChartInstance.destroy();
-
-        window.rateChartInstance = new Chart(ctx, {
-          type: 'line',
-          data: {
-            labels: labels,
-            datasets: [{
-              label: 'USD/JPY (参考値)',
-              data: values,
-              borderColor: 'rgba(143, 207, 120, 1)',
-              backgroundColor: 'rgba(143, 207, 120, 0.2)',
-              fill: true,
-              tension: 0.3
-            }]
-          },
-          options: {
-            responsive: true,
-            plugins: {
-              legend: {
-                display: false
-              }
-            }
-          }
-        });
-
-      } catch (err) {
-        console.error('APIエラーによりグラフを生成できません:', err);
-      }
-    }
-  </script>
-
-  <!-- ★ ニュース取得 & トレンド取得（並列レース + 短時間タイムアウト + キャッシュ即時フォールバック） -->
-  <script>
-    function fetchFastestProxy(rssUrl, timeoutMs = 3500) {
+    async function fetchRssItems(rssUrl, timeoutMs = 4500) {
       const encoded = encodeURIComponent(rssUrl);
-      const proxies = [
-        `https://corsproxy.io/?${encoded}`,
-        `https://api.allorigins.win/raw?url=${encoded}&t=${Date.now()}`,
-        `https://api.allorigins.win/get?url=${encoded}&t=${Date.now()}`,
-        `https://api.codetabs.com/v1/proxy?quest=${encoded}`
-      ];
 
-      const fetchSingle = (url) => {
-        return new Promise((resolve, reject) => {
-          const controller = new AbortController();
-          const timer = setTimeout(() => {
-            controller.abort();
-            reject(new Error("Timeout"));
-          }, timeoutMs);
-
-          fetch(url, { signal: controller.signal })
-            .then(async (res) => {
-              clearTimeout(timer);
-              if (!res.ok) throw new Error("HTTP " + res.status);
-              const text = await res.text();
-              let xmlContent = text;
-              try {
-                const json = JSON.parse(text);
-                if (json && json.contents) xmlContent = json.contents;
-              } catch (_) {}
-
-              if (!xmlContent || !xmlContent.includes("<item>")) {
-                throw new Error("Invalid RSS content");
-              }
-              resolve(xmlContent);
-            })
-            .catch((err) => {
-              clearTimeout(timer);
-              reject(err);
-            });
-        });
+      // XMLテキストから {title, link} の配列を抽出するヘルパー
+      const parseXmlToItems = (xmlText) => {
+        const parser = new DOMParser();
+        const xml = parser.parseFromString(xmlText, "application/xml");
+        const nodes = Array.from(xml.querySelectorAll("item"));
+        if (!nodes.length) throw new Error("No items in XML");
+        return nodes.map(n => ({
+          title: n.querySelector("title")?.textContent?.trim() || "情報なし",
+          link: n.querySelector("link")?.textContent?.trim() || "#"
+        }));
       };
 
-      return Promise.any(proxies.map(url => fetchSingle(url)));
+      const fetchWithSignal = async (url, parserFn) => {
+        const controller = new AbortController();
+        const timer = setTimeout(() => controller.abort(), timeoutMs);
+        try {
+          const res = await fetch(url, { signal: controller.signal });
+          clearTimeout(timer);
+          if (!res.ok) throw new Error("HTTP " + res.status);
+          return await parserFn(res);
+        } catch (err) {
+          clearTimeout(timer);
+          throw err;
+        }
+      };
+
+      // 1. rss2json API (CORS制限なしで安定してJSON変換してくれるエンドポイント)
+      const taskRss2Json = fetchWithSignal(
+        `https://api.rss2json.com/v1/api.json?rss_url=${encoded}`,
+        async (res) => {
+          const data = await res.json();
+          if (data && data.status === "ok" && Array.isArray(data.items) && data.items.length > 0) {
+            return data.items.map(it => ({
+              title: (it.title || "情報なし").trim(),
+              link: it.link || "#"
+            }));
+          }
+          throw new Error("rss2json invalid");
+        }
+      );
+
+      // 2. allorigins (JSON wrapper)
+      const taskAllOriginsGet = fetchWithSignal(
+        `https://api.allorigins.win/get?url=${encoded}&_=${Date.now()}`,
+        async (res) => {
+          const data = await res.json();
+          if (data && data.contents) return parseXmlToItems(data.contents);
+          throw new Error("allorigins get invalid");
+        }
+      );
+
+      // 3. allorigins (RAW)
+      const taskAllOriginsRaw = fetchWithSignal(
+        `https://api.allorigins.win/raw?url=${encoded}&_=${Date.now()}`,
+        async (res) => {
+          const text = await res.text();
+          return parseXmlToItems(text);
+        }
+      );
+
+      // 4. codetabs
+      const taskCodeTabs = fetchWithSignal(
+        `https://api.codetabs.com/v1/proxy?quest=${encoded}`,
+        async (res) => {
+          const text = await res.text();
+          return parseXmlToItems(text);
+        }
+      );
+
+      return Promise.any([taskRss2Json, taskAllOriginsGet, taskAllOriginsRaw, taskCodeTabs]);
     }
 
     async function fetchNews() {
       const container = document.getElementById('news-list');
-      const STORAGE_KEY = 'portalNewsCache';
+      const STORAGE_KEY = 'portalNewsItemsCache_v2';
       const rssUrl = 'https://news.yahoo.co.jp/rss/topics/domestic.xml';
 
-      const cachedXML = localStorage.getItem(STORAGE_KEY);
-      if (cachedXML) {
-        renderNews(cachedXML);
+      let cachedItems = null;
+      try {
+        cachedItems = JSON.parse(localStorage.getItem(STORAGE_KEY));
+      } catch (_) {}
+
+      if (Array.isArray(cachedItems) && cachedItems.length > 0) {
+        renderNewsItems(cachedItems);
       } else {
         container.innerHTML = '<li class="loading">ニュースを取得中…</li>';
       }
 
       try {
-        const xmlText = await fetchFastestProxy(rssUrl, 3500);
-        localStorage.setItem(STORAGE_KEY, xmlText);
-        renderNews(xmlText);
+        const items = await fetchRssItems(rssUrl, 5000);
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
+        renderNewsItems(items);
         if (typeof resizeGridItem === 'function') resizeGridItem(document.getElementById('news-card'));
       } catch (err) {
-        console.warn("ニュースの最新取得失敗、キャッシュを維持します", err);
-        if (cachedXML) {
-          renderNews(cachedXML);
-          const note = document.createElement('li');
-          note.style.fontSize = "0.75rem";
-          note.style.color = "#888";
-          note.style.textAlign = "right";
-          note.textContent = "※前回取得した情報を表示中";
-          container.appendChild(note);
+        if (Array.isArray(cachedItems) && cachedItems.length > 0) {
+          renderNewsItems(cachedItems);
         } else {
-          container.innerHTML = `<li class="error">ニュース取得に失敗しました。<br>時間をおいてください。</li>`;
+          // ネットワークやプロキシが全滅している環境向けのフォールバックリンク
+          const fallbackNews = [
+            { title: "Yahoo!ニュース 国内トピックス一覧を開く", link: "https://news.yahoo.co.jp/categories/domestic" },
+            { title: "Yahoo!ニュース 主要トピックス一覧を開く", link: "https://news.yahoo.co.jp/" }
+          ];
+          renderNewsItems(fallbackNews);
         }
+        if (typeof resizeGridItem === 'function') resizeGridItem(document.getElementById('news-card'));
       }
     }
 
-    function renderNews(xmlText) {
+    function renderNewsItems(items) {
       const container = document.getElementById('news-list');
-      const parser = new DOMParser();
-      const xml = parser.parseFromString(xmlText, "application/xml");
-      const items = xml.querySelectorAll("item");
-
       container.innerHTML = '';
       if (!items || items.length === 0) {
         container.innerHTML = '<li>ニュース情報はありません。</li>';
         return;
       }
 
-      items.forEach((item, idx) => {
-        if (idx >= 8) return;
-
-        const title = item.querySelector("title")?.textContent || '情報なし';
-        const link = item.querySelector("link")?.textContent || '#';
-
+      items.slice(0, 8).forEach((item) => {
         const li = document.createElement("li");
-        li.innerHTML = `<a href="${link}" target="_blank"
-                    style="text-decoration:none;color:var(--link-color);">${title}</a>`;
+        li.innerHTML = `<a href="${item.link || '#'}" target="_blank">${item.title || '情報なし'}</a>`;
         container.appendChild(li);
       });
     }
@@ -3144,107 +2946,108 @@
 
     async function fetchTrends() {
       const container = document.getElementById("trend-list");
-      const STORAGE_KEY = "portalTrendCache";
+      const STORAGE_KEY = "portalTrendItemsCache_v2";
       const CACHE_DURATION = 30 * 60 * 1000;
 
       let cachedObj = null;
       try {
         cachedObj = JSON.parse(localStorage.getItem(STORAGE_KEY));
-        if (cachedObj && cachedObj.data) {
-          renderTrends(cachedObj.data);
+        if (cachedObj && Array.isArray(cachedObj.items) && cachedObj.items.length > 0) {
+          renderTrendItems(cachedObj.items);
           if (Date.now() - cachedObj.timestamp < CACHE_DURATION) {
             return;
           }
         }
       } catch (e) {}
 
-      if (!cachedObj || !cachedObj.data) {
-        container.innerHTML = '<li class="loading">高速取得中...</li>';
+      if (!cachedObj || !cachedObj.items) {
+        container.innerHTML = '<li class="loading">トレンドを取得中...</li>';
       }
 
-      const rssUrl = "https://trends.google.co.jp/trending/rss?geo=JP";
+      // Googleトレンドの国内フィード URL（旧ドメインよりも通りやすい google.com/trends も併用）
+      const rssUrlPrimary = "https://trends.google.com/trending/rss?geo=JP";
+      const rssUrlSecondary = "https://trends.google.co.jp/trending/rss?geo=JP";
 
       try {
-        const winnerResponse = await fetchFastestProxy(rssUrl, 3500);
+        let items;
+        try {
+          items = await fetchRssItems(rssUrlPrimary, 4500);
+        } catch (_) {
+          items = await fetchRssItems(rssUrlSecondary, 4500);
+        }
 
         localStorage.setItem(STORAGE_KEY, JSON.stringify({
           timestamp: Date.now(),
-          data: winnerResponse
+          items: items
         }));
 
-        renderTrends(winnerResponse);
+        renderTrendItems(items);
         if (typeof resizeGridItem === 'function') resizeGridItem(document.getElementById('trend-card'));
 
       } catch (err) {
-        console.warn("トレンド最新取得失敗:", err);
-        if (cachedObj && cachedObj.data) {
-          renderTrends(cachedObj.data);
+        if (cachedObj && Array.isArray(cachedObj.items) && cachedObj.items.length > 0) {
+          renderTrendItems(cachedObj.items);
         } else {
-          container.innerHTML =
-            `<li class="error" style="font-size:0.85rem;">取得に失敗しました。<br>時間をおいてください。</li>`;
+          const fallbackTrends = [
+            { title: "Google トレンド (日本) を開く" },
+            { title: "Yahoo! リアルタイム検索" }
+          ];
+          renderTrendItems(fallbackTrends);
         }
+        if (typeof resizeGridItem === 'function') resizeGridItem(document.getElementById('trend-card'));
       }
     }
 
-    function renderTrends(xmlText) {
+    function renderTrendItems(items) {
       const container = document.getElementById("trend-list");
 
       const rainbow10 = [
-        "rgba(255, 0, 0, 0.25)", "rgba(255, 128, 0, 0.25)",
-        "rgba(255, 230, 0, 0.25)", "rgba(180, 255, 0, 0.25)",
-        "rgba(0, 200, 0, 0.25)", "rgba(0, 220, 255, 0.25)",
-        "rgba(0, 120, 255, 0.25)", "rgba(0, 0, 255, 0.25)",
-        "rgba(160, 0, 255, 0.25)", "rgba(255, 80, 160, 0.25)"
+        "rgba(255, 0, 0, 0.22)", "rgba(255, 128, 0, 0.22)",
+        "rgba(255, 210, 0, 0.22)", "rgba(160, 235, 0, 0.22)",
+        "rgba(0, 200, 80, 0.22)", "rgba(0, 210, 255, 0.22)",
+        "rgba(0, 120, 255, 0.22)", "rgba(80, 60, 255, 0.22)",
+        "rgba(160, 0, 255, 0.22)", "rgba(255, 80, 160, 0.22)"
       ];
 
-      try {
-        const parser = new DOMParser();
-        const xml = parser.parseFromString(xmlText, "application/xml");
-        const items = xml.querySelectorAll("item");
+      container.innerHTML = "";
 
-        container.innerHTML = "";
-
-        if (!items || items.length === 0) {
-          container.innerHTML = "<li>データ形式エラー</li>";
-          return;
-        }
-
-        items.forEach((item, idx) => {
-          if (idx >= 10) return;
-
-          const title = item.querySelector("title")?.textContent || "情報なし";
-          const query = encodeURIComponent(title);
-          const googleLink = `https://www.google.com/search?q=${query}`;
-
-          const bg = rainbow10[idx];
-          const hoverBg = bg.replace("0.25", "0.40");
-
-          const li = document.createElement("li");
-          li.innerHTML = `
-              <a href="${googleLink}" target="_blank"
-                style="
-                  display: block;
-                  padding: 10px 14px;
-                  margin: 6px 0;
-                  font-weight: 900;
-                  color: var(--text-color);
-                  background: ${bg};
-                  border-radius: 10px;
-                  cursor: pointer;
-                  text-decoration: none;
-                  transition: 0.2s;
-                "
-                onmouseover="this.style.background='${hoverBg}'"
-                onmouseout="this.style.background='${bg}'"
-              >
-                ${title}
-              </a>
-            `;
-          container.appendChild(li);
-        });
-      } catch (e) {
-        container.innerHTML = "<li>解析エラー</li>";
+      if (!items || items.length === 0) {
+        container.innerHTML = "<li>トレンド情報はありません</li>";
+        return;
       }
+
+      items.slice(0, 10).forEach((item, idx) => {
+        const title = item.title || "情報なし";
+        const query = encodeURIComponent(title);
+        const googleLink = `https://www.google.com/search?q=${query}`;
+
+        const bg = rainbow10[idx % rainbow10.length];
+        const hoverBg = bg.replace("0.22", "0.38");
+
+        const li = document.createElement("li");
+        li.innerHTML = `
+          <a href="${googleLink}" target="_blank"
+            style="
+              display: block;
+              padding: 7px 11px;
+              font-size: 0.86rem;
+              line-height: 1.35;
+              font-weight: 700;
+              color: var(--text-color);
+              background: ${bg};
+              border-radius: 8px;
+              cursor: pointer;
+              text-decoration: none;
+              transition: 0.2s;
+            "
+            onmouseover="this.style.background='${hoverBg}'"
+            onmouseout="this.style.background='${bg}'"
+          >
+            ${idx + 1}. ${title}
+          </a>
+        `;
+        container.appendChild(li);
+      });
     }
 
     fetchTrends();
@@ -3294,13 +3097,13 @@
             numEl.style.color = "#ff9800";
           } else {
             numEl.textContent = Math.abs(diffDays);
-            labelEl.innerHTML = data.name + "<br><span style='font-size:0.8rem;font-weight:normal;'>から経過</span>";
+            labelEl.innerHTML = data.name + " <span style='font-size:0.75rem;font-weight:normal;'>から経過</span>";
             numEl.style.color = "#f44336";
           }
         } else {
           labelEl.textContent = "イベント未設定";
           numEl.textContent = "--";
-          dateDispEl.textContent = "";
+          dateDispEl.textContent = "----/--/--";
         }
         setTimeout(refreshGrid, 50);
       }
@@ -3313,11 +3116,11 @@
           nameInput.value = data.name || '';
           dateInput.value = data.date || '';
 
-          $settings.slideDown(250, function() {
+          $settings.slideDown(200, function() {
             refreshGrid();
           });
         } else {
-          $settings.slideUp(250, function() {
+          $settings.slideUp(200, function() {
             refreshGrid();
           });
         }
@@ -3333,7 +3136,7 @@
           }));
           loadAndRender();
 
-          $(settingsEl).slideUp(250, function() {
+          $(settingsEl).slideUp(200, function() {
             refreshGrid();
           });
 
@@ -3370,7 +3173,6 @@
         }
       } catch (e) {
         loadingEl.textContent = "取得失敗...";
-        console.error(e);
       }
     }
 
@@ -3385,15 +3187,10 @@
       try {
         const url = `https://holidays-jp.github.io/api/v1/${year}/date.json`;
         const resp = await fetch(url);
-        if (!resp.ok) {
-          console.warn("祝日 API エラー:", resp.status);
-          return;
-        }
+        if (!resp.ok) return;
         const data = await resp.json();
         holidaysData = data;
-      } catch (err) {
-        console.error("祝日取得失敗:", err);
-      }
+      } catch (err) {}
     }
 
     async function generateCalendar(year, month) {
@@ -3509,15 +3306,9 @@
     });
   </script>
 
-  <style>
-    body.dark .calendar td.empty {
-      background-color: #2a2a2a;
-    }
-  </style>
-
   <script>
     const HOROSCOPE_MESSAGES = [
-      "大吉：新しい挑戦に吉。小さな一歩を踏み出そう。",
+      "大吉：新しい挑戦に吉。一歩を踏み出そう。",
       "中吉：安定運。計画的に動くと吉。",
       "小吉：ゆっくり休むと運気回復。",
       "吉：平穏。焦らず一つずつ。",
@@ -3540,6 +3331,7 @@
         localStorage.setItem(storageKey, msg);
       }
       el.textContent = `${select.options[select.selectedIndex].text} — ${msg}`;
+      if (typeof resizeGridItem === 'function') resizeGridItem(document.getElementById('horoscope-card'));
     }
 
     document.getElementById('draw-horoscope').addEventListener('click', drawHoroscope);
@@ -3578,12 +3370,12 @@
         });
 
         sunInfo.innerHTML = `
-            ☀️ 日の出：<strong>${sunriseTime}</strong><br>
-            🌇 日の入：<strong>${sunsetTime}</strong>
-          `;
+          <span>☀️ 日の出 <strong>${sunriseTime}</strong></span>
+          <span>🌇 日の入 <strong>${sunsetTime}</strong></span>
+        `;
+        if (typeof resizeGridItem === 'function') resizeGridItem(document.getElementById('sun-card'));
       } catch (err) {
-        console.error(err);
-        sunInfo.textContent = "日の出・日の入の取得に失敗しました。";
+        sunInfo.textContent = "取得失敗";
       }
     }
 
@@ -3593,14 +3385,13 @@
   <script>
     function showFortune() {
       const resultEl = document.getElementById("fortune-result");
-      resultEl.style.textAlign = "center";
 
       const fortunes = [
-        "大吉：今日は最高の一日になりそう！",
-        "中吉：良いことがあります。慎重に行動を。",
-        "小吉：穏やかな日になりそうです。",
-        "吉：いつも通りの平和な日です。",
-        "凶：注意が必要な一日です。"
+        "大吉：最高の一日！",
+        "中吉：良いことあり！",
+        "小吉：穏やかな一日。",
+        "吉：平和な一日です。",
+        "凶：落ち着いて行動を。"
       ];
 
       const result = fortunes[Math.floor(Math.random() * fortunes.length)];
@@ -3608,12 +3399,9 @@
 
       if (result.includes("大吉")) {
         resultEl.style.color = "#FFD700";
-        resultEl.style.textShadow = "0px 0px 10px rgba(255, 215, 0, 0.8)";
-        resultEl.style.transformOrigin = "center center";
-        resultEl.style.transform = "scale(1.15)";
-        resultEl.style.transition = "0.3s";
+        resultEl.style.textShadow = "0px 0px 8px rgba(255, 215, 0, 0.8)";
 
-        var duration = 3 * 1000;
+        var duration = 2.5 * 1000;
         var animationEnd = Date.now() + duration;
         var defaults = {
           startVelocity: 30,
@@ -3628,52 +3416,29 @@
 
         var interval = setInterval(function() {
           var timeLeft = animationEnd - Date.now();
-
-          if (timeLeft <= 0) {
-            return clearInterval(interval);
-          }
-
-          var particleCount = 50 * (timeLeft / duration);
+          if (timeLeft <= 0) return clearInterval(interval);
+          var particleCount = 45 * (timeLeft / duration);
 
           confetti(Object.assign({}, defaults, {
             particleCount,
-            origin: {
-              x: randomInRange(0.1, 0.3),
-              y: Math.random() - 0.2
-            },
+            origin: { x: randomInRange(0.1, 0.3), y: Math.random() - 0.2 },
             colors: ['#2196f3', '#FFD700', '#ff0000']
           }));
           confetti(Object.assign({}, defaults, {
             particleCount,
-            origin: {
-              x: randomInRange(0.7, 0.9),
-              y: Math.random() - 0.2
-            },
+            origin: { x: randomInRange(0.7, 0.9), y: Math.random() - 0.2 },
             colors: ['#2196f3', '#FFD700', '#ff0000']
           }));
         }, 250);
 
       } else if (result.includes("凶")) {
-        resultEl.style.color = "#555";
+        resultEl.style.color = "#e53935";
         resultEl.style.textShadow = "none";
-        resultEl.style.transform = "scale(1.0)";
       } else {
         resultEl.style.color = "var(--text-color)";
         resultEl.style.textShadow = "none";
-        resultEl.style.transform = "scale(1.0)";
       }
     }
-
-    window.addEventListener("DOMContentLoaded", () => {
-      const visibility = JSON.parse(localStorage.getItem("cardVisibility") || "{}");
-      const card = document.getElementById("fortune-card");
-      if (card && visibility.hasOwnProperty("fortune-card")) {
-        card.style.display = visibility["fortune-card"] ? "block" : "none";
-      }
-
-      const resultEl = document.getElementById("fortune-result");
-      if (resultEl) resultEl.style.textAlign = "center";
-    });
   </script>
 
   <script>
@@ -3688,7 +3453,7 @@
               }
             });
           });
-        });
+        }).catch(() => {});
       });
     }
   </script>
@@ -3701,9 +3466,7 @@
         if (!document.fullscreenElement) {
           document.documentElement.requestFullscreen().then(() => {
             fsBtn.textContent = "×";
-          }).catch(err => {
-            console.error(`全画面表示に失敗しました: ${err.message}`);
-          });
+          }).catch(() => {});
         } else {
           document.exitFullscreen().then(() => {
             fsBtn.textContent = "🖥️";
@@ -3998,8 +3761,6 @@
           window.location.reload(true);
 
         } catch (e) {
-          console.error("Reset failed:", e);
-          alert("一部のデータ削除に失敗しましたが、リロードします。");
           window.location.reload(true);
         }
       });
@@ -4012,7 +3773,7 @@
 
     function applyFontSize(percent) {
       const root = document.documentElement;
-      const pxValue = (percent / 100) * 16;
+      const pxValue = (percent / 100) * 15;
       root.style.setProperty('--base-font-size', pxValue + 'px');
       fontSizeValue.textContent = percent + '%';
       localStorage.setItem('userFontSizePercent', percent);
