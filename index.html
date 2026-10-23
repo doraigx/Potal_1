@@ -1661,7 +1661,6 @@
     const CELL_HEIGHT = 116; // 1マスの縦幅(px) - 1マスカードが丁度収まる基準高
     const CELL_GAP = 16;     // マス同士の隙間(px)
 
-    // 現在の画面幅に応じたグリッド列数を計算（スマホは1列、タブレット・PCは2〜5列）
     function getGridCols() {
       if (window.innerWidth <= 600) return 1;
       const w = widgets.clientWidth || window.innerWidth - 48;
@@ -1680,13 +1679,11 @@
       localStorage.setItem(GRID_POS_KEY, JSON.stringify(pos));
     }
 
-    // カードの自然な高さを計測し、何マス分（rowSpan）必要かを正確に算出
     function calcCardSpan(card) {
       if (!card || card.style.display === "none") return 1;
       card.classList.add("measuring-card");
       const h = card.getBoundingClientRect().height || card.offsetHeight || CELL_HEIGHT;
       card.classList.remove("measuring-card");
-      // 微小な誤差(6px以内)は切り上げずそのマスに収める
       return Math.max(1, Math.ceil((h - 6 + CELL_GAP) / (CELL_HEIGHT + CELL_GAP)));
     }
 
@@ -1704,7 +1701,6 @@
       }
     }
 
-    // 編集モード時の背景マス目ガイドを描画
     function renderEditGridGuides(cols, maxRow) {
       widgets.querySelectorAll(".grid-cell-guide").forEach(el => el.remove());
       if (!editMode || cols <= 1) return;
@@ -1723,7 +1719,6 @@
       widgets.appendChild(frag);
     }
 
-    // ★ メインの2Dグリッド配置計算関数
     function applyGridLayout(prioritizeCardId = null) {
       if (!widgets) return;
       isResizing = true;
@@ -2811,88 +2806,90 @@
 
   <!-- ========================================================
        ★ ニュース取得 & トレンド取得
-          corsproxy.io (403エラー) を廃止し、
-          rss2json API + 複数プロキシ並列レース + キャッシュ保護に刷新
+          CORSブロックされるプロキシ(corsproxy.io / rss2json / codetabs)を完全廃止し、
+          疎通確認済みの allorigins/raw + JSONP方式（CORS影響ゼロ）に刷新
   ======================================================== -->
   <script>
-    async function fetchRssItems(rssUrl, timeoutMs = 4500) {
+    // XML文字列から {title, link} の配列を抽出
+    function parseRssXml(xmlText) {
+      if (!xmlText || !xmlText.includes("<item>")) {
+        throw new Error("Invalid XML");
+      }
+      const parser = new DOMParser();
+      const xml = parser.parseFromString(xmlText, "application/xml");
+      const nodes = Array.from(xml.querySelectorAll("item"));
+      if (!nodes.length) throw new Error("No items");
+      return nodes.map(n => ({
+        title: n.querySelector("title")?.textContent?.trim() || "情報なし",
+        link: n.querySelector("link")?.textContent?.trim() || "#"
+      }));
+    }
+
+    // CORS制限を一切受けない <script> タグ(JSONP)によるバックアップ取得
+    function fetchViaJsonp(rssUrl, timeoutMs = 6000) {
+      return new Promise((resolve, reject) => {
+        const cbName = "rss_jsonp_" + Math.random().toString(36).slice(2);
+        const script = document.createElement("script");
+        let timer = setTimeout(() => {
+          cleanup();
+          reject(new Error("JSONP timeout"));
+        }, timeoutMs);
+
+        function cleanup() {
+          clearTimeout(timer);
+          delete window[cbName];
+          if (script.parentNode) script.parentNode.removeChild(script);
+        }
+
+        window[cbName] = (data) => {
+          cleanup();
+          try {
+            if (data && data.contents) {
+              resolve(parseRssXml(data.contents));
+            } else {
+              reject(new Error("Empty JSONP contents"));
+            }
+          } catch (e) {
+            reject(e);
+          }
+        };
+
+        script.onerror = () => {
+          cleanup();
+          reject(new Error("JSONP load error"));
+        };
+
+        script.src = `https://api.allorigins.win/get?url=${encodeURIComponent(rssUrl)}&callback=${cbName}&_=${Date.now()}`;
+        document.head.appendChild(script);
+      });
+    }
+
+    // 1. まず通過できる allorigins/raw を試し、ダメなら JSONP を使う順次方式（無駄なエラーを出さない）
+    async function fetchRssItemsClean(rssUrl) {
       const encoded = encodeURIComponent(rssUrl);
 
-      // XMLテキストから {title, link} の配列を抽出するヘルパー
-      const parseXmlToItems = (xmlText) => {
-        const parser = new DOMParser();
-        const xml = parser.parseFromString(xmlText, "application/xml");
-        const nodes = Array.from(xml.querySelectorAll("item"));
-        if (!nodes.length) throw new Error("No items in XML");
-        return nodes.map(n => ({
-          title: n.querySelector("title")?.textContent?.trim() || "情報なし",
-          link: n.querySelector("link")?.textContent?.trim() || "#"
-        }));
-      };
-
-      const fetchWithSignal = async (url, parserFn) => {
+      // Step 1: allorigins/raw (GitHub Pagesから疎通確認済み)
+      try {
         const controller = new AbortController();
-        const timer = setTimeout(() => controller.abort(), timeoutMs);
-        try {
-          const res = await fetch(url, { signal: controller.signal });
-          clearTimeout(timer);
-          if (!res.ok) throw new Error("HTTP " + res.status);
-          return await parserFn(res);
-        } catch (err) {
-          clearTimeout(timer);
-          throw err;
-        }
-      };
-
-      // 1. rss2json API (CORS制限なしで安定してJSON変換してくれるエンドポイント)
-      const taskRss2Json = fetchWithSignal(
-        `https://api.rss2json.com/v1/api.json?rss_url=${encoded}`,
-        async (res) => {
-          const data = await res.json();
-          if (data && data.status === "ok" && Array.isArray(data.items) && data.items.length > 0) {
-            return data.items.map(it => ({
-              title: (it.title || "情報なし").trim(),
-              link: it.link || "#"
-            }));
-          }
-          throw new Error("rss2json invalid");
-        }
-      );
-
-      // 2. allorigins (JSON wrapper)
-      const taskAllOriginsGet = fetchWithSignal(
-        `https://api.allorigins.win/get?url=${encoded}&_=${Date.now()}`,
-        async (res) => {
-          const data = await res.json();
-          if (data && data.contents) return parseXmlToItems(data.contents);
-          throw new Error("allorigins get invalid");
-        }
-      );
-
-      // 3. allorigins (RAW)
-      const taskAllOriginsRaw = fetchWithSignal(
-        `https://api.allorigins.win/raw?url=${encoded}&_=${Date.now()}`,
-        async (res) => {
+        const timer = setTimeout(() => controller.abort(), 6000);
+        const res = await fetch(`https://api.allorigins.win/raw?url=${encoded}`, {
+          signal: controller.signal,
+          cache: "no-store"
+        });
+        clearTimeout(timer);
+        if (res.ok) {
           const text = await res.text();
-          return parseXmlToItems(text);
+          return parseRssXml(text);
         }
-      );
+      } catch (_) {}
 
-      // 4. codetabs
-      const taskCodeTabs = fetchWithSignal(
-        `https://api.codetabs.com/v1/proxy?quest=${encoded}`,
-        async (res) => {
-          const text = await res.text();
-          return parseXmlToItems(text);
-        }
-      );
-
-      return Promise.any([taskRss2Json, taskAllOriginsGet, taskAllOriginsRaw, taskCodeTabs]);
+      // Step 2: JSONP フォールバック (fetch や Service Worker を通らないため CORS / sw.js エラーが起きない)
+      return await fetchViaJsonp(rssUrl, 6000);
     }
 
     async function fetchNews() {
       const container = document.getElementById('news-list');
-      const STORAGE_KEY = 'portalNewsItemsCache_v2';
+      const STORAGE_KEY = 'portalNewsItemsCache_v3';
       const rssUrl = 'https://news.yahoo.co.jp/rss/topics/domestic.xml';
 
       let cachedItems = null;
@@ -2907,21 +2904,17 @@
       }
 
       try {
-        const items = await fetchRssItems(rssUrl, 5000);
+        const items = await fetchRssItemsClean(rssUrl);
         localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
         renderNewsItems(items);
-        if (typeof resizeGridItem === 'function') resizeGridItem(document.getElementById('news-card'));
-      } catch (err) {
-        if (Array.isArray(cachedItems) && cachedItems.length > 0) {
-          renderNewsItems(cachedItems);
-        } else {
-          // ネットワークやプロキシが全滅している環境向けのフォールバックリンク
-          const fallbackNews = [
-            { title: "Yahoo!ニュース 国内トピックス一覧を開く", link: "https://news.yahoo.co.jp/categories/domestic" },
-            { title: "Yahoo!ニュース 主要トピックス一覧を開く", link: "https://news.yahoo.co.jp/" }
-          ];
-          renderNewsItems(fallbackNews);
+      } catch (_) {
+        if (!Array.isArray(cachedItems) || cachedItems.length === 0) {
+          renderNewsItems([
+            { title: "Yahoo!ニュース 国内トピックスを開く", link: "https://news.yahoo.co.jp/categories/domestic" },
+            { title: "Yahoo!ニュース 主要トピックスを開く", link: "https://news.yahoo.co.jp/" }
+          ]);
         }
+      } finally {
         if (typeof resizeGridItem === 'function') resizeGridItem(document.getElementById('news-card'));
       }
     }
@@ -2946,7 +2939,7 @@
 
     async function fetchTrends() {
       const container = document.getElementById("trend-list");
-      const STORAGE_KEY = "portalTrendItemsCache_v2";
+      const STORAGE_KEY = "portalTrendItemsCache_v3";
       const CACHE_DURATION = 30 * 60 * 1000;
 
       let cachedObj = null;
@@ -2964,17 +2957,10 @@
         container.innerHTML = '<li class="loading">トレンドを取得中...</li>';
       }
 
-      // Googleトレンドの国内フィード URL（旧ドメインよりも通りやすい google.com/trends も併用）
-      const rssUrlPrimary = "https://trends.google.com/trending/rss?geo=JP";
-      const rssUrlSecondary = "https://trends.google.co.jp/trending/rss?geo=JP";
+      const rssUrl = "https://trends.google.co.jp/trending/rss?geo=JP";
 
       try {
-        let items;
-        try {
-          items = await fetchRssItems(rssUrlPrimary, 4500);
-        } catch (_) {
-          items = await fetchRssItems(rssUrlSecondary, 4500);
-        }
+        const items = await fetchRssItemsClean(rssUrl);
 
         localStorage.setItem(STORAGE_KEY, JSON.stringify({
           timestamp: Date.now(),
@@ -2982,18 +2968,14 @@
         }));
 
         renderTrendItems(items);
-        if (typeof resizeGridItem === 'function') resizeGridItem(document.getElementById('trend-card'));
-
-      } catch (err) {
-        if (cachedObj && Array.isArray(cachedObj.items) && cachedObj.items.length > 0) {
-          renderTrendItems(cachedObj.items);
-        } else {
-          const fallbackTrends = [
-            { title: "Google トレンド (日本) を開く" },
-            { title: "Yahoo! リアルタイム検索" }
-          ];
-          renderTrendItems(fallbackTrends);
+      } catch (_) {
+        if (!cachedObj || !Array.isArray(cachedObj.items) || cachedObj.items.length === 0) {
+          renderTrendItems([
+            { title: "Google トレンド (急上昇ワード) を確認" },
+            { title: "Yahoo! リアルタイム検索を確認" }
+          ]);
         }
+      } finally {
         if (typeof resizeGridItem === 'function') resizeGridItem(document.getElementById('trend-card'));
       }
     }
