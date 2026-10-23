@@ -112,16 +112,16 @@
       position: relative;
       min-height: 80vh;
       box-sizing: border-box;
-      transition: padding 0.2s ease;
     }
 
-    /* 編集モード時のグリッドパレット表示（PC/タブレット） */
+    /* 編集モード時のグリッドパレット表示（PC/タブレット）
+       ※paddingやborderを入れずoutlineを使うことで、中央にギュッと縮んで文字が改行されるのを防止 */
     @media screen and (min-width: 601px) {
       .widgets.edit-grid-active {
-        padding: 16px;
         border-radius: 16px;
         background-color: rgba(33, 150, 243, 0.03);
-        border: 2px dashed rgba(33, 150, 243, 0.35);
+        outline: 2px dashed rgba(33, 150, 243, 0.35);
+        outline-offset: 6px;
       }
 
       /* ドロップ先のハイライトガイド枠 */
@@ -146,9 +146,10 @@
       }
     }
 
+    /* カードの高さをグリッドのマス目（100%）にピタッと合わせる */
     .widgets .card {
       width: 100%;
-      height: fit-content;
+      height: 100%;
       margin: 0;
       background: var(--card-bg);
       border-radius: 12px;
@@ -167,7 +168,6 @@
 
     .widgets.edit-grid-active .card:hover {
       outline: 2px solid #4caf50;
-      transform: scale(1.01);
     }
 
     /* スマホサイズ（600px以下）では今まで通り縦1列に整列 */
@@ -183,6 +183,7 @@
         min-height: auto;
       }
       .widgets .card {
+        height: auto;
         grid-column: auto !important;
         grid-row: auto !important;
       }
@@ -441,7 +442,7 @@
     .calendar th,
     .calendar td {
       border: 1px solid rgba(0, 0, 0, 0.2);
-      padding: 0.6rem;
+      padding: 0.6rem 0.2rem;
       text-align: center;
     }
 
@@ -501,6 +502,7 @@
       transform: translateX(-50%);
       font-weight: bold;
       font-size: 1.2rem;
+      white-space: nowrap;
     }
 
     html[data-theme="dark"].calendar {
@@ -1278,6 +1280,7 @@
 
     .card h2 {
       font-size: calc(var(--base-font-size) * 1.2);
+      margin-top: 0;
     }
 
     .app-dl-container {
@@ -1761,10 +1764,16 @@
       localStorage.setItem(GRID_POS_KEY, JSON.stringify(pos));
     }
 
-    // カードの高さが何マス分（rowSpan）かを計測
+    // ★ カード本来の高さが何マス分（rowSpan）かを正確に計測し、カードの高さをグリッドに合わせる
     function calcCardSpan(card) {
       if (!card || card.style.display === "none") return 1;
+
+      // height: 100% によるグリッド引き伸ばしを一時解除して、純粋なコンテンツ高さを測る
+      const prevHeight = card.style.height;
+      card.style.height = "auto";
       const h = card.offsetHeight || card.getBoundingClientRect().height || 120;
+      card.style.height = prevHeight;
+
       return Math.max(1, Math.ceil((h + CELL_GAP) / (CELL_HEIGHT + CELL_GAP)));
     }
 
@@ -1818,6 +1827,7 @@
         cards.forEach(c => {
           c.style.gridColumn = "";
           c.style.gridRow = "";
+          c.style.height = "auto";
         });
         widgets.querySelectorAll(".grid-cell-guide").forEach(el => el.remove());
         setTimeout(() => { isResizing = false; }, 50);
@@ -1827,6 +1837,13 @@
       const posData = getSavedPositions();
       const occupied = {};
       let maxRowUsed = 1;
+
+      // まず全カードの現在のグリッド列幅を確定させてから正確な高さを測るため、一旦列幅1スパンを保証
+      cards.forEach(card => {
+        if (!card.style.gridColumn) {
+          card.style.gridColumn = "auto / span 1";
+        }
+      });
 
       // ドロップ直後のカードがあれば最優先でその座標を確保する
       const sortedCards = [...cards];
@@ -1839,6 +1856,7 @@
       sortedCards.forEach(card => {
         const span = calcCardSpan(card);
         card.dataset.span = span;
+        card.style.height = "100%"; // グリッドのマス目の高さにピタッと合わせる
         const saved = posData[card.id];
 
         if (saved && saved.col >= 1) {
@@ -2281,6 +2299,17 @@
       subtree: true,
       characterData: true
     });
+
+    // テキストエリアの手動リサイズや画像ロード時にもグリッド高さを再調整
+    if (window.ResizeObserver) {
+      let roTimer = null;
+      const ro = new ResizeObserver(() => {
+        if (isResizing || dragSrcEl) return;
+        clearTimeout(roTimer);
+        roTimer = setTimeout(() => applyGridLayout(), 60);
+      });
+      widgets.querySelectorAll(".card").forEach(card => ro.observe(card));
+    }
   </script>
 
   <!--アカウントスクリプト-->
@@ -2979,6 +3008,7 @@
         } else {
           document.getElementById('currency-result').textContent = '換算できませんでした';
         }
+        if (typeof resizeGridItem === 'function') resizeGridItem(document.getElementById('kawase-card'));
       } catch (err) {
         document.getElementById('currency-result').textContent = '換算エラー: ' + err;
         console.error(err);
@@ -3540,6 +3570,7 @@
         localStorage.setItem(storageKey, msg);
       }
       el.textContent = `${select.options[select.selectedIndex].text} — ${msg}`;
+      if (typeof resizeGridItem === 'function') resizeGridItem(document.getElementById('horoscope-card'));
     }
 
     document.getElementById('draw-horoscope').addEventListener('click', drawHoroscope);
@@ -3581,6 +3612,7 @@
             ☀️ 日の出：<strong>${sunriseTime}</strong><br>
             🌇 日の入：<strong>${sunsetTime}</strong>
           `;
+        if (typeof resizeGridItem === 'function') resizeGridItem(document.getElementById('sun-card'));
       } catch (err) {
         console.error(err);
         sunInfo.textContent = "日の出・日の入の取得に失敗しました。";
@@ -3662,6 +3694,8 @@
         resultEl.style.textShadow = "none";
         resultEl.style.transform = "scale(1.0)";
       }
+
+      if (typeof resizeGridItem === 'function') resizeGridItem(document.getElementById('fortune-card'));
     }
 
     window.addEventListener("DOMContentLoaded", () => {
