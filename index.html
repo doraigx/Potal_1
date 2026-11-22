@@ -100,32 +100,65 @@
       padding: 0 2rem;
     }
 
+    /* --- Androidホーム画面風 フリーグリッドレイアウト --- */
     .widgets {
-      display: block;
-      column-width: 300px;
-      column-gap: 1.5rem;
+      display: grid;
+      grid-template-columns: repeat(var(--grid-cols, 3), minmax(0, 1fr));
+      grid-auto-rows: 16px;
+      column-gap: 20px;
+      row-gap: 12px;
       width: 100%;
       margin: 0 auto;
+      position: relative;
+      align-items: stretch;
+      box-sizing: border-box;
+    }
+
+    .widgets.edit-mode {
+      min-height: 120vh;
+      padding-bottom: 240px;
+      background-image:
+        linear-gradient(to right, rgba(33, 150, 243, 0.12) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(33, 150, 243, 0.12) 1px, transparent 1px);
+      background-size: calc((100% + 20px) / var(--grid-cols, 3)) 28px;
+      border-radius: 12px;
     }
 
     .widgets .card {
-      display: inline-block;
+      display: block;
       width: 100%;
-      margin-bottom: 1.5rem;
+      margin-bottom: 0;
       background: var(--card-bg);
       border-radius: 12px;
       padding: 20px;
-      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      box-shadow: 0 2px 6px var(--card-shadow);
       box-sizing: border-box;
-      break-inside: avoid;
-      transition: transform 0.3s ease;
+      align-self: stretch;
+      overflow: visible;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+      position: relative;
     }
 
-    @media screen and (max-width: 900px) {
-      .widgets { column-count: 2; }
+    .card-inner {
+      width: 100%;
+      box-sizing: border-box;
     }
-    @media screen and (max-width: 600px) {
-      .widgets { column-count: 1; }
+
+    .card-inner > *:first-child { margin-top: 0; }
+    .card-inner > *:last-child { margin-bottom: 0; }
+
+    #grid-drop-preview {
+      display: none;
+      background: rgba(33, 150, 243, 0.18);
+      border: 2px dashed #2196f3;
+      border-radius: 12px;
+      pointer-events: none;
+      z-index: 1;
+      box-sizing: border-box;
+    }
+
+    #grid-drop-preview.active {
+      display: block;
     }
 
     /* --- 天気・地域選択 --- */
@@ -1599,7 +1632,8 @@
       }
 
       body:has(#settings-modal[style*="display: flex"]) #mobile-nav-bar,
-      body:has(#ql-modal[style*="display: flex"]) #mobile-nav-bar {
+      body:has(#ql-modal[style*="display: flex"]) #mobile-nav-bar,
+      body:has(#wheel-modal[style*="display: flex"]) #mobile-nav-bar {
         display: none !important;
       }
 
@@ -1752,6 +1786,7 @@
 
     body:has(#settings-modal[style*="display: flex"]) #edit-btn,
     body:has(#ql-modal[style*="display: flex"]) #edit-btn,
+    body:has(#wheel-modal[style*="display: flex"]) #edit-btn,
     body:has(#timer-fullscreen-overlay.active) #edit-btn {
       display: none !important;
     }
@@ -1956,6 +1991,25 @@
         <input type="url" id="ql-url" class="ql-input" placeholder="URL (例: https://youtube.com)">
         <button id="ql-save-btn" class="ql-save-btn">＋ 追加する</button>
         <button id="ql-cancel-edit-btn" class="ql-cancel-edit-btn">編集をキャンセル</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ★ホイール登録・編集モーダル -->
+  <div id="wheel-modal" class="modal-overlay" style="display: none;">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>ホイール登録・編集 (<span id="wheel-count">0</span>/11)</h3>
+        <button id="close-wheel-modal" class="close-btn">&times;</button>
+      </div>
+      <div style="font-size:0.8rem;opacity:0.75;margin-bottom:8px;">
+        最大11項目＋編集ボタン（合計12枠）まで登録できます。
+      </div>
+      <div id="wheel-modal-list" class="ql-modal-list"></div>
+      <div style="border-top: 1px solid var(--border-color); padding-top: 12px;">
+        <div style="font-size: 0.85rem; font-weight: bold; margin-bottom: 6px;">ホイールに追加する項目</div>
+        <select id="wheel-add-select" class="ql-input"></select>
+        <button id="wheel-add-btn" class="ql-save-btn">＋ ホイールに追加</button>
       </div>
     </div>
   </div>
@@ -2255,20 +2309,7 @@
 
   <div id="circle-overlay"></div>
   <div id="mobile-nav-bar">
-    <div id="circle-menu-ring">
-      <div class="ring-item" data-target="weather-card" style="transform: rotate(0deg)"><span>☀️</span><label>天気</label></div>
-      <div class="ring-item" data-target="trend-card" style="transform: rotate(30deg)"><span>🔥</span><label>トレンド</label></div>
-      <div class="ring-item" data-target="news-card" style="transform: rotate(60deg)"><span>📰</span><label>ニュース</label></div>
-      <div class="ring-item" data-target="eq-card" style="transform: rotate(90deg)"><span>⚠️</span><label>地震</label></div>
-      <div class="ring-item" data-target="memo-card" style="transform: rotate(120deg)"><span>📝</span><label>メモ</label></div>
-      <div class="ring-item" data-target="calendar-card" style="transform: rotate(150deg)"><span>📅</span><label>カレンダー</label></div>
-      <div class="ring-item" data-target="kawase-card" style="transform: rotate(180deg)"><span>💰</span><label>為替</label></div>
-      <div class="ring-item" data-target="horoscope-card" style="transform: rotate(210deg)"><span>🔮</span><label>占い</label></div>
-      <div class="ring-item" data-target="fortune-card" style="transform: rotate(240deg)"><span>🧧</span><label>おみくじ</label></div>
-      <div class="ring-item" data-target="cat-card" style="transform: rotate(270deg)"><span>🐱</span><label>猫</label></div>
-      <div class="ring-item" data-target="sun-card" style="transform: rotate(300deg)"><span>🌅</span><label>日の出</label></div>
-      <div class="ring-item" data-target="campus-sites-card" style="transform: rotate(330deg)"><span>🏫</span><label>学内</label></div>
-    </div>
+    <div id="circle-menu-ring"></div>
     <div id="circle-trigger-btn"><span>◎</span></div>
   </div>
 
@@ -2734,130 +2775,231 @@
     updateClock();
   </script>
 
-  <!-- 編集モード・並び替え -->
+  <!-- ★Androidホーム画面風 フリーグリッド＆自動高さフィットエンジン -->
   <script>
     let editMode = false;
     const widgets = document.querySelector(".widgets");
     const editBtn = document.getElementById("edit-btn");
-    let resizeTimeout = null;
-    let isResizing = false;
-
     const hiddenCardsKey = "hiddenCards";
+    const GRID_POS_KEY = "widgetGridPos";
 
-    const addBtn = document.createElement("button");
-    addBtn.textContent = "再表示";
-    addBtn.style.display = "none";
-    addBtn.style.padding = "0.6rem 1rem";
-    addBtn.style.cursor = "pointer";
-    addBtn.style.border = "none";
-    addBtn.style.borderRadius = "8px";
-    addBtn.style.fontWeight = "bold";
-    addBtn.style.width = editBtn.offsetWidth + "px";
-    addBtn.style.boxSizing = "border-box";
-    addBtn.style.position = "fixed";
-    addBtn.style.zIndex = "1000";
-    document.body.appendChild(addBtn);
+    const ROW_HEIGHT = 16;
+    const ROW_GAP = 12;
+    const COL_GAP = 20;
 
-    const sortBtn = document.createElement("button");
-    sortBtn.textContent = "順序変更";
-    sortBtn.style.display = "none";
-    sortBtn.style.padding = "0.6rem 1rem";
-    sortBtn.style.cursor = "pointer";
-    sortBtn.style.border = "none";
-    sortBtn.style.borderRadius = "8px";
-    sortBtn.style.fontWeight = "bold";
-    sortBtn.style.width = editBtn.offsetWidth + "px";
-    sortBtn.style.boxSizing = "border-box";
-    sortBtn.style.position = "fixed";
-    sortBtn.style.zIndex = "1000";
-    sortBtn.style.backgroundColor = "#FF69B4";
-    document.body.appendChild(sortBtn);
+    let gridPositions = {};
+    let currentCols = 3;
+
+    const dropPreview = document.createElement("div");
+    dropPreview.id = "grid-drop-preview";
+    widgets.appendChild(dropPreview);
+
+    function wrapCardContents() {
+      document.querySelectorAll(".widgets .card").forEach(card => {
+        if (card.querySelector(":scope > .card-inner")) return;
+        const inner = document.createElement("div");
+        inner.className = "card-inner";
+        while (card.firstChild) inner.appendChild(card.firstChild);
+        card.appendChild(inner);
+      });
+    }
+
+    function getColumnCount() {
+      const w = window.innerWidth;
+      if (w >= 1320) return 4;
+      if (w >= 900) return 3;
+      if (w >= 600) return 2;
+      return 1;
+    }
+
+    function calcCardSpan(card) {
+      const inner = card.querySelector(":scope > .card-inner");
+      const contentH = inner ? inner.getBoundingClientRect().height : card.scrollHeight;
+      const style = window.getComputedStyle(card);
+      const padV = (parseFloat(style.paddingTop) || 0) + (parseFloat(style.paddingBottom) || 0);
+      const totalH = Math.ceil(contentH + padV + 2);
+      return Math.max(2, Math.ceil((totalH + ROW_GAP) / (ROW_HEIGHT + ROW_GAP)));
+    }
+
+    function loadGridPositions() {
+      try { gridPositions = JSON.parse(localStorage.getItem(GRID_POS_KEY) || "{}"); } catch (e) { gridPositions = {}; }
+    }
+
+    function saveGridPositions() {
+      localStorage.setItem(GRID_POS_KEY, JSON.stringify(gridPositions));
+      if (typeof window.saveWidgetDataToCloud === "function") window.saveWidgetDataToCloud();
+    }
+
+    function layoutGrid(forcePack = false) {
+      currentCols = getColumnCount();
+      widgets.style.setProperty("--grid-cols", currentCols);
+
+      const cards = Array.from(widgets.querySelectorAll(":scope > .card"))
+        .filter(c => c.style.display !== "none");
+
+      if (currentCols === 1) {
+        cards.forEach(card => {
+          const span = calcCardSpan(card);
+          card.dataset.span = span;
+          card.style.gridColumn = "1";
+          card.style.gridRow = `auto / span ${span}`;
+        });
+        return;
+      }
+
+      const colHeights = new Array(currentCols).fill(1);
+      const placed = [];
+
+      if (!forcePack) {
+        cards.forEach(card => {
+          const span = calcCardSpan(card);
+          card.dataset.span = span;
+          const pos = gridPositions[card.id];
+          if (pos && pos.col && pos.row) {
+            const col = Math.min(Math.max(1, pos.col), currentCols);
+            const row = Math.max(1, pos.row);
+            placed.push({ card, col, row, span });
+          }
+        });
+      }
+
+      placed.sort((a, b) => a.row - b.row || a.col - b.col);
+      for (let i = 0; i < placed.length; i++) {
+        const cur = placed[i];
+        let moved = true;
+        while (moved) {
+          moved = false;
+          for (let j = 0; j < i; j++) {
+            const other = placed[j];
+            if (other.col === cur.col) {
+              const overlap = !(cur.row + cur.span <= other.row || cur.row >= other.row + other.span);
+              if (overlap) {
+                cur.row = other.row + other.span;
+                moved = true;
+              }
+            }
+          }
+        }
+        colHeights[cur.col - 1] = Math.max(colHeights[cur.col - 1], cur.row + cur.span);
+      }
+
+      const placedIds = new Set(placed.map(p => p.card.id));
+      cards.forEach(card => {
+        if (placedIds.has(card.id)) return;
+        const span = calcCardSpan(card);
+        card.dataset.span = span;
+        let minColIdx = 0;
+        for (let c = 1; c < currentCols; c++) {
+          if (colHeights[c] < colHeights[minColIdx]) minColIdx = c;
+        }
+        const col = minColIdx + 1;
+        const row = colHeights[minColIdx];
+        placed.push({ card, col, row, span });
+        colHeights[minColIdx] = row + span;
+        gridPositions[card.id] = { col, row };
+      });
+
+      placed.forEach(({ card, col, row, span }) => {
+        card.style.gridColumn = String(col);
+        card.style.gridRow = `${row} / span ${span}`;
+        gridPositions[card.id] = { col, row };
+      });
+    }
+
+    window.resizeGridItem = () => layoutGrid(false);
+    window.resizeAllGridItems = () => layoutGrid(false);
+    window.applySavedGridPositions = () => {
+      loadGridPositions();
+      layoutGrid(false);
+    };
+
+    let roTimer = null;
+    const cardResizeObserver = new ResizeObserver(() => {
+      if (roTimer) cancelAnimationFrame(roTimer);
+      roTimer = requestAnimationFrame(() => layoutGrid(false));
+    });
+
+    function createFloatingBtn(text, bg) {
+      const btn = document.createElement("button");
+      btn.textContent = text;
+      btn.style.cssText = `display:none;padding:0.6rem 1rem;cursor:pointer;border:none;border-radius:8px;font-weight:bold;color:#fff;box-sizing:border-box;position:fixed;z-index:1000;background:${bg};`;
+      document.body.appendChild(btn);
+      return btn;
+    }
+
+    const addBtn = createFloatingBtn("再表示", "#2196f3");
+    const packBtn = createFloatingBtn("自動整列", "#ff9800");
 
     function updateButtonPositions() {
       const rect = editBtn.getBoundingClientRect();
       const spacing = 10;
       const btnHeight = rect.height;
+      const w = rect.width + "px";
 
+      addBtn.style.width = w;
       addBtn.style.left = rect.left + "px";
       addBtn.style.bottom = (window.innerHeight - rect.bottom + btnHeight + spacing) + "px";
 
-      sortBtn.style.left = rect.left + "px";
-      sortBtn.style.bottom = (window.innerHeight - rect.bottom + btnHeight * 2 + spacing * 2) + "px";
+      packBtn.style.width = w;
+      packBtn.style.left = rect.left + "px";
+      packBtn.style.bottom = (window.innerHeight - rect.bottom + btnHeight * 2 + spacing * 2) + "px";
     }
 
-    updateButtonPositions();
-    window.addEventListener("resize", updateButtonPositions);
-
-    window.addEventListener("DOMContentLoaded", () => {
-      const savedOrder = JSON.parse(localStorage.getItem("widgetOrder") || "[]");
-      savedOrder.forEach(id => {
-        const el = document.getElementById(id);
-        if (el) widgets.appendChild(el);
-      });
-      updateHiddenCardsUI();
+    packBtn.addEventListener("click", () => {
+      gridPositions = {};
+      layoutGrid(true);
+      saveGridPositions();
     });
 
     editBtn.addEventListener("click", () => {
       editMode = !editMode;
+      widgets.classList.toggle("edit-mode", editMode);
 
-      widgets.querySelectorAll(".card").forEach(card => {
+      widgets.querySelectorAll(":scope > .card").forEach(card => {
         card.setAttribute("draggable", editMode);
-        card.style.cursor = editMode ? "move" : "default";
+        card.style.cursor = editMode ? "grab" : "default";
       });
 
       editBtn.textContent = editMode ? "保存 / 終了" : "編集モード";
-      editBtn.style.backgroundColor = "#4caf50";
-
       addBtn.style.display = editMode ? "block" : "none";
-      sortBtn.style.display = editMode ? "block" : "none";
+      packBtn.style.display = editMode ? "block" : "none";
 
       if (!editMode) {
-        const order = Array.from(widgets.children).map(el => el.id).filter(Boolean);
-        localStorage.setItem("widgetOrder", JSON.stringify(order));
-        if (typeof resizeAllGridItems === 'function') resizeAllGridItems();
+        dropPreview.classList.remove("active");
+        saveGridPositions();
       }
-
       updateHiddenCardsUI();
+      updateButtonPositions();
     });
 
     function updateHiddenCardsUI() {
       const hiddenCards = JSON.parse(localStorage.getItem(hiddenCardsKey) || "[]");
 
-      document.querySelectorAll(".card").forEach(card => {
+      document.querySelectorAll(".widgets > .card").forEach(card => {
         card.style.display = hiddenCards.includes(card.id) ? "none" : "block";
 
         if (editMode && !card.querySelector(".edit-delete")) {
           const btn = document.createElement("button");
           btn.textContent = "非表示";
           btn.className = "edit-delete";
-          btn.onclick = () => hideCard(card);
-          btn.style.position = "absolute";
-          btn.style.top = "5px";
-          btn.style.right = "5px";
-          btn.style.padding = "2px 6px";
-          btn.style.cursor = "pointer";
-          btn.style.backgroundColor = "#f44336";
-          btn.style.color = "#fff";
-          btn.style.border = "none";
-          btn.style.fontSize = "12px";
-          btn.style.borderRadius = "4px";
-          card.style.position = "relative";
+          btn.onclick = (e) => { e.stopPropagation(); hideCard(card); };
+          btn.style.cssText = "position:absolute;top:6px;right:6px;padding:3px 8px;cursor:pointer;background:#f44336;color:#fff;border:none;font-size:12px;border-radius:4px;z-index:10;";
           card.appendChild(btn);
         } else if (!editMode) {
           const btn = card.querySelector(".edit-delete");
           if (btn) btn.remove();
         }
       });
+      layoutGrid(false);
     }
 
     function hideCard(card) {
       card.style.display = "none";
-      if (!card.id) card.id = "card-" + Math.random().toString(36).substr(2, 9);
-
       const hiddenCards = JSON.parse(localStorage.getItem(hiddenCardsKey) || "[]");
       if (!hiddenCards.includes(card.id)) hiddenCards.push(card.id);
       localStorage.setItem(hiddenCardsKey, JSON.stringify(hiddenCards));
-      if (typeof resizeAllGridItems === 'function') resizeAllGridItems();
+      layoutGrid(false);
+      saveGridPositions();
     }
 
     addBtn.addEventListener("click", () => {
@@ -2868,145 +3010,51 @@
       }
 
       const modal = document.createElement("div");
-      modal.style.cssText = "position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;z-index:10000;";
-
+      modal.style.cssText = "position:fixed;inset:0;background:rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;z-index:10000;";
       const box = document.createElement("div");
-      box.style.cssText = "padding:1rem;border-radius:8px;max-height:80%;overflow-y:auto;width:300px;";
       const theme = document.documentElement.getAttribute("data-theme") || "light";
-      box.style.backgroundColor = theme === "dark" ? "#1e1e1e" : "#fff";
-      box.style.color = theme === "dark" ? "#fff" : "#000";
+      box.style.cssText = `padding:1.2rem;border-radius:12px;max-height:80%;overflow-y:auto;width:300px;background:${theme === "dark" ? "#1e1e1e" : "#fff"};color:${theme === "dark" ? "#fff" : "#000"};`;
 
-      const title = document.createElement("h3");
-      title.textContent = "非表示カードを選択";
-      box.appendChild(title);
-
+      box.innerHTML = `<h3 style="margin-top:0;">非表示カードを再表示</h3>`;
       hiddenCards.forEach(id => {
         const card = document.getElementById(id);
         if (!card) return;
         const label = document.createElement("label");
-        label.style.display = "block";
-        label.style.marginBottom = "0.4rem";
-        const checkbox = document.createElement("input");
-        checkbox.type = "checkbox";
-        checkbox.value = id;
-        label.appendChild(checkbox);
-        label.appendChild(document.createTextNode(" " + (card.querySelector("h2")?.textContent || id)));
+        label.style.cssText = "display:block;margin-bottom:0.5rem;cursor:pointer;";
+        label.innerHTML = `<input type="checkbox" value="${id}"> ${card.querySelector("h2")?.textContent || id}`;
         box.appendChild(label);
       });
 
-      const addCardBtn = document.createElement("button");
-      addCardBtn.textContent = "追加";
-      addCardBtn.style.cssText = "margin-top:0.5rem;padding:0.5rem 1rem;background:#4caf50;color:#fff;border:none;border-radius:6px;cursor:pointer;";
-      addCardBtn.onclick = () => {
-        const checkboxes = box.querySelectorAll("input[type=checkbox]");
+      const okBtn = document.createElement("button");
+      okBtn.textContent = "再表示する";
+      okBtn.style.cssText = "margin-top:0.6rem;padding:0.5rem 1rem;background:#4caf50;color:#fff;border:none;border-radius:6px;cursor:pointer;font-weight:bold;";
+      okBtn.onclick = () => {
         let updatedHidden = hiddenCards.slice();
-        let order = JSON.parse(localStorage.getItem("widgetOrder") || "[]");
-
-        checkboxes.forEach(cb => {
-          if (cb.checked) {
-            const card = document.getElementById(cb.value);
-            if (card) {
-              card.style.display = "block";
-              if (!order.includes(card.id)) order.push(card.id);
-            }
-            updatedHidden = updatedHidden.filter(id => id !== cb.value);
-          }
+        box.querySelectorAll("input[type=checkbox]:checked").forEach(cb => {
+          const card = document.getElementById(cb.value);
+          if (card) card.style.display = "block";
+          updatedHidden = updatedHidden.filter(id => id !== cb.value);
         });
-
-        order.forEach(id => {
-          const card = document.getElementById(id);
-          if (card && card.style.display !== "none") widgets.appendChild(card);
-        });
-
         localStorage.setItem(hiddenCardsKey, JSON.stringify(updatedHidden));
-        localStorage.setItem("widgetOrder", JSON.stringify(order));
         document.body.removeChild(modal);
-        if (typeof resizeAllGridItems === 'function') resizeAllGridItems();
+        layoutGrid(false);
+        saveGridPositions();
       };
 
-      const closeBtn = document.createElement("button");
-      closeBtn.textContent = "キャンセル";
-      closeBtn.style.cssText = "margin-top:0.5rem;margin-left:0.5rem;padding:0.5rem 1rem;background:#f44336;color:#fff;border:none;border-radius:6px;cursor:pointer;";
-      closeBtn.onclick = () => document.body.removeChild(modal);
+      const cancelBtn = document.createElement("button");
+      cancelBtn.textContent = "キャンセル";
+      cancelBtn.style.cssText = "margin-top:0.6rem;margin-left:0.5rem;padding:0.5rem 1rem;background:#78909c;color:#fff;border:none;border-radius:6px;cursor:pointer;";
+      cancelBtn.onclick = () => document.body.removeChild(modal);
 
-      box.appendChild(addCardBtn);
-      box.appendChild(closeBtn);
-      modal.appendChild(box);
-      document.body.appendChild(modal);
-    });
-
-    sortBtn.addEventListener("click", () => {
-      const visibleCards = Array.from(widgets.children)
-        .filter(c => c.style.display !== "none");
-      if (visibleCards.length === 0) return;
-
-      const modal = document.createElement("div");
-      modal.style.cssText = "position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;z-index:10000;";
-
-      const box = document.createElement("div");
-      box.style.cssText = "padding:1rem;border-radius:8px;max-height:80%;overflow-y:auto;width:350px;";
-      const theme = document.documentElement.getAttribute("data-theme") || "light";
-      box.style.backgroundColor = theme === "dark" ? "#1e1e1e" : "#fff";
-      box.style.color = theme === "dark" ? "#fff" : "#000";
-
-      const title = document.createElement("h3");
-      title.textContent = "カード順序変更";
-      box.appendChild(title);
-
-      const list = document.createElement("div");
-      list.style.display = "flex";
-      list.style.flexDirection = "column";
-      list.style.gap = "4px";
-      box.appendChild(list);
-
-      visibleCards.forEach(card => {
-        const h2 = card.querySelector("h2");
-        const cardTitle = h2 ? h2.textContent.trim() : "";
-        if (!cardTitle) return;
-
-        const item = document.createElement("div");
-        item.style.cssText = "display:flex;align-items:center;justify-content:space-between;padding:4px 6px;border:1px solid #ccc;border-radius:4px;";
-        item.dataset.id = card.id;
-        item.innerHTML = `<span>${cardTitle || card.id}</span>
-                          <div><button class="up">↑</button><button class="down">↓</button></div>`;
-
-        item.querySelector(".up").onclick = () => {
-          const prev = item.previousElementSibling;
-          if (prev) list.insertBefore(item, prev);
-        };
-        item.querySelector(".down").onclick = () => {
-          const next = item.nextElementSibling;
-          if (next) list.insertBefore(next, item);
-        };
-        list.appendChild(item);
-      });
-
-      const saveBtn = document.createElement("button");
-      saveBtn.textContent = "保存";
-      saveBtn.style.cssText = "margin-top:0.5rem;padding:0.5rem 1rem;background:#4caf50;color:#fff;border:none;border-radius:6px;cursor:pointer;";
-      saveBtn.onclick = () => {
-        const newOrder = Array.from(list.children).map(item => item.dataset.id);
-        newOrder.forEach(id => {
-          const card = document.getElementById(id);
-          if (card) widgets.appendChild(card);
-        });
-        localStorage.setItem("widgetOrder", JSON.stringify(newOrder));
-        document.body.removeChild(modal);
-        if (typeof resizeAllGridItems === 'function') resizeAllGridItems();
-      };
-
-      const closeBtnSort = document.createElement("button");
-      closeBtnSort.textContent = "キャンセル";
-      closeBtnSort.style.cssText = "margin-top:0.5rem;margin-left:0.5rem;padding:0.5rem 1rem;background:#f44336;color:#fff;border:none;border-radius:6px;cursor:pointer;";
-      closeBtnSort.onclick = () => document.body.removeChild(modal);
-
-      box.appendChild(saveBtn);
-      box.appendChild(closeBtnSort);
+      box.appendChild(okBtn);
+      box.appendChild(cancelBtn);
       modal.appendChild(box);
       document.body.appendChild(modal);
     });
 
     let dragSrcEl = null;
+    let dragTargetCol = 1;
+    let dragTargetRow = 1;
 
     widgets.addEventListener("dragstart", e => {
       if (!editMode) return;
@@ -3014,66 +3062,59 @@
       if (!card) return;
       dragSrcEl = card;
       e.dataTransfer.effectAllowed = "move";
-      card.style.opacity = "0.5";
+      card.style.opacity = "0.4";
     });
 
     widgets.addEventListener("dragover", e => {
+      if (!editMode || !dragSrcEl || currentCols === 1) return;
+      e.preventDefault();
+
+      const rect = widgets.getBoundingClientRect();
+      const colWidth = (rect.width - COL_GAP * (currentCols - 1)) / currentCols;
+      const relX = e.clientX - rect.left;
+      const relY = e.clientY - rect.top;
+
+      dragTargetCol = Math.min(Math.max(1, Math.floor(relX / (colWidth + COL_GAP)) + 1), currentCols);
+      dragTargetRow = Math.max(1, Math.floor(relY / (ROW_HEIGHT + ROW_GAP)) + 1);
+
+      const span = parseInt(dragSrcEl.dataset.span || "6", 10);
+      dropPreview.style.gridColumn = String(dragTargetCol);
+      dropPreview.style.gridRow = `${dragTargetRow} / span ${span}`;
+      dropPreview.classList.add("active");
+    });
+
+    widgets.addEventListener("drop", e => {
       if (!editMode || !dragSrcEl) return;
       e.preventDefault();
-      const target = e.target.closest(".card");
-      if (target && target !== dragSrcEl) {
-        const rect = target.getBoundingClientRect();
-        const next = (e.clientY - rect.top) / (rect.bottom - rect.top) > 0.5;
-        widgets.insertBefore(dragSrcEl, next ? target.nextSibling : target);
+      if (currentCols > 1) {
+        gridPositions[dragSrcEl.id] = { col: dragTargetCol, row: dragTargetRow };
       }
+      dropPreview.classList.remove("active");
+      layoutGrid(false);
+      saveGridPositions();
     });
 
     widgets.addEventListener("dragend", () => {
-      if (!dragSrcEl) return;
-      dragSrcEl.style.opacity = "1";
+      if (dragSrcEl) dragSrcEl.style.opacity = "1";
       dragSrcEl = null;
-
-      if (resizeTimeout) clearTimeout(resizeTimeout);
-      resizeTimeout = setTimeout(() => {
-        isResizing = true;
-        if (typeof resizeAllGridItems === 'function') {
-          resizeAllGridItems();
-        }
-        setTimeout(() => { isResizing = false; }, 200);
-      }, 100);
+      dropPreview.classList.remove("active");
     });
 
-    widgets.addEventListener("drop", e => { e.preventDefault(); });
-  </script>
+    window.addEventListener("DOMContentLoaded", () => {
+      wrapCardContents();
+      loadGridPositions();
+      updateHiddenCardsUI();
+      updateButtonPositions();
 
-  <script>
-    function resizeGridItem(item) {
-      const grid = document.querySelector(".widgets");
-      if (!grid || !item) return;
-
-      const rowHeight = 10;
-      const rowGap = parseInt(window.getComputedStyle(grid).getPropertyValue('row-gap')) || 0;
-      const itemHeight = item.getBoundingClientRect().height;
-      const rowSpan = Math.ceil((itemHeight + rowGap) / (rowHeight + rowGap));
-      item.style.gridRowEnd = "span " + rowSpan;
-    }
-
-    function resizeAllGridItems() {
-      document.querySelectorAll(".widgets .card").forEach(resizeGridItem);
-    }
-
-    window.addEventListener("load", resizeAllGridItems);
-    window.addEventListener("resize", resizeAllGridItems);
-
-    const observer = new MutationObserver(() => {
-      if (isResizing) return;
-      resizeAllGridItems();
+      document.querySelectorAll(".widgets .card > .card-inner").forEach(inner => {
+        cardResizeObserver.observe(inner);
+      });
+      layoutGrid(false);
     });
 
-    observer.observe(document.querySelector(".widgets"), {
-      childList: true,
-      subtree: true,
-      characterData: true
+    window.addEventListener("resize", () => {
+      updateButtonPositions();
+      layoutGrid(false);
     });
   </script>
 
@@ -3219,6 +3260,16 @@
             localStorage.setItem('portalWeatherLocation', JSON.stringify(data.portalWeatherLocation));
             if (typeof window.applySavedWeatherLocation === 'function') window.applySavedWeatherLocation();
           }
+
+          if (data.widgetGridPos) {
+            localStorage.setItem('widgetGridPos', JSON.stringify(data.widgetGridPos));
+            if (typeof window.applySavedGridPositions === 'function') window.applySavedGridPositions();
+          }
+
+          if (Array.isArray(data.portalWheelItems)) {
+            localStorage.setItem('portalWheelItems', JSON.stringify(data.portalWheelItems));
+            if (typeof window.renderWheelMenu === 'function') window.renderWheelMenu();
+          }
         }
 
         if (typeof resizeAllGridItems === 'function') resizeAllGridItems();
@@ -3271,6 +3322,8 @@
           portalQuickLinks: quickLinksData,
           portalTodos: todosData,
           portalWeatherLocation: weatherLocData,
+          widgetGridPos: JSON.parse(localStorage.getItem('widgetGridPos') || '{}'),
+          portalWheelItems: JSON.parse(localStorage.getItem('portalWheelItems') || '[]'),
           updatedAt: new Date()
         }, { merge: true });
       } catch (e) {
@@ -4475,13 +4528,42 @@
     })();
   </script>
 
-  <!-- モバイル サークルナビ -->
+  <!-- ★モバイル カスタムホイール（デフォルト編集1つ・最大11項目＋編集ボタン） -->
   <script>
     (function() {
+      const WHEEL_KEY = 'portalWheelItems';
+      const MAX_WHEEL_ITEMS = 11;
+
+      const WHEEL_CANDIDATES = [
+        { id: 'weather-card', icon: '☀️', label: '天気' },
+        { id: 'jp-weather-map-card', icon: '🗺️', label: '全国天気' },
+        { id: 'trend-card', icon: '🔥', label: 'トレンド' },
+        { id: 'news-card', icon: '📰', label: 'ニュース' },
+        { id: 'eq-card', icon: '⚠️', label: '地震' },
+        { id: 'todo-card', icon: '✅', label: 'ToDo' },
+        { id: 'pomodoro-card', icon: '⏱️', label: 'タイマー' },
+        { id: 'quicklinks-card', icon: '🔗', label: 'リンク' },
+        { id: 'memo-card', icon: '📝', label: 'メモ' },
+        { id: 'calendar-card', icon: '📅', label: 'カレンダー' },
+        { id: 'kawase-card', icon: '💰', label: '為替' },
+        { id: 'countdown-card', icon: '⏳', label: 'あと何日' },
+        { id: 'horoscope-card', icon: '🔮', label: '占い' },
+        { id: 'fortune-card', icon: '🧧', label: 'おみくじ' },
+        { id: 'cat-card', icon: '🐱', label: '猫' },
+        { id: 'sun-card', icon: '🌅', label: '日の出' },
+        { id: 'campus-sites-card', icon: '🏫', label: '学内' },
+        { id: 'app-download-card', icon: '📱', label: 'アプリ' }
+      ];
+
       const trigger = document.getElementById('circle-trigger-btn');
       const ring = document.getElementById('circle-menu-ring');
       const overlay = document.getElementById('circle-overlay');
-      const items = document.querySelectorAll('.ring-item');
+      const wheelModal = document.getElementById('wheel-modal');
+      const closeWheelModalBtn = document.getElementById('close-wheel-modal');
+      const wheelModalList = document.getElementById('wheel-modal-list');
+      const wheelAddSelect = document.getElementById('wheel-add-select');
+      const wheelAddBtn = document.getElementById('wheel-add-btn');
+      const wheelCountEl = document.getElementById('wheel-count');
 
       let guideline = document.getElementById('drag-guideline');
       if (!guideline) {
@@ -4491,24 +4573,174 @@
       }
 
       let isDragging = false;
-      const baseGrid = "transparent 0deg 29.5deg, rgba(255, 255, 255, 0.2) 29.5deg 30deg, transparent 30deg 59.5deg, rgba(255, 255, 255, 0.2) 59.5deg 60deg, transparent 60deg 89.5deg, rgba(255, 255, 255, 0.2) 89.5deg 90deg, transparent 90deg 119.5deg, rgba(255, 255, 255, 0.2) 119.5deg 120deg, transparent 120deg 149.5deg, rgba(255, 255, 255, 0.2) 149.5deg 150deg, transparent 150deg 179.5deg, rgba(255, 255, 255, 0.2) 179.5deg 180deg, transparent 180deg 209.5deg, rgba(255, 255, 255, 0.2) 209.5deg 210deg, transparent 210deg 239.5deg, rgba(255, 255, 255, 0.2) 239.5deg 240deg, transparent 240deg 269.5deg, rgba(255, 255, 255, 0.2) 269.5deg 270deg, transparent 270deg 299.5deg, rgba(255, 255, 255, 0.2) 299.5deg 300deg, transparent 300deg 329.5deg, rgba(255, 255, 255, 0.2) 329.5deg 330deg, transparent 330deg 359.5deg, rgba(255, 255, 255, 0.2) 359.5deg 360deg";
-
       let currentSelected = null;
+      let activeSlots = [];
+      let baseGrid = '';
+
+      function getSavedIds() {
+        try {
+          const arr = JSON.parse(localStorage.getItem(WHEEL_KEY) || '[]');
+          return Array.isArray(arr) ? arr.slice(0, MAX_WHEEL_ITEMS) : [];
+        } catch (e) { return []; }
+      }
+
+      function saveIds(ids) {
+        localStorage.setItem(WHEEL_KEY, JSON.stringify(ids.slice(0, MAX_WHEEL_ITEMS)));
+        if (typeof window.saveWidgetDataToCloud === 'function') window.saveWidgetDataToCloud();
+      }
+
+      function buildGridGradient(count) {
+        if (count <= 1) return 'transparent 0deg 360deg';
+        const step = 360 / count;
+        const parts = [];
+        for (let i = 0; i < count; i++) {
+          const start = i * step;
+          const end = (i + 1) * step;
+          parts.push(`transparent ${start}deg ${end - 0.6}deg, rgba(255,255,255,0.22) ${end - 0.6}deg ${end}deg`);
+        }
+        return parts.join(', ');
+      }
+
+      function renderWheelMenu() {
+        const savedIds = getSavedIds();
+        const userItems = savedIds
+          .map(id => WHEEL_CANDIDATES.find(c => c.id === id))
+          .filter(Boolean);
+
+        // 登録項目（最大11）＋ 常に「編集」ボタンを1つ配置
+        activeSlots = [...userItems, { id: '__edit__', icon: '⚙️', label: '編集' }];
+
+        const count = activeSlots.length;
+        const step = 360 / count;
+        baseGrid = buildGridGradient(count);
+
+        ring.innerHTML = '';
+        activeSlots.forEach((slot, idx) => {
+          const deg = idx * step;
+          const div = document.createElement('div');
+          div.className = 'ring-item';
+          div.dataset.target = slot.id;
+          div.dataset.angle = String(deg);
+          div.style.transform = `rotate(${deg}deg)`;
+          div.innerHTML = `<span>${slot.icon}</span><label>${slot.label}</label>`;
+          ring.appendChild(div);
+        });
+
+        renderWheelModal();
+      }
+
+      function renderWheelModal() {
+        const savedIds = getSavedIds();
+        wheelCountEl.textContent = String(savedIds.length);
+        wheelModalList.innerHTML = '';
+
+        if (savedIds.length === 0) {
+          wheelModalList.innerHTML = '<div style="font-size:0.85rem;opacity:0.6;text-align:center;padding:8px 0;">まだ登録されていません（編集ボタンのみ表示中）</div>';
+        } else {
+          savedIds.forEach((id, idx) => {
+            const info = WHEEL_CANDIDATES.find(c => c.id === id) || { icon: '📌', label: id };
+            const row = document.createElement('div');
+            row.className = 'ql-modal-row';
+            row.innerHTML = `<div class="ql-modal-row-info"><div class="ql-modal-row-name">${info.icon} ${info.label}</div></div>`;
+
+            const actions = document.createElement('div');
+            actions.className = 'ql-modal-actions';
+
+            const upBtn = document.createElement('button');
+            upBtn.className = 'ql-mini-btn';
+            upBtn.textContent = '↑';
+            upBtn.disabled = idx === 0;
+            upBtn.onclick = () => {
+              const arr = getSavedIds();
+              [arr[idx - 1], arr[idx]] = [arr[idx], arr[idx - 1]];
+              saveIds(arr);
+              renderWheelMenu();
+            };
+
+            const downBtn = document.createElement('button');
+            downBtn.className = 'ql-mini-btn';
+            downBtn.textContent = '↓';
+            downBtn.disabled = idx === savedIds.length - 1;
+            downBtn.onclick = () => {
+              const arr = getSavedIds();
+              [arr[idx], arr[idx + 1]] = [arr[idx + 1], arr[idx]];
+              saveIds(arr);
+              renderWheelMenu();
+            };
+
+            const delBtn = document.createElement('button');
+            delBtn.className = 'ql-mini-btn del';
+            delBtn.textContent = '削除';
+            delBtn.onclick = () => {
+              const arr = getSavedIds();
+              arr.splice(idx, 1);
+              saveIds(arr);
+              renderWheelMenu();
+            };
+
+            actions.appendChild(upBtn);
+            actions.appendChild(downBtn);
+            actions.appendChild(delBtn);
+            row.appendChild(actions);
+            wheelModalList.appendChild(row);
+          });
+        }
+
+        const available = WHEEL_CANDIDATES.filter(c => !savedIds.includes(c.id));
+        wheelAddSelect.innerHTML = '';
+        if (savedIds.length >= MAX_WHEEL_ITEMS) {
+          wheelAddSelect.innerHTML = '<option value="">上限（11項目）に達しています</option>';
+          wheelAddBtn.disabled = true;
+          wheelAddBtn.style.opacity = '0.5';
+        } else if (available.length === 0) {
+          wheelAddSelect.innerHTML = '<option value="">追加できる項目がありません</option>';
+          wheelAddBtn.disabled = true;
+          wheelAddBtn.style.opacity = '0.5';
+        } else {
+          available.forEach(c => {
+            const opt = document.createElement('option');
+            opt.value = c.id;
+            opt.textContent = `${c.icon} ${c.label}`;
+            wheelAddSelect.appendChild(opt);
+          });
+          wheelAddBtn.disabled = false;
+          wheelAddBtn.style.opacity = '1';
+        }
+      }
+
+      wheelAddBtn.addEventListener('click', () => {
+        const val = wheelAddSelect.value;
+        if (!val) return;
+        const arr = getSavedIds();
+        if (arr.length >= MAX_WHEEL_ITEMS || arr.includes(val)) return;
+        arr.push(val);
+        saveIds(arr);
+        renderWheelMenu();
+      });
+
+      const closeWheelModal = () => { wheelModal.style.display = 'none'; };
+      closeWheelModalBtn.addEventListener('click', closeWheelModal);
+      wheelModal.addEventListener('click', (e) => { if (e.target === wheelModal) closeWheelModal(); });
 
       function updateSelection(ringRotation) {
-        let targetAngle = (-ringRotation % 360 + 360) % 360;
-        let closest = null;
-        let minDiff = Infinity;
-        let selectedIdx = -1;
+        const items = ring.querySelectorAll('.ring-item');
+        const count = items.length;
+        if (count === 0) return;
+
+        const step = 360 / count;
+        const halfStep = step / 2;
+        const targetAngle = (-ringRotation % 360 + 360) % 360;
+
+        let closest = null, minDiff = Infinity, selectedIdx = -1;
 
         items.forEach((item, idx) => {
-          const itemAngle = (parseInt(item.style.transform.replace('rotate(', '').replace('deg)', '')) + 360) % 360;
+          const itemAngle = parseFloat(item.dataset.angle || '0');
           let diff = Math.abs(targetAngle - itemAngle);
           if (diff > 180) diff = 360 - diff;
-          if (diff < 15) {
-            if (diff < minDiff) {
-              minDiff = diff; closest = item; selectedIdx = idx;
-            }
+          if (diff <= halfStep && diff < minDiff) {
+            minDiff = diff;
+            closest = item;
+            selectedIdx = idx;
           }
           item.classList.remove('selected');
           item.style.color = '';
@@ -4517,14 +4749,17 @@
         if (closest) {
           closest.classList.add('selected');
           closest.style.color = '#00e5ff';
-          const startDeg = (selectedIdx * 30 - 15);
-          ring.style.backgroundImage = `conic-gradient(from ${startDeg}deg, rgba(0, 229, 255, 0.35) 0deg 30deg, transparent 30deg 360deg), conic-gradient(from -15deg, ${baseGrid})`;
+          const startDeg = selectedIdx * step - halfStep;
+          ring.style.backgroundImage = count === 1
+            ? `radial-gradient(circle, rgba(0, 229, 255, 0.35), rgba(0, 229, 255, 0.15))`
+            : `conic-gradient(from ${startDeg}deg, rgba(0, 229, 255, 0.35) 0deg ${step}deg, transparent ${step}deg 360deg), conic-gradient(from ${-halfStep}deg, ${baseGrid})`;
+
           if (currentSelected !== closest) {
             currentSelected = closest;
             if (window.navigator.vibrate) window.navigator.vibrate(10);
           }
         } else {
-          ring.style.backgroundImage = `conic-gradient(from -15deg, ${baseGrid})`;
+          ring.style.backgroundImage = `conic-gradient(from ${-halfStep}deg, ${baseGrid})`;
           currentSelected = null;
         }
       }
@@ -4535,59 +4770,49 @@
         ring.style.transform = `translateX(-50%) scale(0) rotate(0deg)`;
         ring.classList.remove('active');
         overlay.style.display = 'none';
-
         guideline.classList.remove('active');
         guideline.classList.remove('highlight');
 
         setTimeout(() => {
-          items.forEach(i => { i.classList.remove('selected'); i.style.color = ''; });
+          ring.querySelectorAll('.ring-item').forEach(i => { i.classList.remove('selected'); i.style.color = ''; });
           currentSelected = null;
-          ring.style.backgroundImage = `conic-gradient(from -15deg, ${baseGrid})`;
         }, 300);
       }
 
       window.resetAll = resetAll;
+      window.renderWheelMenu = renderWheelMenu;
 
       trigger.addEventListener('touchstart', (e) => {
         if (e.cancelable) e.preventDefault();
         isDragging = true;
+        const count = ring.querySelectorAll('.ring-item').length;
+        const halfStep = count > 0 ? 180 / count : 15;
 
         ring.style.transition = 'transform 0.4s cubic-bezier(0.15, 1.15, 0.6, 1.0), opacity 0.2s';
         ring.style.transform = `translateX(-50%) scale(1) rotate(0deg)`;
-        ring.style.backgroundImage = `conic-gradient(from -15deg, ${baseGrid})`;
+        ring.style.backgroundImage = `conic-gradient(from ${-halfStep}deg, ${baseGrid})`;
 
         ring.classList.add('active');
         overlay.style.display = 'block';
-
-        if (window.innerWidth <= 480) {
-          guideline.classList.add('active');
-        }
-
+        if (window.innerWidth <= 480) guideline.classList.add('active');
+        updateSelection(0);
         if (window.navigator.vibrate) window.navigator.vibrate(15);
       }, { passive: false });
 
       document.addEventListener('touchmove', (e) => {
         if (!isDragging) return;
-
         ring.style.transition = 'none';
         const touch = e.touches[0];
         const rect = trigger.getBoundingClientRect();
         const centerX = rect.left + rect.width / 2;
         const centerY = rect.top + rect.height / 2;
-        const halfHeight = window.innerHeight / 2;
 
         if (window.innerWidth <= 480) {
-          if (touch.clientY < halfHeight) {
-            guideline.classList.add('highlight');
-          } else {
-            guideline.classList.remove('highlight');
-          }
+          guideline.classList.toggle('highlight', touch.clientY < window.innerHeight / 2);
         }
 
-        const angle = Math.atan2(touch.clientY - centerY, touch.clientX - centerX);
-        const degree = angle * (180 / Math.PI) + 90;
+        const degree = Math.atan2(touch.clientY - centerY, touch.clientX - centerX) * (180 / Math.PI) + 90;
         ring.style.transform = `translateX(-50%) scale(1) rotate(${degree}deg)`;
-
         updateSelection(degree);
         if (e.cancelable) e.preventDefault();
       }, { passive: false });
@@ -4595,17 +4820,20 @@
       document.addEventListener('touchend', (e) => {
         if (!isDragging) return;
         const touchY = e.changedTouches[0].clientY;
-        const halfHeight = window.innerHeight / 2;
 
-        if (window.innerWidth <= 480 && touchY < halfHeight) {
+        if (window.innerWidth <= 480 && touchY < window.innerHeight / 2) {
           window.scrollTo({ top: 0, behavior: 'smooth' });
           if (window.navigator.vibrate) window.navigator.vibrate([20, 50, 20]);
         } else if (currentSelected) {
-          const targetId = currentSelected.getAttribute('data-target');
-          const targetEl = document.getElementById(targetId);
-          if (targetEl) {
-            const offset = 80;
-            window.scrollTo({ top: targetEl.getBoundingClientRect().top + window.pageYOffset - offset, behavior: 'smooth' });
+          const targetId = currentSelected.dataset.target;
+          if (targetId === '__edit__') {
+            renderWheelModal();
+            wheelModal.style.display = 'flex';
+          } else {
+            const targetEl = document.getElementById(targetId);
+            if (targetEl) {
+              window.scrollTo({ top: targetEl.getBoundingClientRect().top + window.pageYOffset - 80, behavior: 'smooth' });
+            }
           }
         }
         resetAll();
@@ -4613,6 +4841,8 @@
 
       document.addEventListener('touchcancel', resetAll);
       trigger.addEventListener('contextmenu', (e) => e.preventDefault());
+
+      renderWheelMenu();
     })();
   </script>
 
