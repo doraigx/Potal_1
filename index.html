@@ -226,6 +226,110 @@
       background: var(--bg-color);
     }
 
+    /* --- 全国天気マップカード（天気番組風） --- */
+    .jp-map-container {
+      position: relative;
+      width: 100%;
+      height: 310px;
+      background: linear-gradient(180deg, #b3e5fc 0%, #e1f5fe 100%);
+      border-radius: 12px;
+      overflow: hidden;
+      border: 1px solid rgba(0, 140, 255, 0.25);
+      box-sizing: border-box;
+    }
+
+    [data-theme="dark"] .jp-map-container {
+      background: linear-gradient(180deg, #10253a 0%, #16324f 100%);
+      border-color: rgba(144, 202, 249, 0.25);
+    }
+
+    .jp-map-svg {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+    }
+
+    .jp-land {
+      fill: #81c784;
+      stroke: #4caf50;
+      stroke-width: 1.5;
+      opacity: 0.85;
+    }
+
+    [data-theme="dark"] .jp-land {
+      fill: #2e5a44;
+      stroke: #4caf50;
+    }
+
+    .jp-okinawa-box {
+      position: absolute;
+      top: 8px;
+      left: 8px;
+      width: 74px;
+      height: 62px;
+      border: 1.5px dashed rgba(33, 150, 243, 0.65);
+      border-radius: 6px;
+      background: rgba(255, 255, 255, 0.25);
+      pointer-events: none;
+    }
+
+    [data-theme="dark"] .jp-okinawa-box {
+      background: rgba(0, 0, 0, 0.2);
+    }
+
+    .jp-city-badge {
+      position: absolute;
+      transform: translate(-50%, -50%);
+      background: rgba(255, 255, 255, 0.92);
+      color: #222;
+      border-radius: 8px;
+      padding: 3px 6px;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+      text-align: center;
+      line-height: 1.15;
+      min-width: 52px;
+      cursor: pointer;
+      transition: transform 0.15s;
+      z-index: 2;
+    }
+
+    [data-theme="dark"] .jp-city-badge {
+      background: rgba(30, 30, 30, 0.92);
+      color: #f0f0f0;
+      border: 1px solid rgba(255, 255, 255, 0.15);
+    }
+
+    .jp-city-badge:hover {
+      transform: translate(-50%, -50%) scale(1.08);
+      z-index: 5;
+    }
+
+    .jp-city-name {
+      font-size: 0.68rem;
+      font-weight: bold;
+      display: block;
+    }
+
+    .jp-city-icon {
+      font-size: 1.05rem;
+      display: inline-block;
+      vertical-align: middle;
+    }
+
+    .jp-city-temps {
+      font-size: 0.68rem;
+      font-weight: bold;
+      display: block;
+      margin-top: 1px;
+    }
+
+    .jp-temp-max { color: #e53935; }
+    .jp-temp-min { color: #1e88e5; }
+    [data-theme="dark"] .jp-temp-max { color: #ff8a80; }
+    [data-theme="dark"] .jp-temp-min { color: #80d8ff; }
+
     .loading {
       color: #777;
       font-size: 0.95rem;
@@ -634,7 +738,7 @@
       cursor: pointer;
     }
 
-    /* --- クイックリンク（お気に入りランチャー） --- */
+    /* --- クイックリンク（カード側＆モーダル） --- */
     .ql-list {
       display: flex;
       flex-direction: column;
@@ -642,22 +746,15 @@
       margin-bottom: 10px;
     }
 
-    .ql-item {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
-
     .ql-link-btn {
-      flex: 1;
       text-decoration: none;
       display: block;
-      padding: 8px 12px;
+      padding: 9px 12px;
       border-radius: 8px;
       background: rgba(33, 150, 243, 0.2);
       color: var(--text-color);
       font-weight: bold;
-      font-size: 0.9rem;
+      font-size: 0.92rem;
       text-align: center;
       transition: 0.2s;
       overflow: hidden;
@@ -669,44 +766,119 @@
       background: rgba(33, 150, 243, 0.4);
     }
 
-    .ql-del-btn {
-      background: rgba(244, 67, 54, 0.75);
-      color: #fff;
-      border: none;
-      border-radius: 6px;
-      padding: 6px 10px;
-      cursor: pointer;
+    .ql-manage-btn {
+      width: 100%;
+      padding: 8px;
+      border: 1px dashed var(--link-color);
+      border-radius: 8px;
+      background: transparent;
+      color: var(--link-color);
       font-weight: bold;
+      cursor: pointer;
+      font-size: 0.88rem;
+      transition: 0.2s;
     }
 
-    .ql-form {
+    .ql-manage-btn:hover {
+      background: rgba(33, 150, 243, 0.1);
+    }
+
+    .ql-modal-list {
+      max-height: 220px;
+      overflow-y: auto;
       display: flex;
       flex-direction: column;
       gap: 6px;
-      margin-top: 8px;
-      padding-top: 8px;
-      border-top: 1px solid var(--border-color);
+      margin-bottom: 12px;
     }
+
+    .ql-modal-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 6px;
+      padding: 6px 8px;
+      border-radius: 8px;
+      background: var(--bg-color);
+      font-size: 0.85rem;
+    }
+
+    .ql-modal-row-info {
+      flex: 1;
+      overflow: hidden;
+    }
+
+    .ql-modal-row-name {
+      font-weight: bold;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .ql-modal-row-url {
+      font-size: 0.72rem;
+      opacity: 0.65;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .ql-modal-actions {
+      display: flex;
+      gap: 4px;
+      flex-shrink: 0;
+    }
+
+    .ql-mini-btn {
+      border: none;
+      border-radius: 4px;
+      padding: 4px 7px;
+      font-size: 0.75rem;
+      font-weight: bold;
+      cursor: pointer;
+      background: rgba(128, 128, 128, 0.2);
+      color: var(--text-color);
+    }
+
+    .ql-mini-btn.edit { background: rgba(33, 150, 243, 0.25); }
+    .ql-mini-btn.del { background: rgba(244, 67, 54, 0.75); color: #fff; }
 
     .ql-input {
       width: 100%;
-      padding: 6px 8px;
+      padding: 8px 10px;
       box-sizing: border-box;
       border-radius: 6px;
       border: 1px solid #ccc;
       background: var(--bg-color);
       color: var(--text-color);
       font-size: 0.9rem;
+      margin-bottom: 8px;
     }
 
-    .ql-add-btn {
-      padding: 7px;
+    .ql-save-btn {
+      width: 100%;
+      padding: 9px;
       border: none;
-      border-radius: 6px;
+      border-radius: 8px;
       background: #4caf50;
       color: #fff;
       font-weight: bold;
       cursor: pointer;
+      font-size: 0.92rem;
+    }
+
+    .ql-cancel-edit-btn {
+      width: 100%;
+      padding: 7px;
+      margin-top: 6px;
+      border: none;
+      border-radius: 8px;
+      background: #78909c;
+      color: #fff;
+      font-weight: bold;
+      cursor: pointer;
+      font-size: 0.85rem;
+      display: none;
     }
 
     /* --- ToDoリスト --- */
@@ -734,6 +906,7 @@
       color: #fff;
       font-weight: bold;
       cursor: pointer;
+      white-space: nowrap;
     }
 
     .todo-list {
@@ -781,23 +954,23 @@
       padding: 2px 6px;
     }
 
-    /* --- ポモドーロタイマー --- */
+    /* --- カスタムタイマー（カード側） --- */
     .pomo-mode-tabs {
       display: flex;
       gap: 6px;
-      margin-bottom: 10px;
+      margin-bottom: 8px;
     }
 
     .pomo-mode-btn {
       flex: 1;
-      padding: 6px;
+      padding: 5px;
       border: none;
       border-radius: 8px;
       background: var(--bg-color);
       color: var(--text-color);
       font-weight: bold;
       cursor: pointer;
-      font-size: 0.85rem;
+      font-size: 0.8rem;
     }
 
     .pomo-mode-btn.active {
@@ -805,34 +978,144 @@
       color: #fff;
     }
 
+    .pomo-custom-row {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      margin-bottom: 8px;
+      justify-content: center;
+    }
+
+    .pomo-custom-input {
+      width: 54px;
+      padding: 5px;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+      background: var(--bg-color);
+      color: var(--text-color);
+      text-align: center;
+      font-size: 0.9rem;
+    }
+
+    .pomo-set-btn {
+      padding: 5px 10px;
+      border: none;
+      border-radius: 6px;
+      background: rgba(33, 150, 243, 0.25);
+      color: var(--text-color);
+      font-weight: bold;
+      cursor: pointer;
+      font-size: 0.82rem;
+    }
+
     .pomo-display {
       text-align: center;
       font-size: 2.8rem;
       font-weight: bold;
-      margin: 10px 0;
+      margin: 8px 0;
       font-variant-numeric: tabular-nums;
       letter-spacing: 2px;
     }
 
     .pomo-controls {
       display: flex;
-      gap: 8px;
+      gap: 6px;
       justify-content: center;
     }
 
     .pomo-btn {
       flex: 1;
-      padding: 8px 12px;
+      padding: 8px 10px;
       border: none;
       border-radius: 8px;
       font-weight: bold;
       cursor: pointer;
       color: #fff;
-      font-size: 0.95rem;
+      font-size: 0.88rem;
     }
 
     .pomo-start { background: #4caf50; }
     .pomo-reset { background: #78909c; }
+    .pomo-expand { background: #2196f3; }
+
+    /* --- タイマー全画面オーバーレイ --- */
+    #timer-fullscreen-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: var(--bg-color);
+      color: var(--text-color);
+      z-index: 10020;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      box-sizing: border-box;
+    }
+
+    #timer-fullscreen-overlay.active {
+      display: flex;
+    }
+
+    .timer-fs-time {
+      font-size: clamp(4.5rem, 20vw, 13rem);
+      font-weight: bold;
+      font-variant-numeric: tabular-nums;
+      letter-spacing: 4px;
+      line-height: 1.1;
+      margin-bottom: 24px;
+    }
+
+    .timer-fs-progress-wrap {
+      width: min(85vw, 600px);
+      height: 12px;
+      background: rgba(128, 128, 128, 0.25);
+      border-radius: 999px;
+      overflow: hidden;
+      margin-bottom: 32px;
+    }
+
+    .timer-fs-progress-bar {
+      height: 100%;
+      width: 100%;
+      background: linear-gradient(90deg, #2196f3, #00e5ff);
+      transition: width 0.3s linear;
+    }
+
+    .timer-fs-controls {
+      display: flex;
+      gap: 14px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    .timer-fs-btn {
+      padding: 14px 28px;
+      font-size: 1.1rem;
+      font-weight: bold;
+      border: none;
+      border-radius: 12px;
+      cursor: pointer;
+      color: #fff;
+      min-width: 130px;
+    }
+
+    .timer-fs-close {
+      position: absolute;
+      top: 20px;
+      right: 24px;
+      background: rgba(128, 128, 128, 0.25);
+      color: var(--text-color);
+      border: none;
+      border-radius: 50%;
+      width: 48px;
+      height: 48px;
+      font-size: 1.6rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
 
     #clock {
       color: var(--text-color);
@@ -891,10 +1174,9 @@
     .Fort-btn {
       padding: 8px 16px;
       font-size: 0.95em;
-      font-weight: 500;
+      font-weight: bold;
       color: var(--text-color);
       background-color: rgba(107, 184, 255, 0.3);
-      font-weight: bold;
       border: none;
       border-radius: 8px;
       cursor: pointer;
@@ -1316,15 +1598,8 @@
         pointer-events: none !important;
       }
 
-      #settings-modal[style*="display: flex"] ~ #edit-btn,
-      #settings-modal[style*="display: flex"] ~ button:not(.header-btn):not(.close-btn) {
-        display: none !important;
-      }
-
-      body:has(#settings-modal[style*="display: flex"]) #mobile-nav-bar {
-        display: none !important;
-      }
-      :root:has(#settings-modal[style*="display: flex"]) button[style*="position: fixed"] {
+      body:has(#settings-modal[style*="display: flex"]) #mobile-nav-bar,
+      body:has(#ql-modal[style*="display: flex"]) #mobile-nav-bar {
         display: none !important;
       }
 
@@ -1402,7 +1677,7 @@
       display: flex;
       justify-content: center;
       align-items: center;
-      z-index: 3000;
+      z-index: 10005;
       backdrop-filter: blur(4px);
     }
 
@@ -1410,10 +1685,12 @@
       background: var(--card-bg);
       padding: 20px;
       border-radius: 15px;
-      width: 85%;
-      max-width: 320px;
+      width: 88%;
+      max-width: 360px;
       box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
       color: var(--text-color);
+      max-height: 85vh;
+      overflow-y: auto;
     }
 
     .modal-header {
@@ -1473,18 +1750,9 @@
       margin-top: 5px;
     }
 
-    #settings-modal[style*="display: flex"] ~ #mobile-nav-bar,
-    #settings-modal[style*="display: flex"] ~ #circle-overlay,
-    #settings-modal[style*="display: flex"] ~ #circle-menu-ring,
-    #settings-modal[style*="display: flex"] ~ #edit-btn,
-    #settings-modal[style*="display: flex"] ~ button[style*="position: fixed"] {
-      display: none !important;
-      visibility: hidden !important;
-      opacity: 0 !important;
-    }
-
     body:has(#settings-modal[style*="display: flex"]) #edit-btn,
-    body:has(#settings-modal[style*="display: flex"]) button[style*="position: fixed"] {
+    body:has(#ql-modal[style*="display: flex"]) #edit-btn,
+    body:has(#timer-fullscreen-overlay.active) #edit-btn {
       display: none !important;
     }
 
@@ -1583,6 +1851,7 @@
       <button id="simple-mode-btn" class="header-btn" title="その他">🔧</button>
     </div>
 
+    <!-- 詳細設定モーダル -->
     <div id="settings-modal" class="modal-overlay" style="display: none;">
       <div class="modal-content">
         <div class="modal-header">
@@ -1673,6 +1942,38 @@
     </script>
   </header>
 
+  <!-- ★お気に入りリンク管理モーダル -->
+  <div id="ql-modal" class="modal-overlay" style="display: none;">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>お気に入りリンク管理</h3>
+        <button id="close-ql-modal" class="close-btn">&times;</button>
+      </div>
+      <div id="ql-modal-list" class="ql-modal-list"></div>
+      <div style="border-top: 1px solid var(--border-color); padding-top: 12px;">
+        <div id="ql-form-title" style="font-size: 0.85rem; font-weight: bold; margin-bottom: 6px;">新規リンクを追加</div>
+        <input type="text" id="ql-name" class="ql-input" placeholder="サイト名 (例: YouTube)">
+        <input type="url" id="ql-url" class="ql-input" placeholder="URL (例: https://youtube.com)">
+        <button id="ql-save-btn" class="ql-save-btn">＋ 追加する</button>
+        <button id="ql-cancel-edit-btn" class="ql-cancel-edit-btn">編集をキャンセル</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ★タイマー全画面オーバーレイ -->
+  <div id="timer-fullscreen-overlay">
+    <button id="timer-fs-close" class="timer-fs-close" title="閉じる">&times;</button>
+    <div id="timer-fs-label" style="font-size: 1.2rem; opacity: 0.75; margin-bottom: 8px; font-weight: bold;">タイマー</div>
+    <div id="timer-fs-time" class="timer-fs-time">25:00</div>
+    <div class="timer-fs-progress-wrap">
+      <div id="timer-fs-progress-bar" class="timer-fs-progress-bar"></div>
+    </div>
+    <div class="timer-fs-controls">
+      <button id="timer-fs-start" class="timer-fs-btn pomo-start">スタート</button>
+      <button id="timer-fs-reset" class="timer-fs-btn pomo-reset">リセット</button>
+    </div>
+  </div>
+
   <div class="main-container">
     <div class="widgets">
 
@@ -1684,18 +1985,14 @@
         </div>
       </div>
 
-      <!-- ★追加：お気に入りリンク（クイックリンク） -->
+      <!-- ★お気に入りリンク（モーダル管理） -->
       <div class="card" id="quicklinks-card">
         <h2>お気に入りリンク</h2>
         <div id="ql-list" class="ql-list"></div>
-        <div class="ql-form">
-          <input type="text" id="ql-name" class="ql-input" placeholder="サイト名 (例: YouTube)">
-          <input type="url" id="ql-url" class="ql-input" placeholder="URL (例: https://youtube.com)">
-          <button id="ql-add-btn" class="ql-add-btn">＋ 追加</button>
-        </div>
+        <button id="ql-open-modal-btn" class="ql-manage-btn">＋ リンクを追加・編集</button>
       </div>
 
-      <!-- ★追加：ToDoリスト -->
+      <!-- ★ToDoリスト（ボタンクリックのみ追加） -->
       <div class="card" id="todo-card">
         <h2>ToDoリスト</h2>
         <div class="todo-input-row">
@@ -1705,17 +2002,26 @@
         <ul id="todo-list" class="todo-list"></ul>
       </div>
 
-      <!-- ★追加：ポモドーロタイマー -->
+      <!-- ★カスタムタイマー（自由設定＋全画面対応） -->
       <div class="card" id="pomodoro-card">
-        <h2>ポモドーロタイマー</h2>
+        <h2>タイマー</h2>
         <div class="pomo-mode-tabs">
-          <button class="pomo-mode-btn active" data-min="25">作業 (25分)</button>
-          <button class="pomo-mode-btn" data-min="5">休憩 (5分)</button>
+          <button class="pomo-mode-btn active" data-min="25">25分</button>
+          <button class="pomo-mode-btn" data-min="10">10分</button>
+          <button class="pomo-mode-btn" data-min="5">5分</button>
+        </div>
+        <div class="pomo-custom-row">
+          <input type="number" id="pomo-custom-min" class="pomo-custom-input" min="0" max="180" value="25" aria-label="分">
+          <span>分</span>
+          <input type="number" id="pomo-custom-sec" class="pomo-custom-input" min="0" max="59" value="0" aria-label="秒">
+          <span>秒</span>
+          <button id="pomo-set-btn" class="pomo-set-btn">設定</button>
         </div>
         <div id="pomo-display" class="pomo-display">25:00</div>
         <div class="pomo-controls">
           <button id="pomo-start-btn" class="pomo-btn pomo-start">スタート</button>
           <button id="pomo-reset-btn" class="pomo-btn pomo-reset">リセット</button>
+          <button id="pomo-expand-btn" class="pomo-btn pomo-expand" title="画面いっぱいに表示">⛶ 拡大</button>
         </div>
       </div>
 
@@ -1744,6 +2050,31 @@
         <div id="weather">
           <div class="loading">読み込み中…</div>
         </div>
+      </div>
+
+      <!-- ★新規：全国天気マップカード（天気番組風） -->
+      <div class="card" id="jp-weather-map-card">
+        <h2>全国の天気マップ</h2>
+        <div id="jp-map-container" class="jp-map-container">
+          <!-- 日本列島デフォルメSVG -->
+          <svg class="jp-map-svg" viewBox="0 0 320 310" preserveAspectRatio="none">
+            <!-- 北海道 -->
+            <path class="jp-land" d="M225,22 L268,14 L295,38 L278,66 L245,68 L228,82 L216,66 L225,44 Z"/>
+            <!-- 本州 -->
+            <path class="jp-land" d="M214,90 L240,94 L248,136 L242,175 L220,198 L190,206 L160,204 L132,216 L96,222 L72,232 L68,216 L102,196 L138,186 L168,166 L192,146 L204,116 Z"/>
+            <!-- 四国 -->
+            <path class="jp-land" d="M104,232 L138,224 L142,246 L112,256 L98,244 Z"/>
+            <!-- 九州 -->
+            <path class="jp-land" d="M52,238 L82,236 L86,274 L68,292 L50,278 L46,254 Z"/>
+            <!-- 沖縄（左上枠内） -->
+            <path class="jp-land" d="M28,46 L48,30 L54,36 L34,54 Z"/>
+          </svg>
+          <div class="jp-okinawa-box"></div>
+          <div id="jp-map-cities">
+            <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:0.9rem;font-weight:bold;">読み込み中...</div>
+          </div>
+        </div>
+        <div style="font-size:0.75rem;opacity:0.7;margin-top:6px;text-align:right;">※都市をタップすると天気カードに反映されます</div>
       </div>
 
       <div class="card" id="sun-card">
@@ -1979,14 +2310,22 @@
     });
   </script>
 
-  <!-- ★新規：お気に入りリンク（クイックリンク）ロジック -->
+  <!-- ★お気に入りリンク（モーダル追加・編集・並び替え・削除） -->
   <script>
     (function() {
       const QL_KEY = 'portalQuickLinks';
-      const listEl = document.getElementById('ql-list');
+      const cardListEl = document.getElementById('ql-list');
+      const openBtn = document.getElementById('ql-open-modal-btn');
+      const modal = document.getElementById('ql-modal');
+      const closeBtn = document.getElementById('close-ql-modal');
+      const modalListEl = document.getElementById('ql-modal-list');
+      const formTitle = document.getElementById('ql-form-title');
       const nameInput = document.getElementById('ql-name');
       const urlInput = document.getElementById('ql-url');
-      const addBtn = document.getElementById('ql-add-btn');
+      const saveBtn = document.getElementById('ql-save-btn');
+      const cancelEditBtn = document.getElementById('ql-cancel-edit-btn');
+
+      let editingIndex = -1;
 
       function getLinks() {
         try {
@@ -2001,42 +2340,115 @@
         if (typeof window.saveWidgetDataToCloud === 'function') window.saveWidgetDataToCloud();
       }
 
+      function resetForm() {
+        editingIndex = -1;
+        formTitle.textContent = '新規リンクを追加';
+        saveBtn.textContent = '＋ 追加する';
+        saveBtn.style.background = '#4caf50';
+        cancelEditBtn.style.display = 'none';
+        nameInput.value = '';
+        urlInput.value = '';
+      }
+
       function renderQuickLinks() {
         const links = getLinks();
-        listEl.innerHTML = '';
+        cardListEl.innerHTML = '';
         if (links.length === 0) {
-          listEl.innerHTML = '<div style="font-size:0.85rem;opacity:0.6;text-align:center;">よく使うサイトを追加できます</div>';
+          cardListEl.innerHTML = '<div style="font-size:0.85rem;opacity:0.6;text-align:center;">よく使うサイトを追加できます</div>';
+        } else {
+          links.forEach(item => {
+            const a = document.createElement('a');
+            a.className = 'ql-link-btn';
+            a.href = item.url;
+            a.target = '_blank';
+            a.rel = 'noopener noreferrer';
+            a.textContent = item.name;
+            cardListEl.appendChild(a);
+          });
+        }
+        renderModalList();
+      }
+
+      function renderModalList() {
+        const links = getLinks();
+        modalListEl.innerHTML = '';
+        if (links.length === 0) {
+          modalListEl.innerHTML = '<div style="font-size:0.85rem;opacity:0.6;text-align:center;padding:8px 0;">登録されたリンクはありません</div>';
           return;
         }
         links.forEach((item, idx) => {
           const row = document.createElement('div');
-          row.className = 'ql-item';
+          row.className = 'ql-modal-row';
 
-          const a = document.createElement('a');
-          a.className = 'ql-link-btn';
-          a.href = item.url;
-          a.target = '_blank';
-          a.rel = 'noopener noreferrer';
-          a.textContent = item.name;
+          const info = document.createElement('div');
+          info.className = 'ql-modal-row-info';
+          info.innerHTML = `<div class="ql-modal-row-name"></div><div class="ql-modal-row-url"></div>`;
+          info.querySelector('.ql-modal-row-name').textContent = item.name;
+          info.querySelector('.ql-modal-row-url').textContent = item.url;
 
-          const del = document.createElement('button');
-          del.className = 'ql-del-btn';
-          del.textContent = '×';
-          del.title = '削除';
-          del.onclick = () => {
-            const updated = getLinks();
-            updated.splice(idx, 1);
-            saveLinks(updated);
+          const actions = document.createElement('div');
+          actions.className = 'ql-modal-actions';
+
+          const upBtn = document.createElement('button');
+          upBtn.className = 'ql-mini-btn';
+          upBtn.textContent = '↑';
+          upBtn.disabled = idx === 0;
+          upBtn.onclick = () => {
+            const arr = getLinks();
+            [arr[idx - 1], arr[idx]] = [arr[idx], arr[idx - 1]];
+            saveLinks(arr);
             renderQuickLinks();
           };
 
-          row.appendChild(a);
-          row.appendChild(del);
-          listEl.appendChild(row);
+          const downBtn = document.createElement('button');
+          downBtn.className = 'ql-mini-btn';
+          downBtn.textContent = '↓';
+          downBtn.disabled = idx === links.length - 1;
+          downBtn.onclick = () => {
+            const arr = getLinks();
+            [arr[idx], arr[idx + 1]] = [arr[idx + 1], arr[idx]];
+            saveLinks(arr);
+            renderQuickLinks();
+          };
+
+          const editBtnItem = document.createElement('button');
+          editBtnItem.className = 'ql-mini-btn edit';
+          editBtnItem.textContent = '編集';
+          editBtnItem.onclick = () => {
+            editingIndex = idx;
+            formTitle.textContent = `「${item.name}」を編集中`;
+            nameInput.value = item.name;
+            urlInput.value = item.url;
+            saveBtn.textContent = '変更を保存';
+            saveBtn.style.background = '#2196f3';
+            cancelEditBtn.style.display = 'block';
+            nameInput.focus();
+          };
+
+          const delBtn = document.createElement('button');
+          delBtn.className = 'ql-mini-btn del';
+          delBtn.textContent = '削除';
+          delBtn.onclick = () => {
+            if (!confirm(`「${item.name}」を削除しますか？`)) return;
+            const arr = getLinks();
+            arr.splice(idx, 1);
+            saveLinks(arr);
+            if (editingIndex === idx) resetForm();
+            renderQuickLinks();
+          };
+
+          actions.appendChild(upBtn);
+          actions.appendChild(downBtn);
+          actions.appendChild(editBtnItem);
+          actions.appendChild(delBtn);
+
+          row.appendChild(info);
+          row.appendChild(actions);
+          modalListEl.appendChild(row);
         });
       }
 
-      addBtn.addEventListener('click', () => {
+      saveBtn.addEventListener('click', () => {
         const name = nameInput.value.trim();
         let url = urlInput.value.trim();
         if (!name || !url) {
@@ -2047,11 +2459,32 @@
           url = 'https://' + url;
         }
         const links = getLinks();
-        links.push({ name, url });
+        if (editingIndex >= 0 && editingIndex < links.length) {
+          links[editingIndex] = { name, url };
+        } else {
+          links.push({ name, url });
+        }
         saveLinks(links);
-        nameInput.value = '';
-        urlInput.value = '';
+        resetForm();
         renderQuickLinks();
+      });
+
+      cancelEditBtn.addEventListener('click', resetForm);
+
+      openBtn.addEventListener('click', () => {
+        resetForm();
+        renderModalList();
+        modal.style.display = 'flex';
+      });
+
+      const closeModal = () => {
+        modal.style.display = 'none';
+        resetForm();
+      };
+
+      closeBtn.addEventListener('click', closeModal);
+      modal.addEventListener('click', (e) => {
+        if (e.target === modal) closeModal();
       });
 
       window.renderQuickLinks = renderQuickLinks;
@@ -2059,7 +2492,7 @@
     })();
   </script>
 
-  <!-- ★新規：ToDoリスト ロジック -->
+  <!-- ★ToDoリスト ロジック（追加ボタンクリックのみ） -->
   <script>
     (function() {
       const TODO_KEY = 'portalTodos';
@@ -2125,7 +2558,7 @@
         });
       }
 
-      function addTodo() {
+      addBtn.addEventListener('click', () => {
         const text = inputEl.value.trim();
         if (!text) return;
         const todos = getTodos();
@@ -2133,11 +2566,6 @@
         saveTodos(todos);
         inputEl.value = '';
         renderTodos();
-      }
-
-      addBtn.addEventListener('click', addTodo);
-      inputEl.addEventListener('keydown', (e) => {
-        if (e.key === 'Enter') addTodo();
       });
 
       window.renderTodos = renderTodos;
@@ -2145,13 +2573,25 @@
     })();
   </script>
 
-  <!-- ★新規：ポモドーロタイマー ロジック -->
+  <!-- ★カスタムタイマー（自由設定＋全画面オーバーレイ対応） -->
   <script>
     (function() {
       const displayEl = document.getElementById('pomo-display');
       const startBtn = document.getElementById('pomo-start-btn');
       const resetBtn = document.getElementById('pomo-reset-btn');
+      const expandBtn = document.getElementById('pomo-expand-btn');
       const modeBtns = document.querySelectorAll('.pomo-mode-btn');
+      const minInput = document.getElementById('pomo-custom-min');
+      const secInput = document.getElementById('pomo-custom-sec');
+      const setBtn = document.getElementById('pomo-set-btn');
+
+      // 全画面オーバーレイ要素
+      const fsOverlay = document.getElementById('timer-fullscreen-overlay');
+      const fsCloseBtn = document.getElementById('timer-fs-close');
+      const fsTimeEl = document.getElementById('timer-fs-time');
+      const fsProgressBar = document.getElementById('timer-fs-progress-bar');
+      const fsStartBtn = document.getElementById('timer-fs-start');
+      const fsResetBtn = document.getElementById('timer-fs-reset');
 
       let totalSeconds = 25 * 60;
       let remainingSeconds = totalSeconds;
@@ -2164,18 +2604,32 @@
           const gain = ctx.createGain();
           osc.type = 'sine';
           osc.frequency.setValueAtTime(880, ctx.currentTime);
-          gain.gain.setValueAtTime(0.2, ctx.currentTime);
+          gain.gain.setValueAtTime(0.25, ctx.currentTime);
           osc.connect(gain);
           gain.connect(ctx.destination);
           osc.start();
-          osc.stop(ctx.currentTime + 0.5);
+          osc.stop(ctx.currentTime + 0.6);
         } catch (e) {}
       }
 
       function updateDisplay() {
         const m = String(Math.floor(remainingSeconds / 60)).padStart(2, '0');
         const s = String(remainingSeconds % 60).padStart(2, '0');
-        displayEl.textContent = `${m}:${s}`;
+        const text = `${m}:${s}`;
+        displayEl.textContent = text;
+        fsTimeEl.textContent = text;
+
+        const pct = totalSeconds > 0 ? (remainingSeconds / totalSeconds) * 100 : 0;
+        fsProgressBar.style.width = `${pct}%`;
+      }
+
+      function syncStartButtons(isRunning) {
+        const label = isRunning ? '一時停止' : 'スタート';
+        const bg = isRunning ? '#ff9800' : '#4caf50';
+        startBtn.textContent = label;
+        startBtn.style.background = bg;
+        fsStartBtn.textContent = label;
+        fsStartBtn.style.background = bg;
       }
 
       function stopTimer() {
@@ -2183,45 +2637,80 @@
           clearInterval(timerId);
           timerId = null;
         }
-        startBtn.textContent = 'スタート';
-        startBtn.style.background = '#4caf50';
+        syncStartButtons(false);
       }
 
-      startBtn.addEventListener('click', () => {
+      function toggleStartPause() {
         if (timerId) {
           stopTimer();
         } else {
-          startBtn.textContent = '一時停止';
-          startBtn.style.background = '#ff9800';
+          if (remainingSeconds <= 0) {
+            remainingSeconds = totalSeconds;
+          }
+          if (remainingSeconds <= 0) return;
+          syncStartButtons(true);
           timerId = setInterval(() => {
             remainingSeconds--;
             updateDisplay();
             if (remainingSeconds <= 0) {
               stopTimer();
               playBeep();
-              alert('ポモドーロタイマーが終了しました！');
+              alert('タイマーが終了しました！');
               remainingSeconds = totalSeconds;
               updateDisplay();
             }
           }, 1000);
         }
-      });
+      }
 
-      resetBtn.addEventListener('click', () => {
+      function resetTimer() {
         stopTimer();
         remainingSeconds = totalSeconds;
         updateDisplay();
+      }
+
+      function applyTime(min, sec) {
+        const m = Math.max(0, parseInt(min, 10) || 0);
+        const s = Math.max(0, Math.min(59, parseInt(sec, 10) || 0));
+        const total = m * 60 + s;
+        if (total <= 0) {
+          alert('1秒以上に設定してください');
+          return;
+        }
+        stopTimer();
+        totalSeconds = total;
+        remainingSeconds = total;
+        minInput.value = m;
+        secInput.value = s;
+        updateDisplay();
+      }
+
+      startBtn.addEventListener('click', toggleStartPause);
+      fsStartBtn.addEventListener('click', toggleStartPause);
+
+      resetBtn.addEventListener('click', resetTimer);
+      fsResetBtn.addEventListener('click', resetTimer);
+
+      setBtn.addEventListener('click', () => {
+        modeBtns.forEach(b => b.classList.remove('active'));
+        applyTime(minInput.value, secInput.value);
       });
 
       modeBtns.forEach(btn => {
         btn.addEventListener('click', () => {
           modeBtns.forEach(b => b.classList.remove('active'));
           btn.classList.add('active');
-          stopTimer();
-          totalSeconds = parseInt(btn.dataset.min, 10) * 60;
-          remainingSeconds = totalSeconds;
-          updateDisplay();
+          applyTime(btn.dataset.min, 0);
         });
+      });
+
+      expandBtn.addEventListener('click', () => {
+        fsOverlay.classList.add('active');
+        updateDisplay();
+      });
+
+      fsCloseBtn.addEventListener('click', () => {
+        fsOverlay.classList.remove('active');
       });
 
       updateDisplay();
@@ -2615,7 +3104,6 @@
         if (!sessionStorage.getItem('skipLogin')) {
           window.location.href = "./login.html";
         } else {
-          console.log("アカウントなしモードでポータルを利用中（端末内保存）");
           currentUser = null;
           const authBtn = document.getElementById('logout-btn');
           if (authBtn) {
@@ -2625,14 +3113,11 @@
         }
       } else {
         currentUser = user;
-        console.log("ユーザー検証成功 (クラウド同期ON):", user.uid);
-
         const authBtn = document.getElementById('logout-btn');
         if (authBtn) {
           authBtn.textContent = "🚪 ログアウトする";
           authBtn.style.background = "#ff5722";
         }
-
         await loadUserDataFromServer(user.uid);
       }
     });
@@ -2720,7 +3205,6 @@
             if (typeof updateHiddenCardsUI === 'function') updateHiddenCardsUI();
           }
 
-          // ★新規追加データの復元
           if (Array.isArray(data.portalQuickLinks)) {
             localStorage.setItem('portalQuickLinks', JSON.stringify(data.portalQuickLinks));
             if (typeof window.renderQuickLinks === 'function') window.renderQuickLinks();
@@ -2789,7 +3273,6 @@
           portalWeatherLocation: weatherLocData,
           updatedAt: new Date()
         }, { merge: true });
-        console.log("全設定がクラウドへ同期されました");
       } catch (e) {
         console.error("クラウドへの一括同期に失敗:", e);
       }
@@ -2855,11 +3338,6 @@
       });
     }
 
-    const colorPickerEl = document.getElementById('color-picker');
-    if (colorPickerEl) {
-      colorPickerEl.addEventListener('change', () => window.saveWidgetDataToCloud());
-    }
-
     ['draw-horoscope', 'fortune-card'].forEach(id => {
       const btn = document.getElementById(id) || (id === 'fortune-card' ? document.querySelector('#fortune-card button') : null);
       if (btn) {
@@ -2876,9 +3354,7 @@
           const card = document.getElementById(id);
           if (card) card.style.display = "none";
         });
-      } catch (e) {
-        console.error("非表示の強制適用に失敗:", e);
-      }
+      } catch (e) {}
     };
 
     [100, 500, 1000, 2000, 3000, 5000].forEach(delay => {
@@ -2905,7 +3381,7 @@
     }
   </script>
 
-  <!-- ★改善：天気 ＋ 地域切替 ＋ 現在地取得 ＋ 日の出・日の入連動 -->
+  <!-- ★天気 ＋ 現在地名取得（逆ジオコーディング） ＋ 日の出・日の入 ＋ 全国天気マップ -->
   <script>
     const WEATHER_LOC_KEY = 'portalWeatherLocation';
     let currentWeatherLoc = { lat: 35.2481, lon: 136.7846, name: '稲沢市' };
@@ -2922,9 +3398,7 @@
       if (select) {
         const matchVal = `${currentWeatherLoc.lat},${currentWeatherLoc.lon},${currentWeatherLoc.name}`;
         const hasOption = Array.from(select.options).some(opt => opt.value === matchVal);
-        if (hasOption) {
-          select.value = matchVal;
-        }
+        if (hasOption) select.value = matchVal;
       }
     }
 
@@ -2936,6 +3410,30 @@
       if ([71, 73, 75].includes(code)) return '❄️';
       if (code === 95) return '⛈️';
       return '🌤️';
+    }
+
+    // 緯度・経度から市区町村名を取得（BigDataCloud -> Nominatim フォールバック）
+    async function resolvePlaceName(lat, lon) {
+      try {
+        const res = await fetch(`https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${lat}&longitude=${lon}&localityLanguage=ja`);
+        if (res.ok) {
+          const data = await res.json();
+          const city = data.city || data.locality || data.principalSubdivision;
+          if (city) return city;
+        }
+      } catch (e) {}
+
+      try {
+        const res2 = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}&accept-language=ja`);
+        if (res2.ok) {
+          const data2 = await res2.json();
+          const addr = data2.address || {};
+          const city2 = addr.city || addr.town || addr.village || addr.ward || addr.state;
+          if (city2) return city2;
+        }
+      } catch (e) {}
+
+      return `現在地 (${lat.toFixed(2)}, ${lon.toFixed(2)})`;
     }
 
     async function fetchWeather() {
@@ -3073,6 +3571,71 @@
       }
     }
 
+    // ★全国天気マップ（天気番組風）
+    const JP_MAP_CITIES = [
+      { name: '札幌', lat: 43.0618, lon: 141.3545, x: 80, y: 16 },
+      { name: '仙台', lat: 38.2682, lon: 140.8694, x: 82, y: 44 },
+      { name: '東京', lat: 35.6895, lon: 139.6917, x: 82, y: 70 },
+      { name: '金沢', lat: 36.5613, lon: 136.6562, x: 54, y: 45 },
+      { name: '名古屋', lat: 35.1815, lon: 136.9066, x: 58, y: 78 },
+      { name: '大阪', lat: 34.6937, lon: 135.5023, x: 40, y: 65 },
+      { name: '広島', lat: 34.3853, lon: 132.4553, x: 24, y: 54 },
+      { name: '福岡', lat: 33.5902, lon: 130.4017, x: 17, y: 84 },
+      { name: '那覇', lat: 26.2124, lon: 127.6809, x: 14, y: 13 }
+    ];
+
+    async function fetchJapanWeatherMap() {
+      const container = document.getElementById('jp-map-cities');
+      if (!container) return;
+
+      const lats = JP_MAP_CITIES.map(c => c.lat).join(',');
+      const lons = JP_MAP_CITIES.map(c => c.lon).join(',');
+      const url = `https://api.open-meteo.com/v1/forecast?latitude=${lats}&longitude=${lons}&current_weather=true&daily=temperature_2m_max,temperature_2m_min,weathercode&timezone=Asia/Tokyo`;
+
+      try {
+        const res = await fetch(url);
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+        const list = await res.json();
+        const results = Array.isArray(list) ? list : [list];
+
+        container.innerHTML = '';
+        JP_MAP_CITIES.forEach((city, idx) => {
+          const item = results[idx];
+          if (!item || !item.daily) return;
+
+          const code = item.daily.weathercode[0];
+          const emoji = weatherEmoji(code, 12);
+          const maxT = Math.floor(item.daily.temperature_2m_max[0]);
+          const minT = Math.floor(item.daily.temperature_2m_min[0]);
+
+          const badge = document.createElement('div');
+          badge.className = 'jp-city-badge';
+          badge.style.left = city.x + '%';
+          badge.style.top = city.y + '%';
+          badge.title = `${city.name}の詳しい天気を見る`;
+          badge.innerHTML = `
+            <span class="jp-city-name">${city.name}</span>
+            <span class="jp-city-icon">${emoji}</span>
+            <span class="jp-city-temps"><span class="jp-temp-max">${maxT}</span>/<span class="jp-temp-min">${minT}</span></span>
+          `;
+
+          badge.onclick = () => {
+            currentWeatherLoc = { lat: city.lat, lon: city.lon, name: city.name };
+            localStorage.setItem(WEATHER_LOC_KEY, JSON.stringify(currentWeatherLoc));
+            if (typeof window.saveWidgetDataToCloud === 'function') window.saveWidgetDataToCloud();
+            fetchWeather();
+            fetchSunriseSunset();
+            const weatherCard = document.getElementById('weather-card');
+            if (weatherCard) weatherCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          };
+
+          container.appendChild(badge);
+        });
+      } catch (e) {
+        container.innerHTML = '<div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:#d9534f;font-size:0.85rem;">全国天気の取得に失敗しました</div>';
+      }
+    }
+
     window.applySavedWeatherLocation = function() {
       loadSavedWeatherLocation();
       fetchWeather();
@@ -3096,19 +3659,18 @@
       const btn = document.getElementById('weather-geo-btn');
       btn.textContent = '取得中...';
       navigator.geolocation.getCurrentPosition(
-        (pos) => {
+        async (pos) => {
+          const lat = Number(pos.coords.latitude.toFixed(4));
+          const lon = Number(pos.coords.longitude.toFixed(4));
+          const placeName = await resolvePlaceName(lat, lon);
           btn.textContent = '📍現在地';
-          currentWeatherLoc = {
-            lat: Number(pos.coords.latitude.toFixed(4)),
-            lon: Number(pos.coords.longitude.toFixed(4)),
-            name: '現在地'
-          };
+          currentWeatherLoc = { lat, lon, name: `📍${placeName}` };
           localStorage.setItem(WEATHER_LOC_KEY, JSON.stringify(currentWeatherLoc));
           if (typeof window.saveWidgetDataToCloud === 'function') window.saveWidgetDataToCloud();
           fetchWeather();
           fetchSunriseSunset();
         },
-        (err) => {
+        () => {
           btn.textContent = '📍現在地';
           alert('位置情報の取得が許可されませんでした。');
         },
@@ -3119,7 +3681,9 @@
     loadSavedWeatherLocation();
     fetchWeather();
     fetchSunriseSunset();
+    fetchJapanWeatherMap();
     setInterval(fetchWeather, 10 * 60 * 1000);
+    setInterval(fetchJapanWeatherMap, 30 * 60 * 1000);
   </script>
 
   <!-- 地震情報 -->
@@ -3300,7 +3864,6 @@
         }
       } catch (err) {
         document.getElementById('exchange-rate').textContent = 'レート取得に失敗しました';
-        console.error(err);
       }
     }
 
@@ -3323,7 +3886,6 @@
         }
       } catch (err) {
         document.getElementById('currency-result').textContent = '換算エラー: ' + err;
-        console.error(err);
       }
     }
 
@@ -3331,7 +3893,7 @@
     document.getElementById('convert').addEventListener('click', convertCurrency);
   </script>
 
-  <!-- ★改善：共通RSS取得エンジン ＋ ニュース（カテゴリ切替対応） ＋ トレンド -->
+  <!-- 共通RSS取得エンジン ＋ ニュース（カテゴリ切替） ＋ トレンド -->
   <script>
     async function fetchRssItems(rssUrl, maxItems = 10) {
       const fetchWithTimeout = async (url, ms = 6000) => {
@@ -3398,7 +3960,6 @@
       throw new Error("すべての取得ルートが失敗しました");
     }
 
-    // --- ニュース取得（カテゴリ切替対応） ---
     const NEWS_CATEGORIES = {
       domestic: 'https://news.yahoo.co.jp/rss/topics/domestic.xml',
       it: 'https://news.yahoo.co.jp/rss/topics/it.xml',
@@ -3420,7 +3981,6 @@
         localStorage.setItem(STORAGE_KEY, JSON.stringify({ timestamp: Date.now(), items }));
         renderNews(items, false);
       } catch (err) {
-        console.warn("ニュース取得失敗、キャッシュを使用します", err);
         const cached = JSON.parse(localStorage.getItem(STORAGE_KEY) || 'null');
         if (cached && cached.items) {
           renderNews(cached.items, true);
@@ -3457,7 +4017,6 @@
     fetchNews('domestic');
     setInterval(() => fetchNews(currentNewsCat), 15 * 60 * 1000);
 
-    // --- トレンド取得 ---
     async function fetchTrends() {
       const container = document.getElementById("trend-list");
       const STORAGE_KEY = "portalTrendCacheV2";
@@ -3477,7 +4036,6 @@
         localStorage.setItem(STORAGE_KEY, JSON.stringify({ timestamp: Date.now(), items }));
         renderTrends(items, false);
       } catch (err) {
-        console.warn("トレンド取得失敗、古いキャッシュを確認します", err);
         if (cached && cached.items) {
           renderTrends(cached.items, true);
         } else {
@@ -3582,7 +4140,6 @@
 
       $(toggleBtn).on('click', function() {
         const $settings = $(settingsEl);
-
         if ($settings.is(':hidden')) {
           const data = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
           nameInput.value = data.name || '';
@@ -3640,7 +4197,6 @@
         }
       } catch (e) {
         loadingEl.textContent = "取得失敗...";
-        console.error(e);
       }
     }
 
@@ -3656,14 +4212,9 @@
       try {
         const url = `https://holidays-jp.github.io/api/v1/${year}/date.json`;
         const resp = await fetch(url);
-        if (!resp.ok) {
-          console.warn("祝日 API エラー:", resp.status);
-          return;
-        }
+        if (!resp.ok) return;
         holidaysData = await resp.json();
-      } catch (err) {
-        console.error("祝日取得失敗:", err);
-      }
+      } catch (err) {}
     }
 
     async function generateCalendar(year, month) {
@@ -4204,7 +4755,6 @@
             alert("データを削除しました。ページを再読み込みします。");
             window.location.reload(true);
           } catch (e) {
-            console.error("Reset failed:", e);
             alert("一部のデータ削除に失敗しましたが、リロードします。");
             window.location.reload(true);
           }
