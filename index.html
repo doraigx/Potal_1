@@ -2627,16 +2627,25 @@
       --border-color: rgba(27, 27, 27, 0.28);
     }
 
-    /* 定式幕（黒・柿・萌葱）の縦縞背景 */
+    /* 江戸流の落ち着いた畳表（い草）テクスチャ背景 */
     html[data-theme="edo"] body {
       font-family: 'DFPKanteiryu', 'Yu Mincho', 'Noto Sans JP', serif;
-      background-color: #1b1b1b;
-      background-image: repeating-linear-gradient(
-        90deg,
-        #1f1f1f 0px, #1f1f1f 72px,
-        #c94b28 72px, #c94b28 144px,
-        #266b42 144px, #266b42 216px
-      );
+      background-color: #b7b186;
+      background-image:
+        repeating-linear-gradient(
+          0deg,
+          rgba(70, 68, 36, 0.14) 0px,
+          rgba(70, 68, 36, 0.14) 2px,
+          transparent 2px,
+          transparent 5px
+        ),
+        repeating-linear-gradient(
+          90deg,
+          rgba(255, 248, 215, 0.15) 0px,
+          rgba(255, 248, 215, 0.15) 6px,
+          rgba(82, 78, 42, 0.09) 6px,
+          rgba(82, 78, 42, 0.09) 12px
+        );
     }
 
     html[data-theme="edo"] button,
