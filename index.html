@@ -74,18 +74,70 @@
     }
 
     [data-theme="wafuu"] {
-      --bg-color: #f4efe3;
-      --text-color: #2e241b;
-      --card-bg: #fcfaf2;
-      --card-shadow: rgba(92, 64, 51, 0.12);
-      --header-gradient: linear-gradient(90deg, #8b2635, #b5495b);
-      --link-color: #8b2635;
-      --main-color: #a63a49;
-      --border-color: rgba(139, 38, 53, 0.2);
+      --bg-color: #c5c496;
+      --text-color: #2b2418;
+      --card-bg: #f8f5e6;
+      --card-shadow: rgba(45, 55, 35, 0.22);
+      --header-gradient: linear-gradient(90deg, #274434, #365944);
+      --link-color: #2f5d42;
+      --main-color: #4a7856;
+      --border-color: rgba(47, 79, 62, 0.28);
     }
 
+    /* 畳表（い草）の織り目テクスチャ背景 */
+    html[data-theme="wafuu"] body {
+      background-color: #c4c393;
+      background-image:
+        repeating-linear-gradient(
+          0deg,
+          rgba(78, 88, 42, 0.13) 0px,
+          rgba(78, 88, 42, 0.13) 2px,
+          transparent 2px,
+          transparent 5px
+        ),
+        repeating-linear-gradient(
+          90deg,
+          rgba(255, 252, 220, 0.18) 0px,
+          rgba(255, 252, 220, 0.18) 6px,
+          rgba(95, 102, 54, 0.08) 6px,
+          rgba(95, 102, 54, 0.08) 12px
+        );
+    }
+
+    /* 畳縁（へり）をイメージしたヘッダー装飾 */
+    html[data-theme="wafuu"] header {
+      border-bottom: 4px solid #b89748;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+    }
+
+    html[data-theme="wafuu"] header #clock,
+    html[data-theme="wafuu"] header .header-btn,
+    html[data-theme="wafuu"] header .header-btn::after {
+      color: #f4efe0;
+    }
+
+    /* 畳縁＆和紙風のカードデザイン */
     [data-theme="wafuu"] .widgets .card {
-      border: 1px solid rgba(139, 38, 53, 0.18);
+      background-color: #f9f6e8;
+      background-image:
+        repeating-linear-gradient(
+          0deg,
+          rgba(160, 150, 105, 0.05) 0px,
+          rgba(160, 150, 105, 0.05) 1px,
+          transparent 1px,
+          transparent 4px
+        );
+      border: 1.5px solid #3c5944;
+      border-top: 6px solid #2b4736;
+      border-radius: 6px;
+      box-shadow: 0 3px 8px rgba(35, 45, 28, 0.22);
+    }
+
+    [data-theme="wafuu"] .widgets .card h2 {
+      font-family: 'Yu Mincho', 'Hiragino Mincho ProN', 'Noto Serif JP', serif;
+      border-bottom: 1.5px solid rgba(47, 79, 62, 0.25);
+      padding-bottom: 6px;
+      color: #243b2c;
     }
 
     [data-theme="ocean"] {
@@ -158,13 +210,98 @@
       box-sizing: border-box;
     }
 
-    /* 2列ワイド表示時のカード内調整 */
+    /* 2列ワイド表示時のカード内横並びレイアウト */
     .widgets .card.is-wide .jp-map-container {
       height: 390px;
     }
 
     .widgets .card.is-wide #simple-memo {
       height: 180px !important;
+    }
+
+    /* 天気：左に現在＆時間ごと、右に週間天気 */
+    .weather-layout {
+      display: block;
+    }
+
+    .widgets .card.is-wide .weather-layout {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+      align-items: start;
+    }
+
+    .widgets .card.is-wide .weather-right h3 {
+      margin-top: 0;
+    }
+
+    /* ニュース：タブを8列1行・記事一覧を2列並び */
+    .widgets .card.is-wide .news-tabs {
+      grid-template-columns: repeat(8, 1fr);
+    }
+
+    .widgets .card.is-wide #news-list {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      align-items: stretch;
+    }
+
+    .widgets .card.is-wide #news-list li {
+      display: flex;
+    }
+
+    .widgets .card.is-wide #news-list a {
+      margin: 0 !important;
+      width: 100%;
+      box-sizing: border-box;
+    }
+
+    .widgets .card.is-wide #news-list li:not(:has(a)) {
+      grid-column: 1 / -1;
+      display: block;
+    }
+
+    /* トレンド：10件を2列×5行で横並び */
+    .widgets .card.is-wide #trend-list {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+
+    .widgets .card.is-wide #trend-list li a {
+      margin: 0 !important;
+      height: 100%;
+      box-sizing: border-box;
+    }
+
+    .widgets .card.is-wide #trend-list li:not(:has(a)) {
+      grid-column: 1 / -1;
+    }
+
+    /* 地震情報：2列並び */
+    .widgets .card.is-wide #result {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      align-items: start;
+    }
+
+    .widgets .card.is-wide #result li {
+      margin-bottom: 0;
+    }
+
+    .widgets .card.is-wide #result li.loading,
+    .widgets .card.is-wide #result li.error {
+      grid-column: 1 / -1;
+    }
+
+    /* お気に入りリンク＆ToDo：2列並び */
+    .widgets .card.is-wide .ql-list,
+    .widgets .card.is-wide .todo-list {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
     }
 
     .card-edit-toolbar {
@@ -858,7 +995,7 @@
 
     .news-tab-btn {
       padding: 6px 2px;
-      border: 1.5px solid transparent;
+      border: none;
       border-radius: 8px;
       color: var(--text-color);
       font-weight: bold;
@@ -869,25 +1006,25 @@
       text-align: center;
     }
 
-    /* 8カテゴリーの虹色（タブ側） */
-    .news-tab-btn[data-cat="top"]           { background: rgba(244, 67, 54, 0.18);  border-color: rgba(244, 67, 54, 0.35); }
-    .news-tab-btn[data-cat="domestic"]      { background: rgba(255, 152, 0, 0.18);  border-color: rgba(255, 152, 0, 0.35); }
-    .news-tab-btn[data-cat="world"]         { background: rgba(255, 193, 7, 0.22);  border-color: rgba(255, 193, 7, 0.45); }
-    .news-tab-btn[data-cat="business"]      { background: rgba(76, 175, 80, 0.18);  border-color: rgba(76, 175, 80, 0.35); }
-    .news-tab-btn[data-cat="entertainment"] { background: rgba(0, 188, 212, 0.18);  border-color: rgba(0, 188, 212, 0.35); }
-    .news-tab-btn[data-cat="sports"]        { background: rgba(33, 150, 243, 0.18); border-color: rgba(33, 150, 243, 0.35); }
-    .news-tab-btn[data-cat="it"]            { background: rgba(156, 39, 176, 0.18); border-color: rgba(156, 39, 176, 0.35); }
-    .news-tab-btn[data-cat="science"]       { background: rgba(233, 30, 99, 0.18);  border-color: rgba(233, 30, 99, 0.35); }
+    /* 8カテゴリーの虹色（タブ側・枠線なし） */
+    .news-tab-btn[data-cat="top"]           { background: rgba(244, 67, 54, 0.22); }
+    .news-tab-btn[data-cat="domestic"]      { background: rgba(255, 152, 0, 0.22); }
+    .news-tab-btn[data-cat="world"]         { background: rgba(255, 193, 7, 0.26); }
+    .news-tab-btn[data-cat="business"]      { background: rgba(76, 175, 80, 0.22); }
+    .news-tab-btn[data-cat="entertainment"] { background: rgba(0, 188, 212, 0.22); }
+    .news-tab-btn[data-cat="sports"]        { background: rgba(33, 150, 243, 0.22); }
+    .news-tab-btn[data-cat="it"]            { background: rgba(156, 39, 176, 0.22); }
+    .news-tab-btn[data-cat="science"]       { background: rgba(233, 30, 99, 0.22); }
 
     .news-tab-btn.active { color: #fff; box-shadow: 0 2px 6px rgba(0, 0, 0, 0.18); }
-    .news-tab-btn[data-cat="top"].active           { background: #e53935; border-color: #e53935; }
-    .news-tab-btn[data-cat="domestic"].active      { background: #fb8c00; border-color: #fb8c00; }
-    .news-tab-btn[data-cat="world"].active         { background: #f9a825; border-color: #f9a825; color: #222; }
-    .news-tab-btn[data-cat="business"].active      { background: #43a047; border-color: #43a047; }
-    .news-tab-btn[data-cat="entertainment"].active { background: #00acc1; border-color: #00acc1; }
-    .news-tab-btn[data-cat="sports"].active        { background: #1e88e5; border-color: #1e88e5; }
-    .news-tab-btn[data-cat="it"].active            { background: #8e24aa; border-color: #8e24aa; }
-    .news-tab-btn[data-cat="science"].active       { background: #d81b60; border-color: #d81b60; }
+    .news-tab-btn[data-cat="top"].active           { background: #e53935; }
+    .news-tab-btn[data-cat="domestic"].active      { background: #fb8c00; }
+    .news-tab-btn[data-cat="world"].active         { background: #f9a825; color: #222; }
+    .news-tab-btn[data-cat="business"].active      { background: #43a047; }
+    .news-tab-btn[data-cat="entertainment"].active { background: #00acc1; }
+    .news-tab-btn[data-cat="sports"].active        { background: #1e88e5; }
+    .news-tab-btn[data-cat="it"].active            { background: #8e24aa; }
+    .news-tab-btn[data-cat="science"].active       { background: #d81b60; }
 
     /* 中身（記事一覧）もカテゴリー色と連動 */
     #news-card {
@@ -966,7 +1103,6 @@
       overflow: hidden;
       text-overflow: ellipsis;
       white-space: nowrap;
-      border-left: 4px solid var(--ql-accent, #2196f3);
     }
 
     .ql-link-btn:hover {
@@ -2198,8 +2334,8 @@
             <span>自然</span>
           </button>
           <button class="theme-preset-btn" data-preset="wafuu">
-            <span class="theme-swatch" style="background: linear-gradient(135deg, #8b2635 50%, #f4efe3 50%);"></span>
-            <span>和風</span>
+            <span class="theme-swatch" style="background: linear-gradient(135deg, #274434 45%, #c5c496 45%);"></span>
+            <span>和風（畳）</span>
           </button>
           <button class="theme-preset-btn" data-preset="ocean">
             <span class="theme-swatch" style="background: linear-gradient(135deg, #1565c0 50%, #0b192c 50%);"></span>
@@ -2232,7 +2368,7 @@
           dark: "ダーク",
           pink: "ピンク",
           nature: "自然",
-          wafuu: "和風",
+          wafuu: "和風（畳）",
           ocean: "深海"
         };
         const DARK_THEMES = ["dark", "ocean"];
@@ -4021,6 +4157,26 @@
     const WEATHER_LOC_KEY = 'portalWeatherLocation';
     let currentWeatherLoc = { lat: 35.2481, lon: 136.7846, name: '稲沢市' };
 
+    function syncWeatherSelect() {
+      const select = document.getElementById('weather-city-select');
+      if (!select) return;
+      const matchVal = `${currentWeatherLoc.lat},${currentWeatherLoc.lon},${currentWeatherLoc.name}`;
+      let opt = Array.from(select.options).find(o => o.value === matchVal || o.textContent.replace(/[市都府県]/g, '') === currentWeatherLoc.name.replace(/[市都府県]/g, ''));
+      if (opt) {
+        select.value = opt.value;
+      } else {
+        let customOpt = select.querySelector('option[data-custom="true"]');
+        if (!customOpt) {
+          customOpt = document.createElement('option');
+          customOpt.dataset.custom = 'true';
+          select.appendChild(customOpt);
+        }
+        customOpt.value = matchVal;
+        customOpt.textContent = currentWeatherLoc.name;
+        select.value = matchVal;
+      }
+    }
+
     function loadSavedWeatherLocation() {
       try {
         const saved = JSON.parse(localStorage.getItem(WEATHER_LOC_KEY) || 'null');
@@ -4029,12 +4185,7 @@
         }
       } catch (e) {}
 
-      const select = document.getElementById('weather-city-select');
-      if (select) {
-        const matchVal = `${currentWeatherLoc.lat},${currentWeatherLoc.lon},${currentWeatherLoc.name}`;
-        const hasOption = Array.from(select.options).some(opt => opt.value === matchVal);
-        if (hasOption) select.value = matchVal;
-      }
+      syncWeatherSelect();
     }
 
     function weatherEmoji(code, hour) {
@@ -4092,16 +4243,6 @@
           minute: '2-digit'
         }).format(dt);
 
-        let html = `
-        <div class="weather">
-          <div class="icon">${emoji}</div>
-          <div class="meta">
-            <p><strong>${name}</strong></p>
-            <p>更新日時: ${timeStr}</p>
-            <p>気温: <strong>${Math.floor(cw.temperature)}°C</strong> ／ 風速: <strong>${cw.windspeed} m/s</strong></p>
-          </div>
-        </div>`;
-
         const hours = data.hourly.time;
         const temps = data.hourly.temperature_2m;
         const codes = data.hourly.weathercode;
@@ -4119,18 +4260,31 @@
           }
         }
 
-        html += `
-        <table class="forecast">
-          <thead>
-            <tr><th>時刻</th><th>気温</th><th>天気</th></tr>
-          </thead>
-          <tbody>${forecastRows}</tbody>
-        </table>`;
-
         const weeklyData = await fetchWeeklyWeather(lat, lon);
-        html += `
-        <h3>週間天気</h3>
-        <div class="weekly-weather">${weeklyData}</div>`;
+
+        const html = `
+        <div class="weather-layout">
+          <div class="weather-left">
+            <div class="weather">
+              <div class="icon">${emoji}</div>
+              <div class="meta">
+                <p><strong>${name}</strong></p>
+                <p>更新日時: ${timeStr}</p>
+                <p>気温: <strong>${Math.floor(cw.temperature)}°C</strong> ／ 風速: <strong>${cw.windspeed} m/s</strong></p>
+              </div>
+            </div>
+            <table class="forecast">
+              <thead>
+                <tr><th>時刻</th><th>気温</th><th>天気</th></tr>
+              </thead>
+              <tbody>${forecastRows}</tbody>
+            </table>
+          </div>
+          <div class="weather-right">
+            <h3>週間天気</h3>
+            <div class="weekly-weather">${weeklyData}</div>
+          </div>
+        </div>`;
 
         container.innerHTML = html;
       } catch (err) {
@@ -4257,6 +4411,7 @@
           badge.onclick = () => {
             currentWeatherLoc = { lat: city.lat, lon: city.lon, name: city.name };
             localStorage.setItem(WEATHER_LOC_KEY, JSON.stringify(currentWeatherLoc));
+            syncWeatherSelect();
             if (typeof window.saveWidgetDataToCloud === 'function') window.saveWidgetDataToCloud();
             fetchWeather();
             fetchSunriseSunset();
@@ -4301,6 +4456,7 @@
           btn.textContent = '📍現在地';
           currentWeatherLoc = { lat, lon, name: `📍${placeName}` };
           localStorage.setItem(WEATHER_LOC_KEY, JSON.stringify(currentWeatherLoc));
+          syncWeatherSelect();
           if (typeof window.saveWidgetDataToCloud === 'function') window.saveWidgetDataToCloud();
           fetchWeather();
           fetchSunriseSunset();
