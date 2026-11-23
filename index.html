@@ -2932,7 +2932,7 @@
     }
 
     const addBtn = createFloatingBtn("再表示", "#2196f3");
-    const packBtn = createFloatingBtn("自動整列", "#ff9800");
+    const sortBtn = createFloatingBtn("順番編集", "#e91e63");
 
     function updateButtonPositions() {
       const rect = editBtn.getBoundingClientRect();
@@ -2944,15 +2944,132 @@
       addBtn.style.left = rect.left + "px";
       addBtn.style.bottom = (window.innerHeight - rect.bottom + btnHeight + spacing) + "px";
 
-      packBtn.style.width = w;
-      packBtn.style.left = rect.left + "px";
-      packBtn.style.bottom = (window.innerHeight - rect.bottom + btnHeight * 2 + spacing * 2) + "px";
+      sortBtn.style.width = w;
+      sortBtn.style.left = rect.left + "px";
+      sortBtn.style.bottom = (window.innerHeight - rect.bottom + btnHeight * 2 + spacing * 2) + "px";
     }
 
-    packBtn.addEventListener("click", () => {
-      gridPositions = {};
-      layoutGrid(true);
-      saveGridPositions();
+    sortBtn.addEventListener("click", () => {
+      const visibleCards = Array.from(widgets.querySelectorAll(":scope > .card"))
+        .filter(c => c.style.display !== "none");
+      if (visibleCards.length === 0) return;
+
+      const modal = document.createElement("div");
+      modal.style.cssText = "position:fixed;inset:0;background:rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;z-index:10010;backdrop-filter:blur(4px);";
+
+      const box = document.createElement("div");
+      const theme = document.documentElement.getAttribute("data-theme") || "light";
+      box.style.cssText = `padding:1.2rem;border-radius:14px;max-height:82vh;display:flex;flex-direction:column;width:88%;max-width:350px;box-shadow:0 10px 30px rgba(0,0,0,0.3);background:${theme === "dark" ? "#1e1e1e" : "#fff"};color:${theme === "dark" ? "#eaeaea" : "#333"};`;
+
+      const header = document.createElement("div");
+      header.style.cssText = "display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;padding-bottom:8px;border-bottom:1px solid var(--border-color);";
+      header.innerHTML = `<h3 style="margin:0;font-size:1.05rem;">カード順番編集</h3>`;
+      const xBtn = document.createElement("button");
+      xBtn.textContent = "×";
+      xBtn.style.cssText = "background:none;border:none;font-size:22px;cursor:pointer;color:inherit;";
+      xBtn.onclick = () => document.body.removeChild(modal);
+      header.appendChild(xBtn);
+      box.appendChild(header);
+
+      const list = document.createElement("div");
+      list.style.cssText = "display:flex;flex-direction:column;gap:6px;overflow-y:auto;padding-right:2px;";
+      box.appendChild(list);
+
+      function updateArrowStates() {
+        const rows = Array.from(list.children);
+        rows.forEach((row, idx) => {
+          const up = row.querySelector(".sort-up");
+          const down = row.querySelector(".sort-down");
+          if (up) {
+            up.disabled = idx === 0;
+            up.style.opacity = idx === 0 ? "0.35" : "1";
+          }
+          if (down) {
+            down.disabled = idx === rows.length - 1;
+            down.style.opacity = idx === rows.length - 1 ? "0.35" : "1";
+          }
+        });
+      }
+
+      visibleCards.forEach(card => {
+        const h2 = card.querySelector("h2");
+        const cardTitle = h2 ? h2.textContent.trim() : "";
+        if (!cardTitle) return;
+
+        const item = document.createElement("div");
+        item.style.cssText = "display:flex;align-items:center;justify-content:space-between;padding:8px 10px;border-radius:8px;background:var(--bg-color);gap:8px;";
+        item.dataset.id = card.id;
+
+        const label = document.createElement("span");
+        label.style.cssText = "font-weight:bold;font-size:0.9rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;";
+        label.textContent = cardTitle;
+
+        const btns = document.createElement("div");
+        btns.style.cssText = "display:flex;gap:6px;flex-shrink:0;";
+
+        const upBtn = document.createElement("button");
+        upBtn.className = "sort-up";
+        upBtn.textContent = "↑";
+        upBtn.style.cssText = "border:none;border-radius:6px;padding:4px 10px;font-weight:bold;cursor:pointer;background:rgba(33,150,243,0.22);color:var(--text-color);";
+        upBtn.onclick = () => {
+          const prev = item.previousElementSibling;
+          if (prev) {
+            list.insertBefore(item, prev);
+            updateArrowStates();
+          }
+        };
+
+        const downBtn = document.createElement("button");
+        downBtn.className = "sort-down";
+        downBtn.textContent = "↓";
+        downBtn.style.cssText = "border:none;border-radius:6px;padding:4px 10px;font-weight:bold;cursor:pointer;background:rgba(33,150,243,0.22);color:var(--text-color);";
+        downBtn.onclick = () => {
+          const next = item.nextElementSibling;
+          if (next) {
+            list.insertBefore(next, item);
+            updateArrowStates();
+          }
+        };
+
+        btns.appendChild(upBtn);
+        btns.appendChild(downBtn);
+        item.appendChild(label);
+        item.appendChild(btns);
+        list.appendChild(item);
+      });
+
+      updateArrowStates();
+
+      const footer = document.createElement("div");
+      footer.style.cssText = "display:flex;gap:8px;margin-top:12px;padding-top:10px;border-top:1px solid var(--border-color);";
+
+      const saveBtn = document.createElement("button");
+      saveBtn.textContent = "保存";
+      saveBtn.style.cssText = "flex:1;padding:9px;background:#4caf50;color:#fff;border:none;border-radius:8px;cursor:pointer;font-weight:bold;";
+      saveBtn.onclick = () => {
+        const newOrder = Array.from(list.children).map(item => item.dataset.id);
+        newOrder.forEach(id => {
+          const card = document.getElementById(id);
+          if (card) widgets.insertBefore(card, dropPreview);
+        });
+        localStorage.setItem("widgetOrder", JSON.stringify(newOrder));
+        gridPositions = {};
+        layoutGrid(true);
+        saveGridPositions();
+        document.body.removeChild(modal);
+      };
+
+      const cancelBtn = document.createElement("button");
+      cancelBtn.textContent = "キャンセル";
+      cancelBtn.style.cssText = "flex:1;padding:9px;background:#78909c;color:#fff;border:none;border-radius:8px;cursor:pointer;font-weight:bold;";
+      cancelBtn.onclick = () => document.body.removeChild(modal);
+
+      footer.appendChild(saveBtn);
+      footer.appendChild(cancelBtn);
+      box.appendChild(footer);
+      modal.appendChild(box);
+      modal.addEventListener("click", (e) => { if (e.target === modal) document.body.removeChild(modal); });
+      document.body.appendChild(modal);
     });
 
     editBtn.addEventListener("click", () => {
@@ -2966,7 +3083,7 @@
 
       editBtn.textContent = editMode ? "保存 / 終了" : "編集モード";
       addBtn.style.display = editMode ? "block" : "none";
-      packBtn.style.display = editMode ? "block" : "none";
+      sortBtn.style.display = editMode ? "block" : "none";
 
       if (!editMode) {
         dropPreview.classList.remove("active");
@@ -3105,6 +3222,11 @@
     });
 
     window.addEventListener("DOMContentLoaded", () => {
+      const savedOrder = JSON.parse(localStorage.getItem("widgetOrder") || "[]");
+      savedOrder.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) widgets.insertBefore(el, dropPreview);
+      });
       wrapCardContents();
       loadGridPositions();
       updateHiddenCardsUI();
