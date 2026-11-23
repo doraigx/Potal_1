@@ -445,13 +445,13 @@
       padding: 0 2rem;
     }
 
-    /* --- Androidホーム画面風 フリーグリッドレイアウト --- */
+    /* --- Androidホーム画面風 定量ブロックグリッドレイアウト --- */
     .widgets {
       display: grid;
       grid-template-columns: repeat(var(--grid-cols, 3), minmax(0, 1fr));
-      grid-auto-rows: 16px;
+      grid-auto-rows: 210px;
       column-gap: 20px;
-      row-gap: 12px;
+      row-gap: 20px;
       width: 100%;
       margin: 0 auto;
       position: relative;
@@ -459,13 +459,20 @@
       box-sizing: border-box;
     }
 
+    /* スマホ（1列）時は無駄な余白を防ぐため自然高さに戻す */
+    @media screen and (max-width: 599px) {
+      .widgets {
+        grid-auto-rows: auto;
+      }
+    }
+
     .widgets.edit-mode {
       min-height: 120vh;
-      padding-bottom: 240px;
+      padding-bottom: 260px;
       background-image:
-        linear-gradient(to right, rgba(33, 150, 243, 0.12) 1px, transparent 1px),
-        linear-gradient(to bottom, rgba(33, 150, 243, 0.12) 1px, transparent 1px);
-      background-size: calc((100% + 20px) / var(--grid-cols, 3)) 28px;
+        linear-gradient(to right, rgba(33, 150, 243, 0.16) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(33, 150, 243, 0.16) 1px, transparent 1px);
+      background-size: calc((100% + 20px) / var(--grid-cols, 3)) 230px;
       border-radius: 12px;
     }
 
@@ -608,7 +615,7 @@
     .jp-map-container {
       position: relative;
       width: 100%;
-      height: 330px;
+      height: 310px;
       background: linear-gradient(180deg, #b3e5fc 0%, #e1f5fe 100%);
       border-radius: 12px;
       overflow: hidden;
@@ -3360,11 +3367,11 @@
     const widgets = document.querySelector(".widgets");
     const editBtn = document.getElementById("edit-btn");
     const hiddenCardsKey = "hiddenCards";
-    const GRID_POS_KEY = "widgetGridPos";
+    const GRID_POS_KEY = "widgetGridPosV2";
     const WIDE_CARDS_KEY = "widgetWideCards";
 
-    const ROW_HEIGHT = 16;
-    const ROW_GAP = 12;
+    const ROW_HEIGHT = 210;
+    const ROW_GAP = 20;
     const COL_GAP = 20;
 
     let gridPositions = {};
@@ -3398,8 +3405,8 @@
       const contentH = inner ? inner.getBoundingClientRect().height : card.scrollHeight;
       const style = window.getComputedStyle(card);
       const padV = (parseFloat(style.paddingTop) || 0) + (parseFloat(style.paddingBottom) || 0);
-      const totalH = Math.ceil(contentH + padV + 2);
-      return Math.max(2, Math.ceil((totalH + ROW_GAP) / (ROW_HEIGHT + ROW_GAP)));
+      const totalH = Math.ceil(contentH + padV + 4);
+      return Math.max(1, Math.ceil((totalH + ROW_GAP) / (ROW_HEIGHT + ROW_GAP)));
     }
 
     function loadGridPositions() {
@@ -3428,15 +3435,14 @@
       const cards = Array.from(widgets.querySelectorAll(":scope > .card"))
         .filter(c => c.style.display !== "none");
 
-      // スマホ（1列）時は2列指定カードも自動で1列に変換して矛盾なく縦並びにする
+      // スマホ（1列）時は2列指定カードも自動で1列に変換し、自然高さで縦並びにする
       if (currentCols === 1) {
         cards.forEach(card => {
           card.classList.remove("is-wide");
           card.style.gridColumn = "1 / span 1";
-          const span = calcCardSpan(card);
-          card.dataset.span = span;
+          card.style.gridRow = "auto";
+          card.dataset.span = "1";
           card.dataset.colSpan = "1";
-          card.style.gridRow = `auto / span ${span}`;
         });
         return;
       }
@@ -3849,7 +3855,7 @@
       dragTargetCol = Math.min(Math.max(1, Math.floor(relX / (colWidth + COL_GAP)) + 1), currentCols - effColSpan + 1);
       dragTargetRow = Math.max(1, Math.floor(relY / (ROW_HEIGHT + ROW_GAP)) + 1);
 
-      const span = parseInt(dragSrcEl.dataset.span || "6", 10);
+      const span = parseInt(dragSrcEl.dataset.span || "1", 10);
       dropPreview.style.gridColumn = `${dragTargetCol} / span ${effColSpan}`;
       dropPreview.style.gridRow = `${dragTargetRow} / span ${span}`;
       dropPreview.classList.add("active");
@@ -4042,8 +4048,8 @@
             localStorage.setItem('widgetWideCards', JSON.stringify(data.widgetWideCards));
           }
 
-          if (data.widgetGridPos) {
-            localStorage.setItem('widgetGridPos', JSON.stringify(data.widgetGridPos));
+          if (data.widgetGridPosV2) {
+            localStorage.setItem('widgetGridPosV2', JSON.stringify(data.widgetGridPosV2));
             if (typeof window.applySavedGridPositions === 'function') window.applySavedGridPositions();
           } else if (Array.isArray(data.widgetWideCards)) {
             if (typeof window.applySavedGridPositions === 'function') window.applySavedGridPositions();
@@ -4105,7 +4111,7 @@
           portalQuickLinks: quickLinksData,
           portalTodos: todosData,
           portalWeatherLocation: weatherLocData,
-          widgetGridPos: JSON.parse(localStorage.getItem('widgetGridPos') || '{}'),
+          widgetGridPosV2: JSON.parse(localStorage.getItem('widgetGridPosV2') || '{}'),
           widgetWideCards: JSON.parse(localStorage.getItem('widgetWideCards') || '[]'),
           portalWheelItems: JSON.parse(localStorage.getItem('portalWheelItems') || '[]'),
           updatedAt: new Date()
@@ -4588,7 +4594,7 @@
     }
 
     let offset = 0;
-    const limit = 3;
+    const limit = 4;
     let additionalItems = [];
 
     async function fetchEarthquake() {
