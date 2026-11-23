@@ -12,12 +12,16 @@
   <link rel="apple-touch-icon" href="icon-192.png">
   <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
   <style>
-    html[data-theme="dark"] {
+    html[data-theme="dark"],
+    html[data-theme="ocean"] {
       background-color: #121212;
       color-scheme: dark;
     }
 
-    html[data-theme="light"] {
+    html[data-theme="light"],
+    html[data-theme="pink"],
+    html[data-theme="nature"],
+    html[data-theme="wafuu"] {
       background-color: #ffffff;
       color-scheme: light;
     }
@@ -42,9 +46,149 @@
       --text-color: #eaeaea;
       --card-bg: #1e1e1e;
       --card-shadow: rgba(0, 0, 0, 0.6);
-      --header-gradient: linear-gradient(90deg, #2d2d2d, #2d2d2d) !important;
+      --header-gradient: linear-gradient(90deg, #2d2d2d, #2d2d2d);
       --link-color: #90caf9;
       --border-color: rgba(255, 255, 255, 0.15);
+    }
+
+    [data-theme="pink"] {
+      --bg-color: #fff0f5;
+      --text-color: #4a2535;
+      --card-bg: #ffffff;
+      --card-shadow: rgba(233, 30, 99, 0.12);
+      --header-gradient: linear-gradient(90deg, #ff7eb3, #ff99c8);
+      --link-color: #e91e63;
+      --main-color: #ff6ea8;
+      --border-color: rgba(233, 30, 99, 0.18);
+    }
+
+    [data-theme="nature"] {
+      --bg-color: #eef6ef;
+      --text-color: #263a29;
+      --card-bg: #ffffff;
+      --card-shadow: rgba(46, 125, 50, 0.12);
+      --header-gradient: linear-gradient(90deg, #43a047, #81c784);
+      --link-color: #2e7d32;
+      --main-color: #4caf50;
+      --border-color: rgba(46, 125, 50, 0.18);
+    }
+
+    [data-theme="wafuu"] {
+      --bg-color: #f4efe3;
+      --text-color: #2e241b;
+      --card-bg: #fcfaf2;
+      --card-shadow: rgba(92, 64, 51, 0.12);
+      --header-gradient: linear-gradient(90deg, #8b2635, #b5495b);
+      --link-color: #8b2635;
+      --main-color: #a63a49;
+      --border-color: rgba(139, 38, 53, 0.2);
+    }
+
+    [data-theme="wafuu"] .widgets .card {
+      border: 1px solid rgba(139, 38, 53, 0.18);
+    }
+
+    [data-theme="ocean"] {
+      --bg-color: #0b192c;
+      --text-color: #e3f2fd;
+      --card-bg: #132742;
+      --card-shadow: rgba(0, 0, 0, 0.55);
+      --header-gradient: linear-gradient(90deg, #1565c0, #00838f);
+      --link-color: #64b5f6;
+      --main-color: #29b6f6;
+      --border-color: rgba(100, 181, 246, 0.22);
+    }
+
+    /* ダーク系プリセット（ocean）のカレンダー・マップ調整 */
+    html[data-theme="ocean"] .calendar { border-color: #5c7c99; }
+    html[data-theme="ocean"] .calendar th { background-color: #1e3a5f; color: #e3f2fd; }
+    html[data-theme="ocean"] .calendar th,
+    html[data-theme="ocean"] .calendar td { border-color: #24456b; }
+    [data-theme="ocean"] .jp-map-container {
+      background: linear-gradient(180deg, #0d2238 0%, #143659 100%);
+      border-color: rgba(100, 181, 246, 0.3);
+    }
+    [data-theme="ocean"] .jp-land { fill: #2a6352; stroke: #4db6ac; }
+    [data-theme="ocean"] .jp-city-badge {
+      background: rgba(19, 39, 66, 0.94);
+      color: #e3f2fd;
+      border: 1px solid rgba(100, 181, 246, 0.25);
+    }
+    [data-theme="ocean"] .jp-temp-max { color: #ff8a80; }
+    [data-theme="ocean"] .jp-temp-min { color: #80d8ff; }
+
+    /* 詳細設定内のUIカラープリセットグリッド */
+    .theme-preset-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      margin-top: 6px;
+    }
+
+    .theme-preset-btn {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      padding: 8px 4px;
+      border-radius: 10px;
+      border: 2px solid transparent;
+      background: var(--bg-color);
+      color: var(--text-color);
+      font-weight: bold;
+      font-size: 0.78rem;
+      cursor: pointer;
+      transition: transform 0.15s, border-color 0.2s;
+    }
+
+    .theme-preset-btn:hover {
+      transform: translateY(-2px);
+    }
+
+    .theme-preset-btn.active {
+      border-color: var(--link-color);
+      box-shadow: 0 0 0 2px rgba(33, 150, 243, 0.2);
+    }
+
+    .theme-swatch {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      border: 2px solid rgba(128, 128, 128, 0.3);
+      box-sizing: border-box;
+    }
+
+    /* 2列ワイド表示時のカード内調整 */
+    .widgets .card.is-wide .jp-map-container {
+      height: 390px;
+    }
+
+    .widgets .card.is-wide #simple-memo {
+      height: 180px !important;
+    }
+
+    .card-edit-toolbar {
+      position: absolute;
+      top: 6px;
+      right: 6px;
+      display: flex;
+      gap: 4px;
+      z-index: 12;
+    }
+
+    .edit-wide-btn {
+      padding: 3px 8px;
+      cursor: pointer;
+      background: #2196f3;
+      color: #fff;
+      border: none;
+      font-size: 12px;
+      font-weight: bold;
+      border-radius: 4px;
+    }
+
+    .edit-wide-btn.is-wide {
+      background: #ff9800;
     }
 
     body {
@@ -1898,6 +2042,39 @@
         <div class="modal-body">
           <div class="setting-item-column">
             <div class="setting-label">
+              <span>UIカラープリセット</span>
+              <span id="theme-preset-label" style="font-weight: bold; color: var(--link-color);">標準</span>
+            </div>
+            <div class="theme-preset-grid" id="theme-preset-grid">
+              <button class="theme-preset-btn" data-preset="light">
+                <span class="theme-swatch" style="background: linear-gradient(135deg, #2196f3 50%, #f4f7f9 50%);"></span>
+                <span>標準</span>
+              </button>
+              <button class="theme-preset-btn" data-preset="dark">
+                <span class="theme-swatch" style="background: linear-gradient(135deg, #2d2d2d 50%, #111111 50%);"></span>
+                <span>ダーク</span>
+              </button>
+              <button class="theme-preset-btn" data-preset="pink">
+                <span class="theme-swatch" style="background: linear-gradient(135deg, #ff7eb3 50%, #fff0f5 50%);"></span>
+                <span>ピンク</span>
+              </button>
+              <button class="theme-preset-btn" data-preset="nature">
+                <span class="theme-swatch" style="background: linear-gradient(135deg, #43a047 50%, #eef6ef 50%);"></span>
+                <span>自然</span>
+              </button>
+              <button class="theme-preset-btn" data-preset="wafuu">
+                <span class="theme-swatch" style="background: linear-gradient(135deg, #8b2635 50%, #f4efe3 50%);"></span>
+                <span>和風</span>
+              </button>
+              <button class="theme-preset-btn" data-preset="ocean">
+                <span class="theme-swatch" style="background: linear-gradient(135deg, #1565c0 50%, #0b192c 50%);"></span>
+                <span>深海</span>
+              </button>
+            </div>
+          </div>
+
+          <div class="setting-item-column">
+            <div class="setting-label">
               <span>自動更新頻度</span>
               <span id="refresh-value" style="font-weight: bold; color: var(--link-color);">オフ</span>
             </div>
@@ -1956,9 +2133,31 @@
           if (colorPicker) colorPicker.value = savedColor;
         }
 
+        const THEME_NAMES = {
+          light: "標準",
+          dark: "ダーク",
+          pink: "ピンク",
+          nature: "自然",
+          wafuu: "和風",
+          ocean: "深海"
+        };
+        const DARK_THEMES = ["dark", "ocean"];
+
         const applyTheme = (theme) => {
+          if (!THEME_NAMES[theme]) theme = "light";
           html.setAttribute("data-theme", theme);
-          toggleBtn.innerHTML = `<span>${theme === "dark" ? "☀️" : "🌙"}</span>`;
+          const isDark = DARK_THEMES.includes(theme);
+          toggleBtn.innerHTML = `<span>${isDark ? "☀️" : "🌙"}</span>`;
+          if (!isDark) {
+            localStorage.setItem("lastLightTheme", theme);
+          }
+
+          const labelEl = document.getElementById("theme-preset-label");
+          if (labelEl) labelEl.textContent = THEME_NAMES[theme];
+
+          document.querySelectorAll(".theme-preset-btn").forEach(btn => {
+            btn.classList.toggle("active", btn.dataset.preset === theme);
+          });
         };
         window.applyTheme = applyTheme;
 
@@ -1966,9 +2165,27 @@
         applyTheme(savedTheme);
 
         toggleBtn.addEventListener("click", () => {
-          const current = html.getAttribute("data-theme") === "dark" ? "light" : "dark";
-          applyTheme(current);
-          localStorage.setItem("theme", current);
+          const current = html.getAttribute("data-theme") || "light";
+          const next = DARK_THEMES.includes(current)
+            ? (localStorage.getItem("lastLightTheme") || "light")
+            : "dark";
+          document.documentElement.style.removeProperty("--header-gradient");
+          localStorage.removeItem(STORAGE_KEY_COLOR);
+          applyTheme(next);
+          localStorage.setItem("theme", next);
+        });
+
+        document.querySelectorAll(".theme-preset-btn").forEach(btn => {
+          btn.addEventListener("click", () => {
+            const preset = btn.dataset.preset;
+            document.documentElement.style.removeProperty("--header-gradient");
+            localStorage.removeItem(STORAGE_KEY_COLOR);
+            applyTheme(preset);
+            localStorage.setItem("theme", preset);
+            if (typeof window.saveWidgetDataToCloud === "function") {
+              window.saveWidgetDataToCloud();
+            }
+          });
         });
       })();
 
@@ -2780,19 +2997,21 @@
     updateClock();
   </script>
 
-  <!-- ★Androidホーム画面風 フリーグリッド＆自動高さフィットエンジン -->
+  <!-- ★Androidホーム画面風 フリーグリッド（2列ワイド＆スマホ自動1列変換対応） -->
   <script>
     let editMode = false;
     const widgets = document.querySelector(".widgets");
     const editBtn = document.getElementById("edit-btn");
     const hiddenCardsKey = "hiddenCards";
     const GRID_POS_KEY = "widgetGridPos";
+    const WIDE_CARDS_KEY = "widgetWideCards";
 
     const ROW_HEIGHT = 16;
     const ROW_GAP = 12;
     const COL_GAP = 20;
 
     let gridPositions = {};
+    let wideCards = [];
     let currentCols = 3;
 
     const dropPreview = document.createElement("div");
@@ -2828,11 +3047,21 @@
 
     function loadGridPositions() {
       try { gridPositions = JSON.parse(localStorage.getItem(GRID_POS_KEY) || "{}"); } catch (e) { gridPositions = {}; }
+      try {
+        const w = JSON.parse(localStorage.getItem(WIDE_CARDS_KEY) || "[]");
+        wideCards = Array.isArray(w) ? w : [];
+      } catch (e) { wideCards = []; }
     }
 
     function saveGridPositions() {
       localStorage.setItem(GRID_POS_KEY, JSON.stringify(gridPositions));
+      localStorage.setItem(WIDE_CARDS_KEY, JSON.stringify(wideCards));
       if (typeof window.saveWidgetDataToCloud === "function") window.saveWidgetDataToCloud();
+    }
+
+    function getEffectiveColSpan(cardId) {
+      const desired = wideCards.includes(cardId) ? 2 : 1;
+      return Math.min(desired, currentCols);
     }
 
     function layoutGrid(forcePack = false) {
@@ -2842,32 +3071,44 @@
       const cards = Array.from(widgets.querySelectorAll(":scope > .card"))
         .filter(c => c.style.display !== "none");
 
+      // スマホ（1列）時は2列指定カードも自動で1列に変換して矛盾なく縦並びにする
       if (currentCols === 1) {
         cards.forEach(card => {
+          card.classList.remove("is-wide");
+          card.style.gridColumn = "1 / span 1";
           const span = calcCardSpan(card);
           card.dataset.span = span;
-          card.style.gridColumn = "1";
+          card.dataset.colSpan = "1";
           card.style.gridRow = `auto / span ${span}`;
         });
         return;
       }
+
+      // 先に横幅クラスとgridColumnの幅感を仮適用して正しい高さを測れるようにする
+      cards.forEach(card => {
+        const effColSpan = getEffectiveColSpan(card.id);
+        card.classList.toggle("is-wide", effColSpan === 2);
+        card.dataset.colSpan = String(effColSpan);
+      });
 
       const colHeights = new Array(currentCols).fill(1);
       const placed = [];
 
       if (!forcePack) {
         cards.forEach(card => {
+          const colSpan = getEffectiveColSpan(card.id);
           const span = calcCardSpan(card);
           card.dataset.span = span;
           const pos = gridPositions[card.id];
           if (pos && pos.col && pos.row) {
-            const col = Math.min(Math.max(1, pos.col), currentCols);
+            const col = Math.min(Math.max(1, pos.col), currentCols - colSpan + 1);
             const row = Math.max(1, pos.row);
-            placed.push({ card, col, row, span });
+            placed.push({ card, col, colSpan, row, span });
           }
         });
       }
 
+      // 重なり解消（2列ワイドカード同士や1列カードとの交差も判定）
       placed.sort((a, b) => a.row - b.row || a.col - b.col);
       for (let i = 0; i < placed.length; i++) {
         const cur = placed[i];
@@ -2876,36 +3117,54 @@
           moved = false;
           for (let j = 0; j < i; j++) {
             const other = placed[j];
-            if (other.col === cur.col) {
-              const overlap = !(cur.row + cur.span <= other.row || cur.row >= other.row + other.span);
-              if (overlap) {
+            const horizOverlap = cur.col < other.col + other.colSpan && cur.col + cur.colSpan > other.col;
+            if (horizOverlap) {
+              const vertOverlap = cur.row < other.row + other.span && cur.row + cur.span > other.row;
+              if (vertOverlap) {
                 cur.row = other.row + other.span;
                 moved = true;
               }
             }
           }
         }
-        colHeights[cur.col - 1] = Math.max(colHeights[cur.col - 1], cur.row + cur.span);
+        for (let c = cur.col - 1; c < cur.col - 1 + cur.colSpan; c++) {
+          colHeights[c] = Math.max(colHeights[c], cur.row + cur.span);
+        }
       }
 
+      // 未配置カード（または自動整列・順番編集保存時）を最も低い空き領域へ配置
       const placedIds = new Set(placed.map(p => p.card.id));
       cards.forEach(card => {
         if (placedIds.has(card.id)) return;
+        const colSpan = getEffectiveColSpan(card.id);
         const span = calcCardSpan(card);
         card.dataset.span = span;
-        let minColIdx = 0;
-        for (let c = 1; c < currentCols; c++) {
-          if (colHeights[c] < colHeights[minColIdx]) minColIdx = c;
+
+        let bestColIdx = 0;
+        let bestRow = Infinity;
+        for (let c = 0; c <= currentCols - colSpan; c++) {
+          let maxH = 1;
+          for (let k = 0; k < colSpan; k++) {
+            if (colHeights[c + k] > maxH) maxH = colHeights[c + k];
+          }
+          if (maxH < bestRow) {
+            bestRow = maxH;
+            bestColIdx = c;
+          }
         }
-        const col = minColIdx + 1;
-        const row = colHeights[minColIdx];
-        placed.push({ card, col, row, span });
-        colHeights[minColIdx] = row + span;
+
+        const col = bestColIdx + 1;
+        const row = bestRow;
+        placed.push({ card, col, colSpan, row, span });
+        for (let k = 0; k < colSpan; k++) {
+          colHeights[bestColIdx + k] = row + span;
+        }
         gridPositions[card.id] = { col, row };
       });
 
-      placed.forEach(({ card, col, row, span }) => {
-        card.style.gridColumn = String(col);
+      // DOMへ反映
+      placed.forEach(({ card, col, colSpan, row, span }) => {
+        card.style.gridColumn = `${col} / span ${colSpan}`;
         card.style.gridRow = `${row} / span ${span}`;
         gridPositions[card.id] = { col, row };
       });
@@ -2915,6 +3174,7 @@
     window.resizeAllGridItems = () => layoutGrid(false);
     window.applySavedGridPositions = () => {
       loadGridPositions();
+      updateHiddenCardsUI();
       layoutGrid(false);
     };
 
@@ -2970,8 +3230,7 @@
       modal.style.cssText = "position:fixed;inset:0;background:rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;z-index:10010;backdrop-filter:blur(4px);";
 
       const box = document.createElement("div");
-      const theme = document.documentElement.getAttribute("data-theme") || "light";
-      box.style.cssText = `padding:1.2rem;border-radius:14px;max-height:82vh;display:flex;flex-direction:column;width:88%;max-width:350px;box-shadow:0 10px 30px rgba(0,0,0,0.3);background:${theme === "dark" ? "#1e1e1e" : "#fff"};color:${theme === "dark" ? "#eaeaea" : "#333"};`;
+      box.style.cssText = "padding:1.2rem;border-radius:14px;max-height:82vh;display:flex;flex-direction:column;width:88%;max-width:350px;box-shadow:0 10px 30px rgba(0,0,0,0.3);background:var(--card-bg);color:var(--text-color);";
 
       const header = document.createElement("div");
       header.style.cssText = "display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;padding-bottom:8px;border-bottom:1px solid var(--border-color);";
@@ -2992,14 +3251,8 @@
         rows.forEach((row, idx) => {
           const up = row.querySelector(".sort-up");
           const down = row.querySelector(".sort-down");
-          if (up) {
-            up.disabled = idx === 0;
-            up.style.opacity = idx === 0 ? "0.35" : "1";
-          }
-          if (down) {
-            down.disabled = idx === rows.length - 1;
-            down.style.opacity = idx === rows.length - 1 ? "0.35" : "1";
-          }
+          if (up) { up.disabled = idx === 0; up.style.opacity = idx === 0 ? "0.35" : "1"; }
+          if (down) { down.disabled = idx === rows.length - 1; down.style.opacity = idx === rows.length - 1 ? "0.35" : "1"; }
         });
       }
 
@@ -3025,10 +3278,7 @@
         upBtn.style.cssText = "border:none;border-radius:6px;padding:4px 10px;font-weight:bold;cursor:pointer;background:rgba(33,150,243,0.22);color:var(--text-color);";
         upBtn.onclick = () => {
           const prev = item.previousElementSibling;
-          if (prev) {
-            list.insertBefore(item, prev);
-            updateArrowStates();
-          }
+          if (prev) { list.insertBefore(item, prev); updateArrowStates(); }
         };
 
         const downBtn = document.createElement("button");
@@ -3037,10 +3287,7 @@
         downBtn.style.cssText = "border:none;border-radius:6px;padding:4px 10px;font-weight:bold;cursor:pointer;background:rgba(33,150,243,0.22);color:var(--text-color);";
         downBtn.onclick = () => {
           const next = item.nextElementSibling;
-          if (next) {
-            list.insertBefore(next, item);
-            updateArrowStates();
-          }
+          if (next) { list.insertBefore(next, item); updateArrowStates(); }
         };
 
         btns.appendChild(upBtn);
@@ -3106,22 +3353,56 @@
       updateButtonPositions();
     });
 
+    function toggleWideCard(card) {
+      const idx = wideCards.indexOf(card.id);
+      if (idx >= 0) {
+        wideCards.splice(idx, 1);
+      } else {
+        wideCards.push(card.id);
+      }
+      saveGridPositions();
+      updateHiddenCardsUI();
+      // 幅変更後の新しい高さを再計測してピタッと合わせる
+      requestAnimationFrame(() => layoutGrid(false));
+    }
+
     function updateHiddenCardsUI() {
       const hiddenCards = JSON.parse(localStorage.getItem(hiddenCardsKey) || "[]");
 
       document.querySelectorAll(".widgets > .card").forEach(card => {
         card.style.display = hiddenCards.includes(card.id) ? "none" : "block";
 
-        if (editMode && !card.querySelector(".edit-delete")) {
-          const btn = document.createElement("button");
-          btn.textContent = "非表示";
-          btn.className = "edit-delete";
-          btn.onclick = (e) => { e.stopPropagation(); hideCard(card); };
-          btn.style.cssText = "position:absolute;top:6px;right:6px;padding:3px 8px;cursor:pointer;background:#f44336;color:#fff;border:none;font-size:12px;border-radius:4px;z-index:10;";
-          card.appendChild(btn);
-        } else if (!editMode) {
-          const btn = card.querySelector(".edit-delete");
-          if (btn) btn.remove();
+        const existingToolbar = card.querySelector(":scope > .card-edit-toolbar");
+        if (editMode) {
+          const isWide = wideCards.includes(card.id);
+          if (!existingToolbar) {
+            const bar = document.createElement("div");
+            bar.className = "card-edit-toolbar";
+
+            const wideBtn = document.createElement("button");
+            wideBtn.className = "edit-wide-btn" + (isWide ? " is-wide" : "");
+            wideBtn.textContent = isWide ? "↔ 1列" : "↔ 2列";
+            wideBtn.title = "PC/タブレット時の横幅を切り替え（スマホでは自動で1列になります）";
+            wideBtn.onclick = (e) => { e.stopPropagation(); toggleWideCard(card); };
+
+            const delBtn = document.createElement("button");
+            delBtn.textContent = "非表示";
+            delBtn.className = "edit-delete";
+            delBtn.onclick = (e) => { e.stopPropagation(); hideCard(card); };
+            delBtn.style.cssText = "padding:3px 8px;cursor:pointer;background:#f44336;color:#fff;border:none;font-size:12px;border-radius:4px;font-weight:bold;";
+
+            bar.appendChild(wideBtn);
+            bar.appendChild(delBtn);
+            card.appendChild(bar);
+          } else {
+            const wideBtn = existingToolbar.querySelector(".edit-wide-btn");
+            if (wideBtn) {
+              wideBtn.classList.toggle("is-wide", isWide);
+              wideBtn.textContent = isWide ? "↔ 1列" : "↔ 2列";
+            }
+          }
+        } else if (existingToolbar) {
+          existingToolbar.remove();
         }
       });
       layoutGrid(false);
@@ -3146,8 +3427,7 @@
       const modal = document.createElement("div");
       modal.style.cssText = "position:fixed;inset:0;background:rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;z-index:10000;";
       const box = document.createElement("div");
-      const theme = document.documentElement.getAttribute("data-theme") || "light";
-      box.style.cssText = `padding:1.2rem;border-radius:12px;max-height:80%;overflow-y:auto;width:300px;background:${theme === "dark" ? "#1e1e1e" : "#fff"};color:${theme === "dark" ? "#fff" : "#000"};`;
+      box.style.cssText = "padding:1.2rem;border-radius:12px;max-height:80%;overflow-y:auto;width:300px;background:var(--card-bg);color:var(--text-color);";
 
       box.innerHTML = `<h3 style="margin-top:0;">非表示カードを再表示</h3>`;
       hiddenCards.forEach(id => {
@@ -3203,16 +3483,17 @@
       if (!editMode || !dragSrcEl || currentCols === 1) return;
       e.preventDefault();
 
+      const effColSpan = getEffectiveColSpan(dragSrcEl.id);
       const rect = widgets.getBoundingClientRect();
       const colWidth = (rect.width - COL_GAP * (currentCols - 1)) / currentCols;
       const relX = e.clientX - rect.left;
       const relY = e.clientY - rect.top;
 
-      dragTargetCol = Math.min(Math.max(1, Math.floor(relX / (colWidth + COL_GAP)) + 1), currentCols);
+      dragTargetCol = Math.min(Math.max(1, Math.floor(relX / (colWidth + COL_GAP)) + 1), currentCols - effColSpan + 1);
       dragTargetRow = Math.max(1, Math.floor(relY / (ROW_HEIGHT + ROW_GAP)) + 1);
 
       const span = parseInt(dragSrcEl.dataset.span || "6", 10);
-      dropPreview.style.gridColumn = String(dragTargetCol);
+      dropPreview.style.gridColumn = `${dragTargetCol} / span ${effColSpan}`;
       dropPreview.style.gridRow = `${dragTargetRow} / span ${span}`;
       dropPreview.classList.add("active");
     });
@@ -3400,8 +3681,14 @@
             if (typeof window.applySavedWeatherLocation === 'function') window.applySavedWeatherLocation();
           }
 
+          if (Array.isArray(data.widgetWideCards)) {
+            localStorage.setItem('widgetWideCards', JSON.stringify(data.widgetWideCards));
+          }
+
           if (data.widgetGridPos) {
             localStorage.setItem('widgetGridPos', JSON.stringify(data.widgetGridPos));
+            if (typeof window.applySavedGridPositions === 'function') window.applySavedGridPositions();
+          } else if (Array.isArray(data.widgetWideCards)) {
             if (typeof window.applySavedGridPositions === 'function') window.applySavedGridPositions();
           }
 
@@ -3462,6 +3749,7 @@
           portalTodos: todosData,
           portalWeatherLocation: weatherLocData,
           widgetGridPos: JSON.parse(localStorage.getItem('widgetGridPos') || '{}'),
+          widgetWideCards: JSON.parse(localStorage.getItem('widgetWideCards') || '[]'),
           portalWheelItems: JSON.parse(localStorage.getItem('portalWheelItems') || '[]'),
           updatedAt: new Date()
         }, { merge: true });
