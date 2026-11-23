@@ -13,7 +13,9 @@
   <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
   <style>
     html[data-theme="dark"],
-    html[data-theme="ocean"] {
+    html[data-theme="ocean"],
+    html[data-theme="cyber"],
+    html[data-theme="midnight"] {
       background-color: #121212;
       color-scheme: dark;
     }
@@ -22,7 +24,10 @@
     html[data-theme="pink"],
     html[data-theme="nature"],
     html[data-theme="wafuu"],
-    html[data-theme="edo"] {
+    html[data-theme="edo"],
+    html[data-theme="sunset"],
+    html[data-theme="cafe"],
+    html[data-theme="retro"] {
       background-color: #ffffff;
       color-scheme: light;
     }
@@ -2756,6 +2761,143 @@
     #calendar-card .calendar tr:last-child td:first-child { border-bottom-left-radius: 10px; }
     #calendar-card .calendar tr:last-child td:last-child { border-bottom-right-radius: 10px; }
 
+
+    /* --- 追加テーマ5種（夕焼け・サイバー・カフェ・レトロ・星空） --- */
+    [data-theme="sunset"] {
+      --bg-color: #fff3e8;
+      --text-color: #3d231a;
+      --card-bg: #fffaf5;
+      --card-shadow: rgba(230, 81, 0, 0.14);
+      --header-gradient: linear-gradient(90deg, #ff512f, #f09819);
+      --link-color: #e65100;
+      --main-color: #ff7043;
+      --border-color: rgba(230, 81, 0, 0.2);
+    }
+
+    html[data-theme="sunset"] header #clock,
+    html[data-theme="sunset"] header .header-btn,
+    html[data-theme="sunset"] header .header-btn::after {
+      color: #fff8f0;
+    }
+
+    [data-theme="cyber"] {
+      --bg-color: #090b16;
+      --text-color: #e0f7fa;
+      --card-bg: #11162a;
+      --card-shadow: rgba(0, 229, 255, 0.22);
+      --header-gradient: linear-gradient(90deg, #0f0c29, #302b63, #00c6ff);
+      --link-color: #00e5ff;
+      --main-color: #ff00cc;
+      --border-color: rgba(0, 229, 255, 0.35);
+    }
+
+    [data-theme="cyber"] .widgets .card {
+      border: 1px solid rgba(0, 229, 255, 0.38);
+      box-shadow: 0 0 12px rgba(0, 229, 255, 0.14);
+    }
+
+    [data-theme="cyber"] .widgets .card h2 {
+      color: #00e5ff;
+      text-shadow: 0 0 8px rgba(0, 229, 255, 0.45);
+    }
+
+    html[data-theme="cyber"] .calendar { border-color: #00acc1; }
+    html[data-theme="cyber"] .calendar th { background-color: #162447; color: #00e5ff; }
+    html[data-theme="cyber"] .calendar th,
+    html[data-theme="cyber"] .calendar td { border-color: #1f335c; }
+    [data-theme="cyber"] .jp-map-container {
+      background: linear-gradient(180deg, #070d1f 0%, #101b3d 100%);
+      border-color: rgba(0, 229, 255, 0.4);
+    }
+    [data-theme="cyber"] .jp-land { fill: #1c3d5a; stroke: #00e5ff; }
+    [data-theme="cyber"] .jp-city-badge {
+      background: rgba(17, 22, 42, 0.94);
+      color: #e0f7fa;
+      border: 1px solid rgba(0, 229, 255, 0.4);
+    }
+    [data-theme="cyber"] .jp-temp-max { color: #ff6e9c; }
+    [data-theme="cyber"] .jp-temp-min { color: #40c4ff; }
+
+    [data-theme="cafe"] {
+      --bg-color: #f3ece1;
+      --text-color: #3e2723;
+      --card-bg: #fcf9f2;
+      --card-shadow: rgba(62, 39, 35, 0.15);
+      --header-gradient: linear-gradient(90deg, #5d4037, #8d6e63);
+      --link-color: #6d4c41;
+      --main-color: #a1887f;
+      --border-color: rgba(93, 64, 55, 0.22);
+    }
+
+    html[data-theme="cafe"] header #clock,
+    html[data-theme="cafe"] header .header-btn,
+    html[data-theme="cafe"] header .header-btn::after {
+      color: #fdf6ec;
+    }
+
+    [data-theme="cafe"] .widgets .card {
+      border: 1px solid rgba(121, 85, 72, 0.24);
+    }
+
+    [data-theme="retro"] {
+      --bg-color: #efe8d5;
+      --text-color: #2c2a24;
+      --card-bg: #faf6ea;
+      --card-shadow: rgba(44, 42, 36, 0.2);
+      --header-gradient: linear-gradient(90deg, #c66b3d, #d99b26);
+      --link-color: #b85022;
+      --main-color: #2f6f5e;
+      --border-color: rgba(44, 42, 36, 0.25);
+    }
+
+    html[data-theme="retro"] header {
+      border-bottom: 3px solid #2f6f5e;
+    }
+
+    html[data-theme="retro"] header #clock,
+    html[data-theme="retro"] header .header-btn,
+    html[data-theme="retro"] header .header-btn::after {
+      color: #fffaf0;
+    }
+
+    [data-theme="retro"] .widgets .card {
+      border: 1.5px solid #c9b997;
+      border-top: 4px solid #2f6f5e;
+    }
+
+    [data-theme="midnight"] {
+      --bg-color: #0d1021;
+      --text-color: #e8eaf6;
+      --card-bg: #171c36;
+      --card-shadow: rgba(0, 0, 0, 0.6);
+      --header-gradient: linear-gradient(90deg, #1a237e, #4a148c);
+      --link-color: #9fa8da;
+      --main-color: #7986cb;
+      --border-color: rgba(159, 168, 218, 0.24);
+    }
+
+    html[data-theme="midnight"] body {
+      background-image: radial-gradient(rgba(255, 255, 255, 0.14) 1px, transparent 1px);
+      background-size: 28px 28px;
+    }
+
+    html[data-theme="midnight"] .calendar { border-color: #5c6bc0; }
+    html[data-theme="midnight"] .calendar th { background-color: #283593; color: #e8eaf6; }
+    html[data-theme="midnight"] .calendar th,
+    html[data-theme="midnight"] .calendar td { border-color: #2c387e; }
+    [data-theme="midnight"] .jp-map-container {
+      background: linear-gradient(180deg, #0d1333 0%, #1d2654 100%);
+      border-color: rgba(159, 168, 218, 0.35);
+    }
+    [data-theme="midnight"] .jp-land { fill: #3949ab; stroke: #9fa8da; }
+    [data-theme="midnight"] .jp-city-badge {
+      background: rgba(23, 28, 54, 0.94);
+      color: #e8eaf6;
+      border: 1px solid rgba(159, 168, 218, 0.3);
+    }
+    [data-theme="midnight"] .jp-temp-max { color: #ff8a80; }
+    [data-theme="midnight"] .jp-temp-min { color: #82b1ff; }
+
     body.dark .calendar td.empty {
       background-color: #2a2a2a;
     }
@@ -2870,6 +3012,26 @@
             <span class="theme-swatch" style="background: linear-gradient(90deg, #1b1b1b 33%, #d9532f 33%, #d9532f 66%, #2b7a4b 66%);"></span>
             <span>江戸流</span>
           </button>
+          <button class="theme-preset-btn" data-preset="sunset">
+            <span class="theme-swatch" style="background: linear-gradient(135deg, #ff512f 50%, #fff3e8 50%);"></span>
+            <span>夕焼け</span>
+          </button>
+          <button class="theme-preset-btn" data-preset="cyber">
+            <span class="theme-swatch" style="background: linear-gradient(135deg, #00e5ff 50%, #090b16 50%);"></span>
+            <span>サイバー</span>
+          </button>
+          <button class="theme-preset-btn" data-preset="cafe">
+            <span class="theme-swatch" style="background: linear-gradient(135deg, #5d4037 50%, #f3ece1 50%);"></span>
+            <span>カフェ</span>
+          </button>
+          <button class="theme-preset-btn" data-preset="retro">
+            <span class="theme-swatch" style="background: linear-gradient(135deg, #c66b3d 50%, #efe8d5 50%);"></span>
+            <span>レトロ</span>
+          </button>
+          <button class="theme-preset-btn" data-preset="midnight">
+            <span class="theme-swatch" style="background: linear-gradient(135deg, #4a148c 50%, #0d1021 50%);"></span>
+            <span>星空</span>
+          </button>
         </div>
       </div>
     </div>
@@ -2899,9 +3061,14 @@
           nature: "自然",
           wafuu: "和風（畳）",
           ocean: "深海",
-          edo: "江戸流"
+          edo: "江戸流",
+          sunset: "夕焼け",
+          cyber: "サイバー",
+          cafe: "カフェ",
+          retro: "レトロ",
+          midnight: "星空"
         };
-        const DARK_THEMES = ["dark", "ocean"];
+        const DARK_THEMES = ["dark", "ocean", "cyber", "midnight"];
 
         const applyTheme = (theme) => {
           if (!THEME_NAMES[theme]) theme = "light";
@@ -3897,6 +4064,7 @@
     const hiddenCardsKey = "hiddenCards";
     const GRID_POS_KEY = "widgetGridPos";
     const WIDE_CARDS_KEY = "widgetWideCards";
+    const LAYOUT_MODE_KEY = "widgetLayoutMode";
 
     const ROW_HEIGHT = 16;
     const ROW_GAP = 12;
@@ -3904,6 +4072,7 @@
 
     let gridPositions = {};
     let wideCards = [];
+    let layoutMode = "auto"; // "auto" = 常に自動整列, "manual" = 手動整列
     let currentCols = 3;
 
     const dropPreview = document.createElement("div");
@@ -3943,11 +4112,15 @@
         const w = JSON.parse(localStorage.getItem(WIDE_CARDS_KEY) || "[]");
         wideCards = Array.isArray(w) ? w : [];
       } catch (e) { wideCards = []; }
+      const savedMode = localStorage.getItem(LAYOUT_MODE_KEY);
+      layoutMode = savedMode === "manual" ? "manual" : "auto";
     }
 
     function saveGridPositions() {
       localStorage.setItem(GRID_POS_KEY, JSON.stringify(gridPositions));
       localStorage.setItem(WIDE_CARDS_KEY, JSON.stringify(wideCards));
+      localStorage.setItem(LAYOUT_MODE_KEY, layoutMode);
+      if (typeof updatePackBtnLabel === "function") updatePackBtnLabel();
       if (typeof window.saveWidgetDataToCloud === "function") window.saveWidgetDataToCloud();
     }
 
@@ -3986,7 +4159,8 @@
       const colHeights = new Array(currentCols).fill(1);
       const placed = [];
 
-      if (!forcePack) {
+      const shouldPack = forcePack || (layoutMode === "auto");
+      if (!shouldPack) {
         cards.forEach(card => {
           const colSpan = getEffectiveColSpan(card.id);
           const span = calcCardSpan(card);
@@ -4107,7 +4281,18 @@
       packBtn.style.bottom = (window.innerHeight - rect.bottom + btnHeight * 3 + spacing * 3) + "px";
     }
 
+    function updatePackBtnLabel() {
+      if (layoutMode === "auto") {
+        packBtn.textContent = "自動整列: ON";
+        packBtn.style.background = "#4caf50";
+      } else {
+        packBtn.textContent = "自動整列に戻す";
+        packBtn.style.background = "#ff9800";
+      }
+    }
+
     packBtn.addEventListener("click", () => {
+      layoutMode = "auto";
       gridPositions = {};
       layoutGrid(true);
       saveGridPositions();
@@ -4204,6 +4389,7 @@
           if (card) widgets.insertBefore(card, dropPreview);
         });
         localStorage.setItem("widgetOrder", JSON.stringify(newOrder));
+        layoutMode = "auto";
         gridPositions = {};
         layoutGrid(true);
         saveGridPositions();
@@ -4233,6 +4419,7 @@
       });
 
       editBtn.textContent = editMode ? "保存 / 終了" : "編集モード";
+      updatePackBtnLabel();
       addBtn.style.display = editMode ? "block" : "none";
       sortBtn.style.display = editMode ? "block" : "none";
       packBtn.style.display = editMode ? "block" : "none";
@@ -4394,6 +4581,7 @@
       if (!editMode || !dragSrcEl) return;
       e.preventDefault();
       if (currentCols > 1) {
+        layoutMode = "manual";
         gridPositions[dragSrcEl.id] = { col: dragTargetCol, row: dragTargetRow };
       }
       dropPreview.classList.remove("active");
@@ -4415,6 +4603,7 @@
       });
       wrapCardContents();
       loadGridPositions();
+      updatePackBtnLabel();
       updateHiddenCardsUI();
       updateButtonPositions();
 
@@ -4577,6 +4766,10 @@
             localStorage.setItem('widgetWideCards', JSON.stringify(data.widgetWideCards));
           }
 
+          if (data.widgetLayoutMode) {
+            localStorage.setItem('widgetLayoutMode', data.widgetLayoutMode);
+          }
+
           if (data.widgetGridPos) {
             localStorage.setItem('widgetGridPos', JSON.stringify(data.widgetGridPos));
             if (typeof window.applySavedGridPositions === 'function') window.applySavedGridPositions();
@@ -4642,6 +4835,7 @@
           portalWeatherLocation: weatherLocData,
           widgetGridPos: JSON.parse(localStorage.getItem('widgetGridPos') || '{}'),
           widgetWideCards: JSON.parse(localStorage.getItem('widgetWideCards') || '[]'),
+          widgetLayoutMode: localStorage.getItem('widgetLayoutMode') || 'auto',
           portalWheelItems: JSON.parse(localStorage.getItem('portalWheelItems') || '[]'),
           updatedAt: new Date()
         }, { merge: true });
