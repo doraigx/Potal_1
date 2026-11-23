@@ -21,7 +21,8 @@
     html[data-theme="light"],
     html[data-theme="pink"],
     html[data-theme="nature"],
-    html[data-theme="wafuu"] {
+    html[data-theme="wafuu"],
+    html[data-theme="edo"] {
       background-color: #ffffff;
       color-scheme: light;
     }
@@ -2602,6 +2603,144 @@
       background: rgba(0, 140, 255, 0.45);
     }
 
+
+    /* --- 江戸流（定式幕）フォント＆テーマ --- */
+    @font-face {
+      font-family: 'DFPKanteiryu';
+      src: url('./ＤＦＰ勘亭流.ttf') format('truetype');
+      font-display: swap;
+    }
+
+    [data-theme="edo"] {
+      --bg-color: #f6efe2;
+      --text-color: #1c1815;
+      --card-bg: #fffdf7;
+      --card-shadow: rgba(0, 0, 0, 0.28);
+      --header-gradient: repeating-linear-gradient(
+        90deg,
+        #1b1b1b 0px, #1b1b1b 48px,
+        #d9532f 48px, #d9532f 96px,
+        #2b7a4b 96px, #2b7a4b 144px
+      );
+      --link-color: #c8421f;
+      --main-color: #2b7a4b;
+      --border-color: rgba(27, 27, 27, 0.28);
+    }
+
+    /* 定式幕（黒・柿・萌葱）の縦縞背景 */
+    html[data-theme="edo"] body {
+      font-family: 'DFPKanteiryu', 'Yu Mincho', 'Noto Sans JP', serif;
+      background-color: #1b1b1b;
+      background-image: repeating-linear-gradient(
+        90deg,
+        #1f1f1f 0px, #1f1f1f 72px,
+        #c94b28 72px, #c94b28 144px,
+        #266b42 144px, #266b42 216px
+      );
+    }
+
+    html[data-theme="edo"] button,
+    html[data-theme="edo"] input,
+    html[data-theme="edo"] select,
+    html[data-theme="edo"] textarea {
+      font-family: 'DFPKanteiryu', 'Noto Sans JP', serif;
+    }
+
+    html[data-theme="edo"] header {
+      border-bottom: 4px solid #e0b84c;
+      box-shadow: 0 3px 10px rgba(0, 0, 0, 0.45);
+    }
+
+    html[data-theme="edo"] header #clock,
+    html[data-theme="edo"] header .header-btn,
+    html[data-theme="edo"] header .header-btn::after {
+      color: #fffaf0;
+      text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.85);
+    }
+
+    html[data-theme="edo"] .header-btn {
+      background: rgba(0, 0, 0, 0.42);
+      border: 1px solid rgba(255, 240, 200, 0.35);
+    }
+
+    /* 江戸流カード：生成り和紙＋上部に定式幕3色帯 */
+    [data-theme="edo"] .widgets .card {
+      background-color: #fffcf4;
+      border: 2px solid #1b1b1b;
+      border-radius: 6px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.35);
+      overflow: hidden;
+    }
+
+    [data-theme="edo"] .widgets .card::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 7px;
+      background: repeating-linear-gradient(
+        90deg,
+        #1b1b1b 0px, #1b1b1b 36px,
+        #d9532f 36px, #d9532f 72px,
+        #2b7a4b 72px, #2b7a4b 108px
+      );
+    }
+
+    [data-theme="edo"] .widgets .card h2 {
+      font-family: 'DFPKanteiryu', 'Yu Mincho', serif;
+      color: #1b1b1b;
+      border-bottom: 2px solid #d9532f;
+      padding-bottom: 5px;
+      letter-spacing: 0.04em;
+    }
+
+    /* カレンダー祝日：ホバーツールチップ＆クリックポップアップ */
+    .calendar td.holiday {
+      position: relative;
+      cursor: pointer;
+      font-weight: bold;
+    }
+
+    .calendar td.holiday::before {
+      content: "";
+      position: absolute;
+      bottom: 3px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 5px;
+      height: 5px;
+      border-radius: 50%;
+      background: #e53935;
+    }
+
+    .calendar td.holiday:hover::after {
+      content: attr(data-holiday);
+      position: absolute;
+      bottom: calc(100% + 6px);
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(25, 25, 25, 0.94);
+      color: #fff;
+      padding: 4px 9px;
+      border-radius: 6px;
+      font-size: 0.75rem;
+      font-weight: bold;
+      white-space: nowrap;
+      z-index: 50;
+      pointer-events: none;
+      box-shadow: 0 3px 10px rgba(0, 0, 0, 0.3);
+    }
+
+    /* 祝日セルホバー時にテーブル枠で切れないようにする */
+    #calendar-card .calendar {
+      overflow: visible;
+    }
+    #calendar-card .calendar tr:first-child th:first-child { border-top-left-radius: 10px; }
+    #calendar-card .calendar tr:first-child th:last-child { border-top-right-radius: 10px; }
+    #calendar-card .calendar tr:last-child td:first-child { border-bottom-left-radius: 10px; }
+    #calendar-card .calendar tr:last-child td:last-child { border-bottom-right-radius: 10px; }
+
     body.dark .calendar td.empty {
       background-color: #2a2a2a;
     }
@@ -2712,6 +2851,10 @@
             <span class="theme-swatch" style="background: linear-gradient(135deg, #1565c0 50%, #0b192c 50%);"></span>
             <span>深海</span>
           </button>
+          <button class="theme-preset-btn" data-preset="edo">
+            <span class="theme-swatch" style="background: linear-gradient(90deg, #1b1b1b 33%, #d9532f 33%, #d9532f 66%, #2b7a4b 66%);"></span>
+            <span>江戸流</span>
+          </button>
         </div>
       </div>
     </div>
@@ -2740,7 +2883,8 @@
           pink: "ピンク",
           nature: "自然",
           wafuu: "和風（畳）",
-          ocean: "深海"
+          ocean: "深海",
+          edo: "江戸流"
         };
         const DARK_THEMES = ["dark", "ocean"];
 
@@ -2858,6 +3002,17 @@
     </div>
   </div>
 
+  <!-- ★祝日ポップアップモーダル -->
+  <div id="holiday-popup-modal" class="modal-overlay" style="display: none;">
+    <div class="modal-content" style="max-width: 300px; text-align: center;">
+      <div class="modal-header">
+        <h3 id="holiday-popup-date" style="margin:0;">祝日</h3>
+        <button id="close-holiday-popup" class="close-btn">&times;</button>
+      </div>
+      <div id="holiday-popup-name" style="font-size: 1.25rem; font-weight: bold; padding: 14px 0 8px; color: #e53935;"></div>
+    </div>
+  </div>
+
   <!-- ★タイマー全画面オーバーレイ -->
   <div id="timer-fullscreen-overlay">
     <button id="timer-fs-close" class="timer-fs-close" title="閉じる">&times;</button>
@@ -2953,7 +3108,7 @@
             <option value="43.0618,141.3545,札幌市">札幌市</option>
             <option value="33.5902,130.4017,福岡市">福岡市</option>
           </select>
-          <button id="weather-geo-btn" class="weather-geo-btn" title="現在地の天気を取得">現在地</button>
+          <button id="weather-geo-btn" class="weather-geo-btn" title="現在地の天気を取得">📍現在地</button>
         </div>
         <div id="weather">
           <div class="loading">読み込み中…</div>
@@ -3115,8 +3270,7 @@
           <button id="next-month" aria-label="次月">→</button>
         </div>
         <div id="calendar"></div>
-        <div class="cal-holiday-bar">
-          <span id="cal-holiday-text" class="cal-holiday-text">今月の祝日を確認中…</span>
+        <div class="cal-holiday-bar" style="justify-content: flex-end;">
           <button id="today-month" class="cal-today-btn" aria-label="今月へ">今月に戻る</button>
         </div>
       </div>
@@ -4808,7 +4962,7 @@
               <span class="sun-bar-dot" style="left:${pct.toFixed(1)}%;">${dotIcon}</span>
             </div>
             <div class="sun-meta-foot">
-              <span> ${name}</span>
+              <span>📍 ${name}</span>
               <span>昼の長さ ${dayH}時間${dayM}分</span>
             </div>
           </div>
@@ -5535,8 +5689,21 @@
         const dd = String(d).padStart(2, "0");
         const key = `${year}-${mm}-${dd}`;
         if (holidaysData[key]) {
+          const hName = holidaysData[key];
           cell.classList.add("holiday");
-          cell.title = holidaysData[key];
+          cell.title = hName;
+          cell.dataset.holiday = hName;
+          cell.addEventListener("click", () => {
+            const modal = document.getElementById("holiday-popup-modal");
+            const dateEl = document.getElementById("holiday-popup-date");
+            const nameEl = document.getElementById("holiday-popup-name");
+            if (modal && dateEl && nameEl) {
+              const w = days[dayOfWeek];
+              dateEl.textContent = `${year}年${month}月${d}日 (${w})`;
+              nameEl.textContent = `🎌 ${hName}`;
+              modal.style.display = "flex";
+            }
+          });
         }
 
         if (
@@ -5567,17 +5734,13 @@
 
       calendarContainer.appendChild(table);
 
-      const holidayBarEl = document.getElementById("cal-holiday-text");
-      if (holidayBarEl) {
-        const prefix = `${year}-${String(month).padStart(2, "0")}-`;
-        const monthHolidays = Object.entries(holidaysData || {})
-          .filter(([k]) => k.startsWith(prefix))
-          .sort(([a], [b]) => a.localeCompare(b))
-          .map(([k, v]) => `${parseInt(k.slice(8), 10)}日 ${v}`);
-        holidayBarEl.textContent = monthHolidays.length > 0
-          ? `🎌 祝日: ${monthHolidays.join(" / ")}`
-          : `📅 ${month}月の祝日はありません`;
-        holidayBarEl.title = holidayBarEl.textContent;
+      // 祝日ポップアップの閉じるイベント（初回のみ登録）
+      const hModal = document.getElementById("holiday-popup-modal");
+      const hClose = document.getElementById("close-holiday-popup");
+      if (hModal && !hModal.dataset.bound) {
+        hModal.dataset.bound = "1";
+        if (hClose) hClose.addEventListener("click", () => { hModal.style.display = "none"; });
+        hModal.addEventListener("click", (e) => { if (e.target === hModal) hModal.style.display = "none"; });
       }
     }
 
