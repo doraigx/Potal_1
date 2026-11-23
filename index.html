@@ -2933,6 +2933,7 @@
 
     const addBtn = createFloatingBtn("再表示", "#2196f3");
     const sortBtn = createFloatingBtn("順番編集", "#e91e63");
+    const packBtn = createFloatingBtn("自動整列", "#ff9800");
 
     function updateButtonPositions() {
       const rect = editBtn.getBoundingClientRect();
@@ -2947,7 +2948,17 @@
       sortBtn.style.width = w;
       sortBtn.style.left = rect.left + "px";
       sortBtn.style.bottom = (window.innerHeight - rect.bottom + btnHeight * 2 + spacing * 2) + "px";
+
+      packBtn.style.width = w;
+      packBtn.style.left = rect.left + "px";
+      packBtn.style.bottom = (window.innerHeight - rect.bottom + btnHeight * 3 + spacing * 3) + "px";
     }
+
+    packBtn.addEventListener("click", () => {
+      gridPositions = {};
+      layoutGrid(true);
+      saveGridPositions();
+    });
 
     sortBtn.addEventListener("click", () => {
       const visibleCards = Array.from(widgets.querySelectorAll(":scope > .card"))
@@ -3084,6 +3095,7 @@
       editBtn.textContent = editMode ? "保存 / 終了" : "編集モード";
       addBtn.style.display = editMode ? "block" : "none";
       sortBtn.style.display = editMode ? "block" : "none";
+      packBtn.style.display = editMode ? "block" : "none";
 
       if (!editMode) {
         dropPreview.classList.remove("active");
