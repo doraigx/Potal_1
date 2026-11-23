@@ -2072,7 +2072,8 @@
       body:has(#settings-modal[style*="display: flex"]) #mobile-nav-bar,
       body:has(#theme-modal[style*="display: flex"]) #mobile-nav-bar,
       body:has(#ql-modal[style*="display: flex"]) #mobile-nav-bar,
-      body:has(#wheel-modal[style*="display: flex"]) #mobile-nav-bar {
+      body:has(#wheel-modal[style*="display: flex"]) #mobile-nav-bar,
+      body:has(#roulette-overlay.active) #mobile-nav-bar {
         display: none !important;
       }
 
@@ -2227,7 +2228,8 @@
     body:has(#theme-modal[style*="display: flex"]) #edit-btn,
     body:has(#ql-modal[style*="display: flex"]) #edit-btn,
     body:has(#wheel-modal[style*="display: flex"]) #edit-btn,
-    body:has(#timer-fullscreen-overlay.active) #edit-btn {
+    body:has(#timer-fullscreen-overlay.active) #edit-btn,
+    body:has(#roulette-overlay.active) #edit-btn {
       display: none !important;
     }
 
@@ -2962,114 +2964,307 @@
       flex: 1;
     }
 
-    /* --- 2048 ミニゲームカード --- */
-    .g2048-header {
+    /* --- 郵便番号・住所検索カード --- */
+    .zip-input-row {
+      display: flex;
+      gap: 6px;
+      margin-bottom: 10px;
+    }
+
+    .zip-input {
+      flex: 1;
+      padding: 7px 10px;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+      background: var(--bg-color);
+      color: var(--text-color);
+      font-size: 0.92rem;
+      min-width: 0;
+    }
+
+    .zip-search-btn {
+      padding: 7px 12px;
+      border: none;
+      border-radius: 8px;
+      background: #e53935;
+      color: #fff;
+      font-weight: bold;
+      cursor: pointer;
+      font-size: 0.86rem;
+      white-space: nowrap;
+    }
+
+    .zip-result-box {
+      background: var(--bg-color);
+      border-radius: 10px;
+      padding: 10px 12px;
+      min-height: 64px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      gap: 6px;
+    }
+
+    .zip-result-item {
       display: flex;
       justify-content: space-between;
       align-items: center;
+      gap: 8px;
+      border-bottom: 1px solid var(--border-color);
+      padding-bottom: 6px;
+    }
+
+    .zip-result-item:last-child {
+      border-bottom: none;
+      padding-bottom: 0;
+    }
+
+    .zip-addr-main {
+      font-weight: bold;
+      font-size: 0.95rem;
+      line-height: 1.35;
+    }
+
+    .zip-addr-kana {
+      font-size: 0.74rem;
+      opacity: 0.7;
+      margin-top: 2px;
+    }
+
+    .zip-copy-btn {
+      padding: 4px 8px;
+      border: none;
+      border-radius: 6px;
+      background: rgba(33, 150, 243, 0.22);
+      color: var(--text-color);
+      font-weight: bold;
+      font-size: 0.76rem;
+      cursor: pointer;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+
+    .zip-copy-btn:hover {
+      background: rgba(33, 150, 243, 0.4);
+    }
+
+    /* --- ランダム決定ルーレットカード --- */
+    .rl-input-row {
+      display: flex;
       gap: 6px;
       margin-bottom: 8px;
     }
 
-    .g2048-scores {
+    .rl-input {
+      flex: 1;
+      padding: 7px 10px;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+      background: var(--bg-color);
+      color: var(--text-color);
+      font-size: 0.9rem;
+      min-width: 0;
+    }
+
+    .rl-add-btn {
+      padding: 7px 12px;
+      border: none;
+      border-radius: 8px;
+      background: #2196f3;
+      color: #fff;
+      font-weight: bold;
+      cursor: pointer;
+      white-space: nowrap;
+      font-size: 0.86rem;
+    }
+
+    .rl-items {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-bottom: 10px;
+      min-height: 30px;
+    }
+
+    .rl-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 4px 10px;
+      border-radius: 999px;
+      background: var(--bg-color);
+      border: 1px solid var(--border-color);
+      font-size: 0.84rem;
+      font-weight: bold;
+    }
+
+    .rl-chip-del {
+      border: none;
+      background: transparent;
+      color: #e53935;
+      font-weight: bold;
+      cursor: pointer;
+      padding: 0 2px;
+      font-size: 0.88rem;
+      line-height: 1;
+    }
+
+    .rl-actions {
       display: flex;
       gap: 6px;
     }
 
-    .g2048-score-box {
-      background: var(--bg-color);
-      border-radius: 8px;
-      padding: 4px 10px;
-      text-align: center;
-      font-size: 0.72rem;
-      line-height: 1.2;
-    }
-
-    .g2048-score-box strong {
-      display: block;
-      font-size: 0.95rem;
-    }
-
-    .g2048-restart-btn {
-      padding: 6px 10px;
+    .rl-start-btn {
+      flex: 1;
+      padding: 10px;
       border: none;
-      border-radius: 8px;
-      background: #ff7043;
+      border-radius: 10px;
+      background: linear-gradient(135deg, #ff7043, #ff9800);
       color: #fff;
       font-weight: bold;
-      font-size: 0.8rem;
+      font-size: 0.96rem;
       cursor: pointer;
+      box-shadow: 0 2px 8px rgba(255, 112, 67, 0.3);
+      transition: transform 0.15s;
     }
 
-    .g2048-board {
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 6px;
-      background: #bbada0;
-      padding: 6px;
+    .rl-start-btn:hover {
+      transform: translateY(-1px);
+    }
+
+    .rl-clear-btn {
+      padding: 10px 12px;
+      border: none;
       border-radius: 10px;
-      touch-action: none;
-      user-select: none;
-      aspect-ratio: 1 / 1;
-      max-width: 260px;
-      margin: 0 auto 8px;
-      box-sizing: border-box;
+      background: rgba(128, 128, 128, 0.22);
+      color: var(--text-color);
+      font-weight: bold;
+      font-size: 0.82rem;
+      cursor: pointer;
+      white-space: nowrap;
     }
 
-    .g2048-cell {
+    .rl-last-result {
+      margin-top: 8px;
+      font-size: 0.84rem;
+      text-align: center;
+      font-weight: bold;
+      opacity: 0.85;
+      min-height: 1.2em;
+    }
+
+    /* --- ルーレット全画面スロット演出オーバーレイ --- */
+    #roulette-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(10, 14, 24, 0.86);
+      backdrop-filter: blur(8px);
+      z-index: 10030;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      box-sizing: border-box;
+      color: #fff;
+    }
+
+    #roulette-overlay.active {
+      display: flex;
+    }
+
+    .rl-stage-label {
+      font-size: 1.1rem;
+      font-weight: bold;
+      letter-spacing: 0.12em;
+      opacity: 0.85;
+      margin-bottom: 18px;
+    }
+
+    .rl-slot-window {
+      position: relative;
+      width: min(92vw, 640px);
+      height: clamp(140px, 28vh, 220px);
+      background: rgba(255, 255, 255, 0.08);
+      border: 3px solid rgba(255, 255, 255, 0.35);
+      border-radius: 22px;
+      overflow: hidden;
       display: flex;
       align-items: center;
       justify-content: center;
-      border-radius: 6px;
-      font-weight: 900;
-      font-size: 1.1rem;
-      background: rgba(238, 228, 218, 0.35);
-      color: #776e65;
-      transition: transform 0.1s ease, background 0.12s ease;
+      box-shadow: 0 12px 40px rgba(0, 0, 0, 0.55);
+      margin-bottom: 26px;
+      transition: border-color 0.25s, box-shadow 0.25s, transform 0.25s;
     }
 
-    .g2048-cell[data-v="2"]    { background: #eee4da; color: #776e65; }
-    .g2048-cell[data-v="4"]    { background: #ede0c8; color: #776e65; }
-    .g2048-cell[data-v="8"]    { background: #f2b179; color: #f9f6f2; }
-    .g2048-cell[data-v="16"]   { background: #f59563; color: #f9f6f2; }
-    .g2048-cell[data-v="32"]   { background: #f67c5f; color: #f9f6f2; }
-    .g2048-cell[data-v="64"]   { background: #f65e3b; color: #f9f6f2; }
-    .g2048-cell[data-v="128"]  { background: #edcf72; color: #f9f6f2; font-size: 0.98rem; }
-    .g2048-cell[data-v="256"]  { background: #edcc61; color: #f9f6f2; font-size: 0.98rem; }
-    .g2048-cell[data-v="512"]  { background: #edc850; color: #f9f6f2; font-size: 0.98rem; }
-    .g2048-cell[data-v="1024"] { background: #edc53f; color: #f9f6f2; font-size: 0.85rem; }
-    .g2048-cell[data-v="2048"] { background: #edc22e; color: #f9f6f2; font-size: 0.85rem; box-shadow: 0 0 10px rgba(237, 194, 46, 0.8); }
+    .rl-slot-window.decided {
+      border-color: #ffd54f;
+      box-shadow: 0 0 36px rgba(255, 213, 79, 0.65);
+      transform: scale(1.04);
+      background: rgba(255, 213, 79, 0.14);
+    }
 
-    .g2048-pad {
-      display: grid;
-      grid-template-columns: repeat(3, 38px);
-      gap: 4px;
+    .rl-slot-text {
+      font-size: clamp(2.1rem, 8vw, 4.5rem);
+      font-weight: 900;
+      text-align: center;
+      padding: 0 20px;
+      word-break: break-word;
+      line-height: 1.2;
+      will-change: transform, opacity;
+    }
+
+    @keyframes rlFlowIn {
+      0% {
+        transform: translateY(-75%);
+        opacity: 0.15;
+      }
+      50% {
+        transform: translateY(0%);
+        opacity: 1;
+      }
+      100% {
+        transform: translateY(0%);
+        opacity: 1;
+      }
+    }
+
+    .rl-slot-text.flowing {
+      animation: rlFlowIn var(--rl-dur, 110ms) cubic-bezier(0.22, 0.61, 0.36, 1) forwards;
+    }
+
+    @keyframes rlDecidePop {
+      0%   { transform: scale(0.82); }
+      60%  { transform: scale(1.12); }
+      100% { transform: scale(1); }
+    }
+
+    .rl-slot-text.decided {
+      color: #ffd54f;
+      text-shadow: 0 0 18px rgba(255, 213, 79, 0.8);
+      animation: rlDecidePop 0.4s ease forwards;
+    }
+
+    .rl-overlay-controls {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
       justify-content: center;
     }
 
-    .g2048-pad button {
-      height: 30px;
+    .rl-ov-btn {
+      padding: 12px 26px;
       border: none;
-      border-radius: 6px;
-      background: var(--bg-color);
-      color: var(--text-color);
+      border-radius: 12px;
+      font-size: 1rem;
       font-weight: bold;
       cursor: pointer;
-      font-size: 0.9rem;
+      color: #fff;
+      min-width: 130px;
     }
 
-    .g2048-pad button:hover {
-      background: rgba(33, 150, 243, 0.25);
-    }
-
-    .g2048-status {
-      text-align: center;
-      font-size: 0.8rem;
-      font-weight: bold;
-      min-height: 1.2em;
-      margin-bottom: 4px;
-      color: #e65100;
-    }
+    .rl-ov-retry { background: linear-gradient(135deg, #ff7043, #ff9800); }
+    .rl-ov-close { background: rgba(255, 255, 255, 0.22); }
 
     body.dark .calendar td.empty {
       background-color: #2a2a2a;
@@ -3365,6 +3560,18 @@
         <button id="close-holiday-popup" class="close-btn">&times;</button>
       </div>
       <div id="holiday-popup-name" style="font-size: 1.25rem; font-weight: bold; padding: 14px 0 8px; color: #e53935;"></div>
+    </div>
+  </div>
+
+  <!-- ★ルーレット全画面演出オーバーレイ -->
+  <div id="roulette-overlay">
+    <div id="rl-stage-label" class="rl-stage-label">抽選中...</div>
+    <div id="rl-slot-window" class="rl-slot-window">
+      <div id="rl-slot-text" class="rl-slot-text">---</div>
+    </div>
+    <div id="rl-overlay-controls" class="rl-overlay-controls" style="visibility:hidden;">
+      <button id="rl-ov-retry" class="rl-ov-btn rl-ov-retry">🔄 もう一回</button>
+      <button id="rl-ov-close" class="rl-ov-btn rl-ov-close">閉じる</button>
     </div>
   </div>
 
@@ -3692,26 +3899,31 @@
         </div>
       </div>
 
-      <!-- ★新規：2048 ミニゲームカード -->
-      <div class="card" id="game2048-card">
-        <h2>2048</h2>
-        <div class="g2048-header">
-          <div class="g2048-scores">
-            <div class="g2048-score-box">SCORE<strong id="g2048-score">0</strong></div>
-            <div class="g2048-score-box">BEST<strong id="g2048-best">0</strong></div>
-          </div>
-          <button id="g2048-restart" class="g2048-restart-btn">やり直す</button>
+      <!-- ★新規：郵便番号・住所検索カード -->
+      <div class="card" id="zipcode-card">
+        <h2>郵便番号・住所検索</h2>
+        <div class="zip-input-row">
+          <input type="text" id="zip-input" class="zip-input" placeholder="例: 4910000 / 491-0000" inputmode="numeric" maxlength="8">
+          <button id="zip-search-btn" class="zip-search-btn">検索</button>
         </div>
-        <div id="g2048-status" class="g2048-status"></div>
-        <div id="g2048-board" class="g2048-board" tabindex="0" aria-label="2048盤面"></div>
-        <div class="g2048-pad">
-          <div></div>
-          <button type="button" data-dir="up" aria-label="上">↑</button>
-          <div></div>
-          <button type="button" data-dir="left" aria-label="左">←</button>
-          <button type="button" data-dir="down" aria-label="下">↓</button>
-          <button type="button" data-dir="right" aria-label="右">→</button>
+        <div id="zip-result" class="zip-result-box">
+          <span style="font-size:0.84rem; opacity:0.65; text-align:center;">7桁の郵便番号を入力して検索</span>
         </div>
+      </div>
+
+      <!-- ★新規：ランダム決定ルーレットカード -->
+      <div class="card" id="roulette-card">
+        <h2>ランダム決定ルーレット</h2>
+        <div class="rl-input-row">
+          <input type="text" id="rl-input" class="rl-input" placeholder="候補を入力 (例: ラーメン)">
+          <button id="rl-add-btn" class="rl-add-btn">追加</button>
+        </div>
+        <div id="rl-items" class="rl-items"></div>
+        <div class="rl-actions">
+          <button id="rl-start-btn" class="rl-start-btn">🎯 スタート</button>
+          <button id="rl-clear-btn" class="rl-clear-btn">全消去</button>
+        </div>
+        <div id="rl-last-result" class="rl-last-result"></div>
       </div>
 
       <div class="card" id="app-download-card">
@@ -4993,6 +5205,11 @@
             localStorage.setItem('portalWheelItems', JSON.stringify(data.portalWheelItems));
             if (typeof window.renderWheelMenu === 'function') window.renderWheelMenu();
           }
+
+          if (Array.isArray(data.portalRouletteItems)) {
+            localStorage.setItem('portalRouletteItems', JSON.stringify(data.portalRouletteItems));
+            if (typeof window.renderRouletteItems === 'function') window.renderRouletteItems();
+          }
         }
 
         if (typeof resizeAllGridItems === 'function') resizeAllGridItems();
@@ -5049,6 +5266,7 @@
           widgetWideCards: JSON.parse(localStorage.getItem('widgetWideCards') || '[]'),
           widgetLayoutMode: localStorage.getItem('widgetLayoutMode') || 'auto',
           portalWheelItems: JSON.parse(localStorage.getItem('portalWheelItems') || '[]'),
+          portalRouletteItems: JSON.parse(localStorage.getItem('portalRouletteItems') || '[]'),
           updatedAt: new Date()
         }, { merge: true });
       } catch (e) {
@@ -6345,7 +6563,8 @@
         { id: 'sun-card', icon: '🌅', label: '日の出' },
         { id: 'campus-sites-card', icon: '🏫', label: '学内' },
         { id: 'qr-card', icon: '📷', label: 'QR生成' },
-        { id: 'game2048-card', icon: '🎮', label: '2048' },
+        { id: 'zipcode-card', icon: '📮', label: '郵便番号' },
+        { id: 'roulette-card', icon: '🎯', label: 'ルーレット' },
         { id: 'app-download-card', icon: '📱', label: 'アプリ' }
       ];
 
@@ -6850,169 +7069,259 @@
         }
       });
 
-      // 初期表示で現在のポータルURLを生成しておく
-      inputEl.value = window.location.href;
-      generateQR(inputEl.value);
+      // 初期値は空白のまま
     })();
   </script>
 
-  <!-- ★2048 ミニゲーム ロジック -->
+  <!-- ★郵便番号・住所検索 ロジック -->
   <script>
     (function() {
-      const boardEl = document.getElementById('g2048-board');
-      const scoreEl = document.getElementById('g2048-score');
-      const bestEl = document.getElementById('g2048-best');
-      const statusEl = document.getElementById('g2048-status');
-      const restartBtn = document.getElementById('g2048-restart');
-      const padBtns = document.querySelectorAll('#game2048-card .g2048-pad button');
-      const BEST_KEY = 'portal2048Best';
+      const inputEl = document.getElementById('zip-input');
+      const searchBtn = document.getElementById('zip-search-btn');
+      const resultEl = document.getElementById('zip-result');
 
-      let grid = [];
-      let score = 0;
-      let best = parseInt(localStorage.getItem(BEST_KEY) || '0', 10) || 0;
-      let wonCelebrated = false;
-
-      function initGame() {
-        grid = Array.from({ length: 4 }, () => [0, 0, 0, 0]);
-        score = 0;
-        wonCelebrated = false;
-        statusEl.textContent = '';
-        addRandomTile();
-        addRandomTile();
-        render();
-      }
-
-      function addRandomTile() {
-        const empty = [];
-        for (let r = 0; r < 4; r++) {
-          for (let c = 0; c < 4; c++) {
-            if (grid[r][c] === 0) empty.push([r, c]);
-          }
+      async function searchZip() {
+        const raw = (inputEl.value || '').replace(/[^0-9]/g, '');
+        if (raw.length !== 7) {
+          resultEl.innerHTML = '<span style="font-size:0.84rem; color:#e53935; text-align:center;">7桁の数字で入力してください</span>';
+          return;
         }
-        if (empty.length === 0) return;
-        const [r, c] = empty[Math.floor(Math.random() * empty.length)];
-        grid[r][c] = Math.random() < 0.9 ? 2 : 4;
-      }
+        resultEl.innerHTML = '<span style="font-size:0.84rem; opacity:0.7; text-align:center;">検索中...</span>';
 
-      function slideLine(line) {
-        const arr = line.filter(v => v !== 0);
-        for (let i = 0; i < arr.length - 1; i++) {
-          if (arr[i] === arr[i + 1]) {
-            arr[i] *= 2;
-            score += arr[i];
-            arr.splice(i + 1, 1);
-          }
-        }
-        while (arr.length < 4) arr.push(0);
-        return arr;
-      }
+        try {
+          const res = await fetch(`https://zipcloud.ibsnet.co.jp/api/search?zipcode=${raw}`);
+          if (!res.ok) throw new Error('HTTP ' + res.status);
+          const data = await res.json();
 
-      function move(dir) {
-        const before = JSON.stringify(grid);
-        if (dir === 'left') {
-          for (let r = 0; r < 4; r++) grid[r] = slideLine(grid[r]);
-        } else if (dir === 'right') {
-          for (let r = 0; r < 4; r++) grid[r] = slideLine(grid[r].slice().reverse()).reverse();
-        } else if (dir === 'up') {
-          for (let c = 0; c < 4; c++) {
-            const col = slideLine([grid[0][c], grid[1][c], grid[2][c], grid[3][c]]);
-            for (let r = 0; r < 4; r++) grid[r][c] = col[r];
+          if (!data.results || data.results.length === 0) {
+            resultEl.innerHTML = '<span style="font-size:0.84rem; color:#e53935; text-align:center;">該当する住所が見つかりませんでした</span>';
+            return;
           }
-        } else if (dir === 'down') {
-          for (let c = 0; c < 4; c++) {
-            const col = slideLine([grid[3][c], grid[2][c], grid[1][c], grid[0][c]]).reverse();
-            for (let r = 0; r < 4; r++) grid[r][c] = col[r];
-          }
-        }
 
-        if (JSON.stringify(grid) !== before) {
-          addRandomTile();
-          if (score > best) {
-            best = score;
-            localStorage.setItem(BEST_KEY, String(best));
-          }
-          render();
-          checkState();
+          resultEl.innerHTML = '';
+          data.results.forEach(item => {
+            const fullAddr = `${item.address1}${item.address2}${item.address3}`;
+            const fullKana = `${item.kana1} ${item.kana2} ${item.kana3}`.trim();
+            const zipFmt = `〒${raw.slice(0, 3)}-${raw.slice(3)}`;
+
+            const row = document.createElement('div');
+            row.className = 'zip-result-item';
+            row.innerHTML = `
+              <div>
+                <div style="font-size:0.76rem; opacity:0.75;">${zipFmt}</div>
+                <div class="zip-addr-main"></div>
+                <div class="zip-addr-kana"></div>
+              </div>
+              <button type="button" class="zip-copy-btn">コピー</button>
+            `;
+            row.querySelector('.zip-addr-main').textContent = fullAddr;
+            row.querySelector('.zip-addr-kana').textContent = fullKana;
+            const copyBtn = row.querySelector('.zip-copy-btn');
+            copyBtn.addEventListener('click', () => {
+              navigator.clipboard?.writeText(fullAddr).then(() => {
+                copyBtn.textContent = '完了!';
+                setTimeout(() => { copyBtn.textContent = 'コピー'; }, 1200);
+              }).catch(() => {
+                alert(fullAddr);
+              });
+            });
+            resultEl.appendChild(row);
+          });
+        } catch (err) {
+          resultEl.innerHTML = '<span style="font-size:0.84rem; color:#e53935; text-align:center;">検索に失敗しました</span>';
         }
       }
 
-      function checkState() {
-        let has2048 = false;
-        let canMove = false;
-        for (let r = 0; r < 4; r++) {
-          for (let c = 0; c < 4; c++) {
-            const v = grid[r][c];
-            if (v === 2048) has2048 = true;
-            if (v === 0) canMove = true;
-            if (c < 3 && v === grid[r][c + 1]) canMove = true;
-            if (r < 3 && v === grid[r + 1][c]) canMove = true;
-          }
-        }
-        if (has2048 && !wonCelebrated) {
-          wonCelebrated = true;
-          statusEl.textContent = '🎉 2048 達成！';
-          if (typeof confetti === 'function') {
-            confetti({ particleCount: 70, spread: 80, origin: { y: 0.6 } });
-          }
-        } else if (!canMove) {
-          statusEl.textContent = 'ゲームオーバー';
-        }
-      }
-
-      function render() {
-        boardEl.innerHTML = '';
-        for (let r = 0; r < 4; r++) {
-          for (let c = 0; c < 4; c++) {
-            const v = grid[r][c];
-            const cell = document.createElement('div');
-            cell.className = 'g2048-cell';
-            if (v > 0) {
-              cell.dataset.v = String(v);
-              cell.textContent = String(v);
-            }
-            boardEl.appendChild(cell);
-          }
-        }
-        scoreEl.textContent = String(score);
-        bestEl.textContent = String(best);
-      }
-
-      // ボタン操作
-      padBtns.forEach(btn => {
-        btn.addEventListener('click', () => move(btn.dataset.dir));
+      searchBtn.addEventListener('click', searchZip);
+      inputEl.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') searchZip();
       });
-      restartBtn.addEventListener('click', initGame);
+    })();
+  </script>
 
-      // キーボード操作（盤面フォーカス時のみ）
-      boardEl.addEventListener('keydown', (e) => {
-        const map = { ArrowUp: 'up', ArrowDown: 'down', ArrowLeft: 'left', ArrowRight: 'right' };
-        if (map[e.key]) {
-          e.preventDefault();
-          move(map[e.key]);
+  <!-- ★ランダム決定ルーレット ロジック（画面上に大きく1個ずつ流れる演出） -->
+  <script>
+    (function() {
+      const RL_KEY = 'portalRouletteItems';
+      const inputEl = document.getElementById('rl-input');
+      const addBtn = document.getElementById('rl-add-btn');
+      const itemsEl = document.getElementById('rl-items');
+      const startBtn = document.getElementById('rl-start-btn');
+      const clearBtn = document.getElementById('rl-clear-btn');
+      const lastResultEl = document.getElementById('rl-last-result');
+
+      const overlay = document.getElementById('roulette-overlay');
+      const stageLabel = document.getElementById('rl-stage-label');
+      const slotWindow = document.getElementById('rl-slot-window');
+      const slotText = document.getElementById('rl-slot-text');
+      const ovControls = document.getElementById('rl-overlay-controls');
+      const ovRetryBtn = document.getElementById('rl-ov-retry');
+      const ovCloseBtn = document.getElementById('rl-ov-close');
+
+      let spinning = false;
+      let spinTimer = null;
+
+      function getItems() {
+        try {
+          const arr = JSON.parse(localStorage.getItem(RL_KEY) || '[]');
+          return Array.isArray(arr) ? arr : [];
+        } catch (e) {
+          return [];
+        }
+      }
+
+      function saveItems(arr) {
+        localStorage.setItem(RL_KEY, JSON.stringify(arr));
+        if (typeof window.saveWidgetDataToCloud === 'function') window.saveWidgetDataToCloud();
+      }
+
+      function renderItems() {
+        const arr = getItems();
+        itemsEl.innerHTML = '';
+        if (arr.length === 0) {
+          itemsEl.innerHTML = '<span style="font-size:0.82rem; opacity:0.6;">候補を追加してスタートを押してください</span>';
+          return;
+        }
+        arr.forEach((text, idx) => {
+          const chip = document.createElement('span');
+          chip.className = 'rl-chip';
+          const span = document.createElement('span');
+          span.textContent = text;
+          const del = document.createElement('button');
+          del.type = 'button';
+          del.className = 'rl-chip-del';
+          del.textContent = '×';
+          del.onclick = () => {
+            const next = getItems();
+            next.splice(idx, 1);
+            saveItems(next);
+            renderItems();
+          };
+          chip.appendChild(span);
+          chip.appendChild(del);
+          itemsEl.appendChild(chip);
+        });
+      }
+
+      function addItem() {
+        const val = (inputEl.value || '').trim();
+        if (!val) return;
+        const arr = getItems();
+        arr.push(val);
+        saveItems(arr);
+        inputEl.value = '';
+        renderItems();
+      }
+
+      function playTickSound(freq, dur = 0.04) {
+        try {
+          const ctx = new (window.AudioContext || window.webkitAudioContext)();
+          const osc = ctx.createOscillator();
+          const gain = ctx.createGain();
+          osc.type = 'triangle';
+          osc.frequency.setValueAtTime(freq, ctx.currentTime);
+          gain.gain.setValueAtTime(0.08, ctx.currentTime);
+          gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + dur);
+          osc.connect(gain);
+          gain.connect(ctx.destination);
+          osc.start();
+          osc.stop(ctx.currentTime + dur);
+        } catch (e) {}
+      }
+
+      function runRoulette() {
+        const items = getItems();
+        if (items.length < 2) {
+          alert('候補を2つ以上追加してください');
+          return;
+        }
+        if (spinning) return;
+        spinning = true;
+
+        overlay.classList.add('active');
+        slotWindow.classList.remove('decided');
+        slotText.classList.remove('decided', 'flowing');
+        stageLabel.textContent = '🎯 抽選中...';
+        ovControls.style.visibility = 'hidden';
+
+        // 当選項目を先にランダム決定し、最後は必ずそこに着地させる
+        const winIdx = Math.floor(Math.random() * items.length);
+        const totalSteps = 22 + Math.floor(Math.random() * 6);
+        let step = 0;
+
+        // 最後のステップで winIdx になるように開始インデックスを逆算
+        let curIdx = ((winIdx - (totalSteps - 1)) % items.length + items.length) % items.length;
+
+        function nextStep() {
+          const text = items[curIdx];
+          const progress = step / (totalSteps - 1);
+          // 最初は高速（55ms）、後半に向けて徐々に減速（最大420ms）
+          const delay = Math.round(55 + Math.pow(progress, 2.7) * 365);
+
+          slotText.classList.remove('flowing', 'decided');
+          void slotText.offsetWidth; // アニメーション再トリガー
+          slotText.textContent = text;
+          slotText.style.setProperty('--rl-dur', Math.min(delay, 260) + 'ms');
+          slotText.classList.add('flowing');
+
+          playTickSound(440 + Math.round(progress * 260), 0.035);
+
+          step++;
+          if (step < totalSteps) {
+            curIdx = (curIdx + 1) % items.length;
+            spinTimer = setTimeout(nextStep, delay);
+          } else {
+            // 決定演出
+            spinTimer = setTimeout(() => {
+              const winner = items[winIdx];
+              slotWindow.classList.add('decided');
+              slotText.classList.remove('flowing');
+              slotText.classList.add('decided');
+              stageLabel.textContent = '🎉 決定！';
+              lastResultEl.textContent = `前回の結果：${winner}`;
+              ovControls.style.visibility = 'visible';
+              spinning = false;
+
+              playTickSound(880, 0.22);
+              if (typeof confetti === 'function') {
+                confetti({ particleCount: 90, spread: 100, origin: { y: 0.55 }, zIndex: 10040 });
+              }
+            }, 180);
+          }
+        }
+
+        nextStep();
+      }
+
+      function closeOverlay() {
+        if (spinTimer) clearTimeout(spinTimer);
+        spinning = false;
+        overlay.classList.remove('active');
+      }
+
+      addBtn.addEventListener('click', addItem);
+      inputEl.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') addItem();
+      });
+
+      clearBtn.addEventListener('click', () => {
+        if (getItems().length === 0) return;
+        if (confirm('ルーレットの候補をすべて消去しますか？')) {
+          saveItems([]);
+          lastResultEl.textContent = '';
+          renderItems();
         }
       });
 
-      // スワイプ操作（スマホ対応）
-      let sx = 0, sy = 0;
-      boardEl.addEventListener('touchstart', (e) => {
-        const t = e.touches[0];
-        sx = t.clientX;
-        sy = t.clientY;
-      }, { passive: true });
+      startBtn.addEventListener('click', runRoulette);
+      ovRetryBtn.addEventListener('click', runRoulette);
+      ovCloseBtn.addEventListener('click', closeOverlay);
+      overlay.addEventListener('click', (e) => {
+        if (e.target === overlay && !spinning) closeOverlay();
+      });
 
-      boardEl.addEventListener('touchend', (e) => {
-        const t = e.changedTouches[0];
-        const dx = t.clientX - sx;
-        const dy = t.clientY - sy;
-        if (Math.max(Math.abs(dx), Math.abs(dy)) < 24) return;
-        if (Math.abs(dx) > Math.abs(dy)) {
-          move(dx > 0 ? 'right' : 'left');
-        } else {
-          move(dy > 0 ? 'down' : 'up');
-        }
-      }, { passive: true });
-
-      initGame();
+      window.renderRouletteItems = renderItems;
+      renderItems();
     })();
   </script>
 
