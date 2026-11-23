@@ -445,11 +445,11 @@
       padding: 0 2rem;
     }
 
-    /* --- Androidホーム画面風 定量ブロックグリッドレイアウト --- */
+    /* --- Androidホーム画面風 定量ハーフブロックグリッドレイアウト --- */
     .widgets {
       display: grid;
       grid-template-columns: repeat(var(--grid-cols, 3), minmax(0, 1fr));
-      grid-auto-rows: 210px;
+      grid-auto-rows: 105px;
       column-gap: 20px;
       row-gap: 20px;
       width: 100%;
@@ -472,7 +472,7 @@
       background-image:
         linear-gradient(to right, rgba(33, 150, 243, 0.16) 1px, transparent 1px),
         linear-gradient(to bottom, rgba(33, 150, 243, 0.16) 1px, transparent 1px);
-      background-size: calc((100% + 20px) / var(--grid-cols, 3)) 230px;
+      background-size: calc((100% + 20px) / var(--grid-cols, 3)) 125px;
       border-radius: 12px;
     }
 
@@ -819,8 +819,8 @@
     .currency-converter {
       display: flex;
       flex-wrap: wrap;
-      gap: 0.6rem;
-      margin-top: 1rem;
+      gap: 0.5rem;
+      margin-top: 0.6rem;
       align-items: center;
     }
 
@@ -852,8 +852,8 @@
     }
 
     .currency-result {
-      margin-top: 1rem;
-      font-size: 1.2rem;
+      margin-top: 0.5rem;
+      font-size: 1.15rem;
       font-weight: bold;
       color: var(--text-color);
     }
@@ -905,7 +905,7 @@
     .calendar th,
     .calendar td {
       border: 1px solid rgba(0, 0, 0, 0.2);
-      padding: 0.6rem;
+      padding: 0.5rem 0.35rem;
       text-align: center;
     }
 
@@ -3367,10 +3367,10 @@
     const widgets = document.querySelector(".widgets");
     const editBtn = document.getElementById("edit-btn");
     const hiddenCardsKey = "hiddenCards";
-    const GRID_POS_KEY = "widgetGridPosV2";
+    const GRID_POS_KEY = "widgetGridPosV3";
     const WIDE_CARDS_KEY = "widgetWideCards";
 
-    const ROW_HEIGHT = 210;
+    const ROW_HEIGHT = 105;
     const ROW_GAP = 20;
     const COL_GAP = 20;
 
@@ -3405,8 +3405,8 @@
       const contentH = inner ? inner.getBoundingClientRect().height : card.scrollHeight;
       const style = window.getComputedStyle(card);
       const padV = (parseFloat(style.paddingTop) || 0) + (parseFloat(style.paddingBottom) || 0);
-      const totalH = Math.ceil(contentH + padV + 4);
-      return Math.max(1, Math.ceil((totalH + ROW_GAP) / (ROW_HEIGHT + ROW_GAP)));
+      const totalH = Math.ceil(contentH + padV);
+      return Math.max(1, Math.ceil((totalH + ROW_GAP - 4) / (ROW_HEIGHT + ROW_GAP)));
     }
 
     function loadGridPositions() {
@@ -4048,8 +4048,8 @@
             localStorage.setItem('widgetWideCards', JSON.stringify(data.widgetWideCards));
           }
 
-          if (data.widgetGridPosV2) {
-            localStorage.setItem('widgetGridPosV2', JSON.stringify(data.widgetGridPosV2));
+          if (data.widgetGridPosV3) {
+            localStorage.setItem('widgetGridPosV3', JSON.stringify(data.widgetGridPosV3));
             if (typeof window.applySavedGridPositions === 'function') window.applySavedGridPositions();
           } else if (Array.isArray(data.widgetWideCards)) {
             if (typeof window.applySavedGridPositions === 'function') window.applySavedGridPositions();
@@ -4111,7 +4111,7 @@
           portalQuickLinks: quickLinksData,
           portalTodos: todosData,
           portalWeatherLocation: weatherLocData,
-          widgetGridPosV2: JSON.parse(localStorage.getItem('widgetGridPosV2') || '{}'),
+          widgetGridPosV3: JSON.parse(localStorage.getItem('widgetGridPosV3') || '{}'),
           widgetWideCards: JSON.parse(localStorage.getItem('widgetWideCards') || '[]'),
           portalWheelItems: JSON.parse(localStorage.getItem('portalWheelItems') || '[]'),
           updatedAt: new Date()
