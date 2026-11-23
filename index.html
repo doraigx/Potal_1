@@ -703,26 +703,26 @@
       margin-left: 0;
     }
 
-    /* --- ニュースカテゴリタブ --- */
+    /* --- ニュースカテゴリタブ（4x2グリッド） --- */
     .news-tabs {
-      display: flex;
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
       gap: 6px;
       margin-bottom: 10px;
-      flex-wrap: wrap;
     }
 
     .news-tab-btn {
-      flex: 1;
-      min-width: 55px;
-      padding: 6px 8px;
+      padding: 6px 2px;
       border: none;
       border-radius: 8px;
       background: rgba(0, 140, 255, 0.12);
       color: var(--text-color);
       font-weight: bold;
-      font-size: 0.85rem;
+      font-size: 0.78rem;
       cursor: pointer;
       transition: 0.2s;
+      white-space: nowrap;
+      text-align: center;
     }
 
     .news-tab-btn.active {
@@ -2226,10 +2226,14 @@
       <div class="card" id="news-card">
         <h2>日本のニュース</h2>
         <div class="news-tabs" id="news-tabs">
-          <button class="news-tab-btn active" data-cat="domestic">国内</button>
-          <button class="news-tab-btn" data-cat="it">IT</button>
+          <button class="news-tab-btn active" data-cat="top">主要</button>
+          <button class="news-tab-btn" data-cat="domestic">国内</button>
+          <button class="news-tab-btn" data-cat="world">国際</button>
           <button class="news-tab-btn" data-cat="business">経済</button>
           <button class="news-tab-btn" data-cat="entertainment">エンタメ</button>
+          <button class="news-tab-btn" data-cat="sports">スポーツ</button>
+          <button class="news-tab-btn" data-cat="it">IT</button>
+          <button class="news-tab-btn" data-cat="science">科学</button>
         </div>
         <ul id="news-list">
           <li class="loading">取得中…</li>
@@ -4014,18 +4018,22 @@
     }
 
     const NEWS_CATEGORIES = {
+      top: 'https://news.yahoo.co.jp/rss/topics/top-picks.xml',
       domestic: 'https://news.yahoo.co.jp/rss/topics/domestic.xml',
-      it: 'https://news.yahoo.co.jp/rss/topics/it.xml',
+      world: 'https://news.yahoo.co.jp/rss/topics/world.xml',
       business: 'https://news.yahoo.co.jp/rss/topics/business.xml',
-      entertainment: 'https://news.yahoo.co.jp/rss/topics/entertainment.xml'
+      entertainment: 'https://news.yahoo.co.jp/rss/topics/entertainment.xml',
+      sports: 'https://news.yahoo.co.jp/rss/topics/sports.xml',
+      it: 'https://news.yahoo.co.jp/rss/topics/it.xml',
+      science: 'https://news.yahoo.co.jp/rss/topics/science.xml'
     };
-    let currentNewsCat = 'domestic';
+    let currentNewsCat = 'top';
 
     async function fetchNews(cat = currentNewsCat) {
       currentNewsCat = cat;
       const container = document.getElementById('news-list');
       const STORAGE_KEY = `portalNewsCacheV2_${cat}`;
-      const rssUrl = NEWS_CATEGORIES[cat] || NEWS_CATEGORIES.domestic;
+      const rssUrl = NEWS_CATEGORIES[cat] || NEWS_CATEGORIES.top;
 
       container.innerHTML = '<li class="loading">ニュースを取得中…</li>';
 
@@ -4067,7 +4075,7 @@
       });
     });
 
-    fetchNews('domestic');
+    fetchNews('top');
     setInterval(() => fetchNews(currentNewsCat), 15 * 60 * 1000);
 
     async function fetchTrends() {
