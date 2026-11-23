@@ -392,6 +392,21 @@
       background: #ff9800;
     }
 
+    .edit-tall-btn {
+      padding: 3px 8px;
+      cursor: pointer;
+      background: #009688;
+      color: #fff;
+      border: none;
+      font-size: 12px;
+      font-weight: bold;
+      border-radius: 4px;
+    }
+
+    .edit-tall-btn.is-tall {
+      background: #7e57c2;
+    }
+
     body {
       font-family: 'Noto Sans JP', sans-serif;
       margin: 0;
@@ -445,11 +460,11 @@
       padding: 0 2rem;
     }
 
-    /* --- Androidホーム画面風 定量ハーフブロックグリッドレイアウト --- */
+    /* --- Bento Grid 定量2サイズ（小1段=200px / 大2段=420px） --- */
     .widgets {
       display: grid;
       grid-template-columns: repeat(var(--grid-cols, 3), minmax(0, 1fr));
-      grid-auto-rows: 105px;
+      grid-auto-rows: 200px;
       column-gap: 20px;
       row-gap: 20px;
       width: 100%;
@@ -459,41 +474,139 @@
       box-sizing: border-box;
     }
 
-    /* スマホ（1列）時は無駄な余白を防ぐため自然高さに戻す */
-    @media screen and (max-width: 599px) {
-      .widgets {
-        grid-auto-rows: auto;
-      }
-    }
-
     .widgets.edit-mode {
       min-height: 120vh;
       padding-bottom: 260px;
       background-image:
         linear-gradient(to right, rgba(33, 150, 243, 0.16) 1px, transparent 1px),
         linear-gradient(to bottom, rgba(33, 150, 243, 0.16) 1px, transparent 1px);
-      background-size: calc((100% + 20px) / var(--grid-cols, 3)) 125px;
+      background-size: calc((100% + 20px) / var(--grid-cols, 3)) 220px;
       border-radius: 12px;
     }
 
     .widgets .card {
-      display: block;
+      display: flex;
+      flex-direction: column;
       width: 100%;
+      height: 100%;
       margin-bottom: 0;
       background: var(--card-bg);
       border-radius: 12px;
-      padding: 20px;
+      padding: 16px;
       box-shadow: 0 2px 6px var(--card-shadow);
       box-sizing: border-box;
       align-self: stretch;
-      overflow: visible;
+      overflow: hidden;
       transition: transform 0.2s ease, box-shadow 0.2s ease;
       position: relative;
     }
 
     .card-inner {
       width: 100%;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
       box-sizing: border-box;
+      overflow-y: auto;
+      overflow-x: hidden;
+      scrollbar-width: thin;
+      scrollbar-color: rgba(128, 128, 128, 0.35) transparent;
+    }
+
+    .card-inner::-webkit-scrollbar {
+      width: 5px;
+    }
+    .card-inner::-webkit-scrollbar-thumb {
+      background: rgba(128, 128, 128, 0.35);
+      border-radius: 999px;
+    }
+
+    .card-inner h2 {
+      margin: 0 0 10px 0;
+      flex-shrink: 0;
+    }
+
+    /* カード内の伸縮パーツを枠いっぱいにフィットさせて余白を消す */
+    #memo-card #simple-memo {
+      flex: 1;
+      height: auto !important;
+      min-height: 75px;
+      resize: none;
+    }
+
+    #cat-card .cat-frame {
+      flex: 1;
+      height: auto;
+      min-height: 110px;
+    }
+
+    #jp-weather-map-card .jp-map-container {
+      flex: 1;
+      height: auto !important;
+      min-height: 150px;
+    }
+
+    #countdown-card .countdown-display {
+      margin: 0.2rem 0;
+    }
+    #countdown-card .cnt-number {
+      font-size: 2.3rem;
+    }
+
+    #kawase-card .currency-result {
+      margin-top: 0.3rem;
+      font-size: 1.05rem;
+    }
+    #kawase-card .currency-input,
+    #kawase-card #from,
+    #kawase-card #to,
+    #kawase-card #convert {
+      padding: 0.45rem 0.6rem;
+      font-size: 0.9rem;
+    }
+
+    #pomodoro-card .pomo-display {
+      margin: auto 0;
+      font-size: 3.1rem;
+    }
+
+    #app-download-card .app-dl-help {
+      margin: 0 0 6px;
+      font-size: 0.8rem;
+    }
+    #app-download-card .app-list {
+      gap: 6px;
+    }
+    #app-download-card .app-item {
+      padding: 5px 10px;
+    }
+    #app-download-card .app-dl-btn {
+      padding: 7px;
+      font-size: 0.85rem;
+    }
+
+    /* スマホ（1列）時は自然高さに戻して縦スクロールを快適に */
+    @media screen and (max-width: 599px) {
+      .widgets {
+        grid-auto-rows: auto;
+      }
+      .widgets .card {
+        height: auto;
+        overflow: visible;
+      }
+      .card-inner {
+        height: auto;
+        overflow: visible;
+      }
+      #jp-weather-map-card .jp-map-container {
+        height: 310px !important;
+      }
+      #cat-card .cat-frame {
+        height: 200px;
+      }
+      #memo-card #simple-memo {
+        height: 120px !important;
+      }
     }
 
     .card-inner > *:first-child { margin-top: 0; }
@@ -3361,21 +3474,36 @@
     updateClock();
   </script>
 
-  <!-- ★Androidホーム画面風 フリーグリッド（2列ワイド＆スマホ自動1列変換対応） -->
+  <!-- ★Bento Grid 定量2サイズ（小1段 / 大2段）＆2列ワイド・スマホ自動変換エンジン -->
   <script>
     let editMode = false;
     const widgets = document.querySelector(".widgets");
     const editBtn = document.getElementById("edit-btn");
     const hiddenCardsKey = "hiddenCards";
-    const GRID_POS_KEY = "widgetGridPosV3";
+    const GRID_POS_KEY = "widgetGridPosV4";
     const WIDE_CARDS_KEY = "widgetWideCards";
+    const TALL_CARDS_KEY = "widgetTallCards";
 
-    const ROW_HEIGHT = 105;
+    const ROW_HEIGHT = 200;
     const ROW_GAP = 20;
     const COL_GAP = 20;
 
+    // 初期状態で「大（2段＝420px）」にするカード（残りはすべて「小（1段＝200px）」）
+    const DEFAULT_TALL_CARDS = [
+      "weather-card",
+      "jp-weather-map-card",
+      "news-card",
+      "trend-card",
+      "eq-card",
+      "calendar-card",
+      "cat-card",
+      "pomodoro-card",
+      "memo-card"
+    ];
+
     let gridPositions = {};
     let wideCards = [];
+    let tallCards = [];
     let currentCols = 3;
 
     const dropPreview = document.createElement("div");
@@ -3400,32 +3528,37 @@
       return 1;
     }
 
-    function calcCardSpan(card) {
-      const inner = card.querySelector(":scope > .card-inner");
-      const contentH = inner ? inner.getBoundingClientRect().height : card.scrollHeight;
-      const style = window.getComputedStyle(card);
-      const padV = (parseFloat(style.paddingTop) || 0) + (parseFloat(style.paddingBottom) || 0);
-      const totalH = Math.ceil(contentH + padV);
-      return Math.max(1, Math.ceil((totalH + ROW_GAP - 4) / (ROW_HEIGHT + ROW_GAP)));
-    }
-
     function loadGridPositions() {
       try { gridPositions = JSON.parse(localStorage.getItem(GRID_POS_KEY) || "{}"); } catch (e) { gridPositions = {}; }
       try {
         const w = JSON.parse(localStorage.getItem(WIDE_CARDS_KEY) || "[]");
         wideCards = Array.isArray(w) ? w : [];
       } catch (e) { wideCards = []; }
+      try {
+        const savedTall = localStorage.getItem(TALL_CARDS_KEY);
+        if (savedTall === null) {
+          tallCards = DEFAULT_TALL_CARDS.slice();
+        } else {
+          const t = JSON.parse(savedTall);
+          tallCards = Array.isArray(t) ? t : DEFAULT_TALL_CARDS.slice();
+        }
+      } catch (e) { tallCards = DEFAULT_TALL_CARDS.slice(); }
     }
 
     function saveGridPositions() {
       localStorage.setItem(GRID_POS_KEY, JSON.stringify(gridPositions));
       localStorage.setItem(WIDE_CARDS_KEY, JSON.stringify(wideCards));
+      localStorage.setItem(TALL_CARDS_KEY, JSON.stringify(tallCards));
       if (typeof window.saveWidgetDataToCloud === "function") window.saveWidgetDataToCloud();
     }
 
     function getEffectiveColSpan(cardId) {
       const desired = wideCards.includes(cardId) ? 2 : 1;
       return Math.min(desired, currentCols);
+    }
+
+    function getRowSpan(cardId) {
+      return tallCards.includes(cardId) ? 2 : 1;
     }
 
     function layoutGrid(forcePack = false) {
@@ -3438,7 +3571,7 @@
       // スマホ（1列）時は2列指定カードも自動で1列に変換し、自然高さで縦並びにする
       if (currentCols === 1) {
         cards.forEach(card => {
-          card.classList.remove("is-wide");
+          card.classList.remove("is-wide", "is-tall");
           card.style.gridColumn = "1 / span 1";
           card.style.gridRow = "auto";
           card.dataset.span = "1";
@@ -3447,31 +3580,28 @@
         return;
       }
 
-      // 先に横幅クラスとgridColumnの幅感を仮適用して正しい高さを測れるようにする
-      cards.forEach(card => {
-        const effColSpan = getEffectiveColSpan(card.id);
-        card.classList.toggle("is-wide", effColSpan === 2);
-        card.dataset.colSpan = String(effColSpan);
-      });
-
       const colHeights = new Array(currentCols).fill(1);
       const placed = [];
 
-      if (!forcePack) {
-        cards.forEach(card => {
-          const colSpan = getEffectiveColSpan(card.id);
-          const span = calcCardSpan(card);
-          card.dataset.span = span;
+      cards.forEach(card => {
+        const colSpan = getEffectiveColSpan(card.id);
+        const span = getRowSpan(card.id);
+        card.classList.toggle("is-wide", colSpan === 2);
+        card.classList.toggle("is-tall", span === 2);
+        card.dataset.colSpan = String(colSpan);
+        card.dataset.span = String(span);
+
+        if (!forcePack) {
           const pos = gridPositions[card.id];
           if (pos && pos.col && pos.row) {
             const col = Math.min(Math.max(1, pos.col), currentCols - colSpan + 1);
             const row = Math.max(1, pos.row);
             placed.push({ card, col, colSpan, row, span });
           }
-        });
-      }
+        }
+      });
 
-      // 重なり解消（2列ワイドカード同士や1列カードとの交差も判定）
+      // 重なり解消
       placed.sort((a, b) => a.row - b.row || a.col - b.col);
       for (let i = 0; i < placed.length; i++) {
         const cur = placed[i];
@@ -3495,13 +3625,12 @@
         }
       }
 
-      // 未配置カード（または自動整列・順番編集保存時）を最も低い空き領域へ配置
+      // 未配置カード（または自動整列時）を最も低い空き領域へ配置
       const placedIds = new Set(placed.map(p => p.card.id));
       cards.forEach(card => {
         if (placedIds.has(card.id)) return;
         const colSpan = getEffectiveColSpan(card.id);
-        const span = calcCardSpan(card);
-        card.dataset.span = span;
+        const span = getRowSpan(card.id);
 
         let bestColIdx = 0;
         let bestRow = Infinity;
@@ -3540,12 +3669,6 @@
       updateHiddenCardsUI();
       layoutGrid(false);
     };
-
-    let roTimer = null;
-    const cardResizeObserver = new ResizeObserver(() => {
-      if (roTimer) cancelAnimationFrame(roTimer);
-      roTimer = requestAnimationFrame(() => layoutGrid(false));
-    });
 
     function createFloatingBtn(text, bg) {
       const btn = document.createElement("button");
@@ -3718,29 +3841,41 @@
 
     function toggleWideCard(card) {
       const idx = wideCards.indexOf(card.id);
-      if (idx >= 0) {
-        wideCards.splice(idx, 1);
-      } else {
-        wideCards.push(card.id);
-      }
+      if (idx >= 0) wideCards.splice(idx, 1);
+      else wideCards.push(card.id);
       saveGridPositions();
       updateHiddenCardsUI();
-      // 幅変更後の新しい高さを再計測してピタッと合わせる
-      requestAnimationFrame(() => layoutGrid(false));
+      layoutGrid(false);
+    }
+
+    function toggleTallCard(card) {
+      const idx = tallCards.indexOf(card.id);
+      if (idx >= 0) tallCards.splice(idx, 1);
+      else tallCards.push(card.id);
+      saveGridPositions();
+      updateHiddenCardsUI();
+      layoutGrid(false);
     }
 
     function updateHiddenCardsUI() {
       const hiddenCards = JSON.parse(localStorage.getItem(hiddenCardsKey) || "[]");
 
       document.querySelectorAll(".widgets > .card").forEach(card => {
-        card.style.display = hiddenCards.includes(card.id) ? "none" : "block";
+        card.style.display = hiddenCards.includes(card.id) ? "none" : "flex";
 
         const existingToolbar = card.querySelector(":scope > .card-edit-toolbar");
         if (editMode) {
           const isWide = wideCards.includes(card.id);
+          const isTall = tallCards.includes(card.id);
           if (!existingToolbar) {
             const bar = document.createElement("div");
             bar.className = "card-edit-toolbar";
+
+            const tallBtn = document.createElement("button");
+            tallBtn.className = "edit-tall-btn" + (isTall ? " is-tall" : "");
+            tallBtn.textContent = isTall ? "↕ 小" : "↕ 大";
+            tallBtn.title = "高さを切り替え（小1段 ⇔ 大2段）";
+            tallBtn.onclick = (e) => { e.stopPropagation(); toggleTallCard(card); };
 
             const wideBtn = document.createElement("button");
             wideBtn.className = "edit-wide-btn" + (isWide ? " is-wide" : "");
@@ -3754,10 +3889,16 @@
             delBtn.onclick = (e) => { e.stopPropagation(); hideCard(card); };
             delBtn.style.cssText = "padding:3px 8px;cursor:pointer;background:#f44336;color:#fff;border:none;font-size:12px;border-radius:4px;font-weight:bold;";
 
+            bar.appendChild(tallBtn);
             bar.appendChild(wideBtn);
             bar.appendChild(delBtn);
             card.appendChild(bar);
           } else {
+            const tallBtn = existingToolbar.querySelector(".edit-tall-btn");
+            if (tallBtn) {
+              tallBtn.classList.toggle("is-tall", isTall);
+              tallBtn.textContent = isTall ? "↕ 小" : "↕ 大";
+            }
             const wideBtn = existingToolbar.querySelector(".edit-wide-btn");
             if (wideBtn) {
               wideBtn.classList.toggle("is-wide", isWide);
@@ -3809,7 +3950,7 @@
         let updatedHidden = hiddenCards.slice();
         box.querySelectorAll("input[type=checkbox]:checked").forEach(cb => {
           const card = document.getElementById(cb.value);
-          if (card) card.style.display = "block";
+          if (card) card.style.display = "flex";
           updatedHidden = updatedHidden.filter(id => id !== cb.value);
         });
         localStorage.setItem(hiddenCardsKey, JSON.stringify(updatedHidden));
@@ -3855,7 +3996,7 @@
       dragTargetCol = Math.min(Math.max(1, Math.floor(relX / (colWidth + COL_GAP)) + 1), currentCols - effColSpan + 1);
       dragTargetRow = Math.max(1, Math.floor(relY / (ROW_HEIGHT + ROW_GAP)) + 1);
 
-      const span = parseInt(dragSrcEl.dataset.span || "1", 10);
+      const span = getRowSpan(dragSrcEl.id);
       dropPreview.style.gridColumn = `${dragTargetCol} / span ${effColSpan}`;
       dropPreview.style.gridRow = `${dragTargetRow} / span ${span}`;
       dropPreview.classList.add("active");
@@ -3888,10 +4029,6 @@
       loadGridPositions();
       updateHiddenCardsUI();
       updateButtonPositions();
-
-      document.querySelectorAll(".widgets .card > .card-inner").forEach(inner => {
-        cardResizeObserver.observe(inner);
-      });
       layoutGrid(false);
     });
 
@@ -4047,11 +4184,14 @@
           if (Array.isArray(data.widgetWideCards)) {
             localStorage.setItem('widgetWideCards', JSON.stringify(data.widgetWideCards));
           }
+          if (Array.isArray(data.widgetTallCards)) {
+            localStorage.setItem('widgetTallCards', JSON.stringify(data.widgetTallCards));
+          }
 
-          if (data.widgetGridPosV3) {
-            localStorage.setItem('widgetGridPosV3', JSON.stringify(data.widgetGridPosV3));
+          if (data.widgetGridPosV4) {
+            localStorage.setItem('widgetGridPosV4', JSON.stringify(data.widgetGridPosV4));
             if (typeof window.applySavedGridPositions === 'function') window.applySavedGridPositions();
-          } else if (Array.isArray(data.widgetWideCards)) {
+          } else if (Array.isArray(data.widgetWideCards) || Array.isArray(data.widgetTallCards)) {
             if (typeof window.applySavedGridPositions === 'function') window.applySavedGridPositions();
           }
 
@@ -4111,8 +4251,9 @@
           portalQuickLinks: quickLinksData,
           portalTodos: todosData,
           portalWeatherLocation: weatherLocData,
-          widgetGridPosV3: JSON.parse(localStorage.getItem('widgetGridPosV3') || '{}'),
+          widgetGridPosV4: JSON.parse(localStorage.getItem('widgetGridPosV4') || '{}'),
           widgetWideCards: JSON.parse(localStorage.getItem('widgetWideCards') || '[]'),
+          widgetTallCards: JSON.parse(localStorage.getItem('widgetTallCards') || 'null'),
           portalWheelItems: JSON.parse(localStorage.getItem('portalWheelItems') || '[]'),
           updatedAt: new Date()
         }, { merge: true });
