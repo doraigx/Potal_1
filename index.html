@@ -2898,6 +2898,179 @@
     [data-theme="midnight"] .jp-temp-max { color: #ff8a80; }
     [data-theme="midnight"] .jp-temp-min { color: #82b1ff; }
 
+
+    /* --- QRコード生成カード --- */
+    .qr-input-row {
+      display: flex;
+      gap: 6px;
+      margin-bottom: 8px;
+    }
+
+    .qr-input {
+      flex: 1;
+      padding: 7px 10px;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+      background: var(--bg-color);
+      color: var(--text-color);
+      font-size: 0.88rem;
+      min-width: 0;
+    }
+
+    .qr-btn {
+      padding: 7px 10px;
+      border: none;
+      border-radius: 8px;
+      background: #2196f3;
+      color: #fff;
+      font-weight: bold;
+      cursor: pointer;
+      font-size: 0.84rem;
+      white-space: nowrap;
+    }
+
+    .qr-btn.sub {
+      background: rgba(33, 150, 243, 0.22);
+      color: var(--text-color);
+    }
+
+    .qr-preview-box {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #ffffff;
+      border-radius: 10px;
+      padding: 12px;
+      min-height: 164px;
+      border: 1px solid var(--border-color);
+      margin-bottom: 8px;
+    }
+
+    .qr-preview-box img {
+      width: 156px;
+      height: 156px;
+      object-fit: contain;
+      display: block;
+    }
+
+    .qr-actions {
+      display: flex;
+      gap: 6px;
+    }
+
+    .qr-actions button {
+      flex: 1;
+    }
+
+    /* --- 2048 ミニゲームカード --- */
+    .g2048-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 6px;
+      margin-bottom: 8px;
+    }
+
+    .g2048-scores {
+      display: flex;
+      gap: 6px;
+    }
+
+    .g2048-score-box {
+      background: var(--bg-color);
+      border-radius: 8px;
+      padding: 4px 10px;
+      text-align: center;
+      font-size: 0.72rem;
+      line-height: 1.2;
+    }
+
+    .g2048-score-box strong {
+      display: block;
+      font-size: 0.95rem;
+    }
+
+    .g2048-restart-btn {
+      padding: 6px 10px;
+      border: none;
+      border-radius: 8px;
+      background: #ff7043;
+      color: #fff;
+      font-weight: bold;
+      font-size: 0.8rem;
+      cursor: pointer;
+    }
+
+    .g2048-board {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 6px;
+      background: #bbada0;
+      padding: 6px;
+      border-radius: 10px;
+      touch-action: none;
+      user-select: none;
+      aspect-ratio: 1 / 1;
+      max-width: 260px;
+      margin: 0 auto 8px;
+      box-sizing: border-box;
+    }
+
+    .g2048-cell {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 6px;
+      font-weight: 900;
+      font-size: 1.1rem;
+      background: rgba(238, 228, 218, 0.35);
+      color: #776e65;
+      transition: transform 0.1s ease, background 0.12s ease;
+    }
+
+    .g2048-cell[data-v="2"]    { background: #eee4da; color: #776e65; }
+    .g2048-cell[data-v="4"]    { background: #ede0c8; color: #776e65; }
+    .g2048-cell[data-v="8"]    { background: #f2b179; color: #f9f6f2; }
+    .g2048-cell[data-v="16"]   { background: #f59563; color: #f9f6f2; }
+    .g2048-cell[data-v="32"]   { background: #f67c5f; color: #f9f6f2; }
+    .g2048-cell[data-v="64"]   { background: #f65e3b; color: #f9f6f2; }
+    .g2048-cell[data-v="128"]  { background: #edcf72; color: #f9f6f2; font-size: 0.98rem; }
+    .g2048-cell[data-v="256"]  { background: #edcc61; color: #f9f6f2; font-size: 0.98rem; }
+    .g2048-cell[data-v="512"]  { background: #edc850; color: #f9f6f2; font-size: 0.98rem; }
+    .g2048-cell[data-v="1024"] { background: #edc53f; color: #f9f6f2; font-size: 0.85rem; }
+    .g2048-cell[data-v="2048"] { background: #edc22e; color: #f9f6f2; font-size: 0.85rem; box-shadow: 0 0 10px rgba(237, 194, 46, 0.8); }
+
+    .g2048-pad {
+      display: grid;
+      grid-template-columns: repeat(3, 38px);
+      gap: 4px;
+      justify-content: center;
+    }
+
+    .g2048-pad button {
+      height: 30px;
+      border: none;
+      border-radius: 6px;
+      background: var(--bg-color);
+      color: var(--text-color);
+      font-weight: bold;
+      cursor: pointer;
+      font-size: 0.9rem;
+    }
+
+    .g2048-pad button:hover {
+      background: rgba(33, 150, 243, 0.25);
+    }
+
+    .g2048-status {
+      text-align: center;
+      font-size: 0.8rem;
+      font-weight: bold;
+      min-height: 1.2em;
+      margin-bottom: 4px;
+      color: #e65100;
+    }
+
     body.dark .calendar td.empty {
       background-color: #2a2a2a;
     }
@@ -2916,7 +3089,7 @@
 
     <div class="header-controls">
       <button id="fullscreen-btn" class="header-btn" title="全画面表示">🖥️</button>
-      <button id="theme-toggle" class="header-btn" title="テーマ切り替え"><span>🌙</span></button>
+      <button id="theme-toggle" class="header-btn" title="テーマ切り替え"><span>🎨</span></button>
       <button id="clock-portal-btn" class="header-btn" title="時計モード" onclick="openClockMode()">🕒</button>
       <button id="simple-mode-btn" class="header-btn" title="その他">🔧</button>
     </div>
@@ -3074,7 +3247,7 @@
           if (!THEME_NAMES[theme]) theme = "light";
           html.setAttribute("data-theme", theme);
           const isDark = DARK_THEMES.includes(theme);
-          toggleBtn.innerHTML = `<span>${isDark ? "☀️" : "🌙"}</span>`;
+          toggleBtn.innerHTML = `<span>🎨</span>`;
           if (!isDark) {
             localStorage.setItem("lastLightTheme", theme);
           }
@@ -3499,6 +3672,45 @@
           <div class="fortune-sub-item"><span>💰 金運</span><strong id="ft-money">--</strong></div>
           <div class="fortune-sub-item"><span>💪 健康</span><strong id="ft-health">--</strong></div>
           <div class="fortune-sub-item"><span>💕 恋愛</span><strong id="ft-love">--</strong></div>
+        </div>
+      </div>
+
+      <!-- ★新規：QRコード生成カード -->
+      <div class="card" id="qr-card">
+        <h2>QRコード生成</h2>
+        <div class="qr-input-row">
+          <input type="text" id="qr-text-input" class="qr-input" placeholder="URLやテキストを入力...">
+          <button id="qr-gen-btn" class="qr-btn">生成</button>
+        </div>
+        <div class="qr-preview-box">
+          <img id="qr-img" src="" alt="QRコード" style="display:none;">
+          <span id="qr-placeholder" style="font-size:0.82rem; color:#666;">URLを入力して生成を押してください</span>
+        </div>
+        <div class="qr-actions">
+          <button id="qr-current-url-btn" class="qr-btn sub">今のURL</button>
+          <button id="qr-download-btn" class="qr-btn sub">画像保存</button>
+        </div>
+      </div>
+
+      <!-- ★新規：2048 ミニゲームカード -->
+      <div class="card" id="game2048-card">
+        <h2>2048</h2>
+        <div class="g2048-header">
+          <div class="g2048-scores">
+            <div class="g2048-score-box">SCORE<strong id="g2048-score">0</strong></div>
+            <div class="g2048-score-box">BEST<strong id="g2048-best">0</strong></div>
+          </div>
+          <button id="g2048-restart" class="g2048-restart-btn">やり直す</button>
+        </div>
+        <div id="g2048-status" class="g2048-status"></div>
+        <div id="g2048-board" class="g2048-board" tabindex="0" aria-label="2048盤面"></div>
+        <div class="g2048-pad">
+          <div></div>
+          <button type="button" data-dir="up" aria-label="上">↑</button>
+          <div></div>
+          <button type="button" data-dir="left" aria-label="左">←</button>
+          <button type="button" data-dir="down" aria-label="下">↓</button>
+          <button type="button" data-dir="right" aria-label="右">→</button>
         </div>
       </div>
 
@@ -6132,6 +6344,8 @@
         { id: 'cat-card', icon: '🐱', label: '猫' },
         { id: 'sun-card', icon: '🌅', label: '日の出' },
         { id: 'campus-sites-card', icon: '🏫', label: '学内' },
+        { id: 'qr-card', icon: '📷', label: 'QR生成' },
+        { id: 'game2048-card', icon: '🎮', label: '2048' },
         { id: 'app-download-card', icon: '📱', label: 'アプリ' }
       ];
 
@@ -6570,6 +6784,235 @@
           }
         });
       }
+    })();
+  </script>
+
+
+  <!-- ★QRコード生成 ロジック -->
+  <script>
+    (function() {
+      const inputEl = document.getElementById('qr-text-input');
+      const genBtn = document.getElementById('qr-gen-btn');
+      const currentBtn = document.getElementById('qr-current-url-btn');
+      const dlBtn = document.getElementById('qr-download-btn');
+      const imgEl = document.getElementById('qr-img');
+      const placeholderEl = document.getElementById('qr-placeholder');
+      let currentQrUrl = '';
+
+      function generateQR(text) {
+        const val = (text || '').trim();
+        if (!val) {
+          alert('URLまたはテキストを入力してください');
+          return;
+        }
+        currentQrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=240x240&margin=8&data=${encodeURIComponent(val)}`;
+        placeholderEl.textContent = '生成中...';
+        placeholderEl.style.display = 'block';
+        imgEl.style.display = 'none';
+        imgEl.onload = () => {
+          placeholderEl.style.display = 'none';
+          imgEl.style.display = 'block';
+        };
+        imgEl.onerror = () => {
+          placeholderEl.textContent = 'QRコードの生成に失敗しました';
+          placeholderEl.style.display = 'block';
+          imgEl.style.display = 'none';
+        };
+        imgEl.src = currentQrUrl;
+      }
+
+      genBtn.addEventListener('click', () => generateQR(inputEl.value));
+      inputEl.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') generateQR(inputEl.value);
+      });
+
+      currentBtn.addEventListener('click', () => {
+        inputEl.value = window.location.href;
+        generateQR(inputEl.value);
+      });
+
+      dlBtn.addEventListener('click', async () => {
+        if (!currentQrUrl) {
+          alert('先にQRコードを生成してください');
+          return;
+        }
+        try {
+          const res = await fetch(currentQrUrl);
+          const blob = await res.blob();
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = 'qrcode.png';
+          a.click();
+          URL.revokeObjectURL(url);
+        } catch (e) {
+          window.open(currentQrUrl, '_blank');
+        }
+      });
+
+      // 初期表示で現在のポータルURLを生成しておく
+      inputEl.value = window.location.href;
+      generateQR(inputEl.value);
+    })();
+  </script>
+
+  <!-- ★2048 ミニゲーム ロジック -->
+  <script>
+    (function() {
+      const boardEl = document.getElementById('g2048-board');
+      const scoreEl = document.getElementById('g2048-score');
+      const bestEl = document.getElementById('g2048-best');
+      const statusEl = document.getElementById('g2048-status');
+      const restartBtn = document.getElementById('g2048-restart');
+      const padBtns = document.querySelectorAll('#game2048-card .g2048-pad button');
+      const BEST_KEY = 'portal2048Best';
+
+      let grid = [];
+      let score = 0;
+      let best = parseInt(localStorage.getItem(BEST_KEY) || '0', 10) || 0;
+      let wonCelebrated = false;
+
+      function initGame() {
+        grid = Array.from({ length: 4 }, () => [0, 0, 0, 0]);
+        score = 0;
+        wonCelebrated = false;
+        statusEl.textContent = '';
+        addRandomTile();
+        addRandomTile();
+        render();
+      }
+
+      function addRandomTile() {
+        const empty = [];
+        for (let r = 0; r < 4; r++) {
+          for (let c = 0; c < 4; c++) {
+            if (grid[r][c] === 0) empty.push([r, c]);
+          }
+        }
+        if (empty.length === 0) return;
+        const [r, c] = empty[Math.floor(Math.random() * empty.length)];
+        grid[r][c] = Math.random() < 0.9 ? 2 : 4;
+      }
+
+      function slideLine(line) {
+        const arr = line.filter(v => v !== 0);
+        for (let i = 0; i < arr.length - 1; i++) {
+          if (arr[i] === arr[i + 1]) {
+            arr[i] *= 2;
+            score += arr[i];
+            arr.splice(i + 1, 1);
+          }
+        }
+        while (arr.length < 4) arr.push(0);
+        return arr;
+      }
+
+      function move(dir) {
+        const before = JSON.stringify(grid);
+        if (dir === 'left') {
+          for (let r = 0; r < 4; r++) grid[r] = slideLine(grid[r]);
+        } else if (dir === 'right') {
+          for (let r = 0; r < 4; r++) grid[r] = slideLine(grid[r].slice().reverse()).reverse();
+        } else if (dir === 'up') {
+          for (let c = 0; c < 4; c++) {
+            const col = slideLine([grid[0][c], grid[1][c], grid[2][c], grid[3][c]]);
+            for (let r = 0; r < 4; r++) grid[r][c] = col[r];
+          }
+        } else if (dir === 'down') {
+          for (let c = 0; c < 4; c++) {
+            const col = slideLine([grid[3][c], grid[2][c], grid[1][c], grid[0][c]]).reverse();
+            for (let r = 0; r < 4; r++) grid[r][c] = col[r];
+          }
+        }
+
+        if (JSON.stringify(grid) !== before) {
+          addRandomTile();
+          if (score > best) {
+            best = score;
+            localStorage.setItem(BEST_KEY, String(best));
+          }
+          render();
+          checkState();
+        }
+      }
+
+      function checkState() {
+        let has2048 = false;
+        let canMove = false;
+        for (let r = 0; r < 4; r++) {
+          for (let c = 0; c < 4; c++) {
+            const v = grid[r][c];
+            if (v === 2048) has2048 = true;
+            if (v === 0) canMove = true;
+            if (c < 3 && v === grid[r][c + 1]) canMove = true;
+            if (r < 3 && v === grid[r + 1][c]) canMove = true;
+          }
+        }
+        if (has2048 && !wonCelebrated) {
+          wonCelebrated = true;
+          statusEl.textContent = '🎉 2048 達成！';
+          if (typeof confetti === 'function') {
+            confetti({ particleCount: 70, spread: 80, origin: { y: 0.6 } });
+          }
+        } else if (!canMove) {
+          statusEl.textContent = 'ゲームオーバー';
+        }
+      }
+
+      function render() {
+        boardEl.innerHTML = '';
+        for (let r = 0; r < 4; r++) {
+          for (let c = 0; c < 4; c++) {
+            const v = grid[r][c];
+            const cell = document.createElement('div');
+            cell.className = 'g2048-cell';
+            if (v > 0) {
+              cell.dataset.v = String(v);
+              cell.textContent = String(v);
+            }
+            boardEl.appendChild(cell);
+          }
+        }
+        scoreEl.textContent = String(score);
+        bestEl.textContent = String(best);
+      }
+
+      // ボタン操作
+      padBtns.forEach(btn => {
+        btn.addEventListener('click', () => move(btn.dataset.dir));
+      });
+      restartBtn.addEventListener('click', initGame);
+
+      // キーボード操作（盤面フォーカス時のみ）
+      boardEl.addEventListener('keydown', (e) => {
+        const map = { ArrowUp: 'up', ArrowDown: 'down', ArrowLeft: 'left', ArrowRight: 'right' };
+        if (map[e.key]) {
+          e.preventDefault();
+          move(map[e.key]);
+        }
+      });
+
+      // スワイプ操作（スマホ対応）
+      let sx = 0, sy = 0;
+      boardEl.addEventListener('touchstart', (e) => {
+        const t = e.touches[0];
+        sx = t.clientX;
+        sy = t.clientY;
+      }, { passive: true });
+
+      boardEl.addEventListener('touchend', (e) => {
+        const t = e.changedTouches[0];
+        const dx = t.clientX - sx;
+        const dy = t.clientY - sy;
+        if (Math.max(Math.abs(dx), Math.abs(dy)) < 24) return;
+        if (Math.abs(dx) > Math.abs(dy)) {
+          move(dx > 0 ? 'right' : 'left');
+        } else {
+          move(dy > 0 ? 'down' : 'up');
+        }
+      }, { passive: true });
+
+      initGame();
     })();
   </script>
 
