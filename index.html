@@ -3894,11 +3894,13 @@
     #news-card.is-measuring #news-list,
     #trend-card.is-measuring #trend-list {
       flex: none;
-      display: block;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
     }
     #news-card.is-measuring.is-wide #news-list,
     #trend-card.is-measuring.is-wide #trend-list {
-      display: grid;
+      display: grid !important;
       grid-auto-rows: auto;
     }
     #news-card.is-measuring #news-list li,
@@ -4974,6 +4976,7 @@
         listEl.innerHTML = '';
         if (todos.length === 0) {
           listEl.innerHTML = '<li style="font-size:0.85rem;opacity:0.6;text-align:center;">タスクはありません</li>';
+          if (typeof window.resizeAllGridItems === 'function') window.resizeAllGridItems();
           return;
         }
         todos.forEach((todo, idx) => {
@@ -5012,6 +5015,7 @@
           li.appendChild(del);
           listEl.appendChild(li);
         });
+        if (typeof window.resizeAllGridItems === 'function') window.resizeAllGridItems();
       }
 
       addBtn.addEventListener('click', () => {
@@ -5248,6 +5252,12 @@
     const SNAP_UNIT = 4; // 4スパン(112px)刻み（8=212px, 12=324px, 16=436px, 20=548px, 24=660px）で揃えつつ巨大余白を防止
 
     function calcCardSpan(card, snapToModule = true) {
+      // ToDoリストは2件以下なら小さいサイズ(8スパン)、3件以上なら次のサイズ(12スパン)に繰り上げて固定（それ以上はスクロール）
+      if (snapToModule && card.id === "todo-card") {
+        const todoCount = card.querySelectorAll(".todo-item").length;
+        return todoCount >= 3 ? 12 : 8;
+      }
+
       card.classList.add("is-measuring");
       const inner = card.querySelector(":scope > .card-inner");
       const contentH = inner ? inner.getBoundingClientRect().height : card.scrollHeight;
@@ -6779,6 +6789,16 @@
       it: 'https://news.yahoo.co.jp/rss/topics/it.xml',
       science: 'https://news.yahoo.co.jp/rss/topics/science.xml'
     };
+    const NEWS_SUPP_RSS = {
+      top: 'https://news.google.com/rss?hl=ja&gl=JP&ceid=JP:ja',
+      domestic: 'https://news.google.com/rss/search?q=%E5%9B%BD%E5%86%85+%E3%83%8B%E3%83%A5%E3%83%BC%E3%82%B9&hl=ja&gl=JP&ceid=JP:ja',
+      world: 'https://news.google.com/rss/search?q=%E5%9B%BD%E9%9A%9B+%E6%B5%B7%E5%A4%96+%E3%83%8B%E3%83%A5%E3%83%BC%E3%82%B9&hl=ja&gl=JP&ceid=JP:ja',
+      business: 'https://news.google.com/rss/search?q=%E7%B5%8C%E6%B8%88+%E3%83%93%E3%82%B8%E3%83%8D%E3%82%B9&hl=ja&gl=JP&ceid=JP:ja',
+      entertainment: 'https://news.google.com/rss/search?q=%E3%82%A8%E3%83%B3%E3%82%BF%E3%83%A1+%E8%8A%B8%E8%83%BD&hl=ja&gl=JP&ceid=JP:ja',
+      sports: 'https://news.google.com/rss/search?q=%E3%82%B9%E3%83%9D%E3%83%BC%E3%83%84+%E3%83%8B%E3%83%A5%E3%83%BC%E3%82%B9&hl=ja&gl=JP&ceid=JP:ja',
+      it: 'https://news.google.com/rss/search?q=IT+%E3%83%86%E3%82%AF%E3%83%8E%E3%83%AD%E3%82%B8%E3%83%BC&hl=ja&gl=JP&ceid=JP:ja',
+      science: 'https://news.google.com/rss/search?q=%E7%A7%91%E5%AD%A6+%E5%AE%87%E5%AE%99&hl=ja&gl=JP&ceid=JP:ja'
+    };
     let currentNewsCat = 'top';
 
     async function fetchNews(cat = currentNewsCat) {
@@ -6786,19 +6806,37 @@
       const newsCardEl = document.getElementById('news-card');
       if (newsCardEl) newsCardEl.setAttribute('data-cat', cat);
       const container = document.getElementById('news-list');
-      const STORAGE_KEY = `portalNewsCacheV2_${cat}`;
+      const STORAGE_KEY = `portalNewsCacheV3_${cat}`;
       const rssUrl = NEWS_CATEGORIES[cat] || NEWS_CATEGORIES.top;
+      const TARGET_NEWS_COUNT = 12;
 
       container.innerHTML = '<li class="loading">ニュースを取得中…</li>';
 
       try {
-        const items = await fetchRssItems(rssUrl, 8);
+        let items = await fetchRssItems(rssUrl, TARGET_NEWS_COUNT);
+        // YahooトピックスRSSは通常8件までのため、12件に満たない分をGoogleニュースRSSで自動補完
+        if (items.length < TARGET_NEWS_COUNT && NEWS_SUPP_RSS[cat]) {
+          try {
+            const extra = await fetchRssItems(NEWS_SUPP_RSS[cat], TARGET_NEWS_COUNT);
+            const seen = new Set(items.map(i => i.title.slice(0, 12)));
+            for (const ex of extra) {
+              if (items.length >= TARGET_NEWS_COUNT) break;
+              const cleanTitle = ex.title.replace(/\s*-\s*[^-]+$/, '').trim();
+              if (!seen.has(cleanTitle.slice(0, 12))) {
+                seen.add(cleanTitle.slice(0, 12));
+                items.push({ title: cleanTitle, link: ex.link });
+              }
+            }
+          } catch (e) {}
+        }
         localStorage.setItem(STORAGE_KEY, JSON.stringify({ timestamp: Date.now(), items }));
         renderNews(items, false);
+        if (typeof window.resizeAllGridItems === 'function') window.resizeAllGridItems();
       } catch (err) {
         const cached = JSON.parse(localStorage.getItem(STORAGE_KEY) || 'null');
         if (cached && cached.items) {
           renderNews(cached.items, true);
+          if (typeof window.resizeAllGridItems === 'function') window.resizeAllGridItems();
         } else {
           container.innerHTML = `<li class="error">ニュース取得に失敗しました。<br><button class="retry-btn" onclick="fetchNews('${cat}')">再試行</button></li>`;
         }
@@ -6819,6 +6857,7 @@
         note.textContent = "※前回取得した情報を表示中";
         container.appendChild(note);
       }
+      if (typeof window.resizeAllGridItems === 'function') window.resizeAllGridItems();
     }
 
     document.querySelectorAll('.news-tab-btn').forEach(btn => {
@@ -6892,6 +6931,7 @@
         note.textContent = "※前回取得した情報を表示中";
         container.appendChild(note);
       }
+      if (typeof window.resizeAllGridItems === 'function') window.resizeAllGridItems();
     }
 
     fetchTrends();
