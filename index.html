@@ -505,10 +505,60 @@
 
     /* --- 歴代地震アーカイブモーダル --- */
     #eq-history-modal .modal-content {
-      width: 94%;
-      max-width: 780px;
+      width: 95%;
+      max-width: 1020px;
       max-height: 90vh;
       padding: 16px 18px;
+    }
+
+    .eqh-main-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1.35fr) minmax(260px, 1fr);
+      gap: 12px;
+      margin-bottom: 10px;
+      align-items: stretch;
+    }
+
+    @media screen and (max-width: 768px) {
+      .eqh-main-grid {
+        grid-template-columns: 1fr;
+      }
+      #eqh-list-panel {
+        max-height: 240px;
+      }
+    }
+
+    #eqh-list-panel {
+      height: 360px;
+      overflow-y: auto;
+      background: var(--bg-color);
+      border: 1px solid var(--border-color);
+      border-radius: 10px;
+      padding: 8px;
+      box-sizing: border-box;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .eqh-list-card {
+      padding: 8px 10px;
+      border-radius: 8px;
+      font-size: 0.82rem;
+      line-height: 1.4;
+      cursor: pointer;
+      transition: transform 0.12s, box-shadow 0.15s;
+      border: 1px solid transparent;
+    }
+
+    .eqh-list-card:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    }
+
+    .eqh-list-card.active {
+      border-color: var(--link-color);
+      box-shadow: 0 0 0 2px rgba(33, 150, 243, 0.25);
     }
 
     .eqh-controls {
@@ -574,7 +624,6 @@
       border-radius: 10px;
       overflow: hidden;
       border: 1px solid var(--border-color);
-      margin-bottom: 10px;
     }
 
     html[data-theme="dark"] #eqh-map-container .leaflet-tile-pane,
@@ -3876,7 +3925,12 @@
         </select>
         <button type="button" id="eqh-search-btn" class="eqh-btn">検索</button>
       </div>
-      <div id="eqh-map-container"></div>
+      <div class="eqh-main-grid">
+        <div id="eqh-map-container"></div>
+        <div id="eqh-list-panel">
+          <div style="font-size:0.82rem; opacity:0.65; text-align:center; padding:16px 0;">地震データを読み込み中...</div>
+        </div>
+      </div>
       <div class="eqh-timeline-box">
         <div class="eqh-timeline-top">
           <span id="eqh-status" style="font-weight:bold;">読み込み中...</span>
@@ -7857,6 +7911,7 @@
       const eqhSlider = document.getElementById('eqh-time-slider');
       const eqhPlayBtn = document.getElementById('eqh-play-btn');
       const eqhPresetBtns = document.querySelectorAll('.eqh-preset-btn');
+      const eqhListPanel = document.getElementById('eqh-list-panel');
 
       let eqhMap = null;
       let eqhMarkersLayer = null;
@@ -7898,6 +7953,9 @@
         eqhMarkersLayer.clearLayers();
         if (eqhRecords.length === 0) {
           eqhTimeEl.textContent = 'データなし';
+          if (eqhListPanel) {
+            eqhListPanel.innerHTML = '<div style="font-size:0.82rem; opacity:0.65; text-align:center; padding:16px 0;">該当する地震データがありません</div>';
+          }
           return;
         }
 
@@ -7905,6 +7963,8 @@
         const targetRec = eqhRecords[idxLimit];
         eqhTimeEl.textContent = (targetRec.earthquake.time || '').substring(0, 16);
         eqhStatusEl.textContent = `表示中: ${idxLimit + 1} / ${eqhRecords.length} 件`;
+
+        const markersByIdx = [];
 
         for (let i = 0; i <= idxLimit; i++) {
           const d = eqhRecords[i];
@@ -7936,6 +7996,42 @@
           `, { direction: 'top', offset: [0, -6], opacity: 0.96 });
 
           marker.addTo(eqhMarkersLayer);
+          markersByIdx[i] = marker;
+        }
+
+        // 右側の地震カード一覧（新しい順に表示・スクロール可能）
+        if (eqhListPanel) {
+          eqhListPanel.innerHTML = '';
+          for (let i = idxLimit; i >= 0; i--) {
+            const d = eqhRecords[i];
+            const e = d.earthquake;
+            const h = e.hypocenter;
+            const isCurrent = (i === idxLimit);
+            const maxClass = typeof sindoClass === 'function' ? sindoClass(e.maxScale) : '';
+            const scaleText = typeof sindo === 'function' ? sindo(e.maxScale) : String(e.maxScale);
+            const magStr = (h.magnitude !== undefined && h.magnitude >= 0) ? h.magnitude.toFixed(1) : '-';
+            const depthStr = (h.depth !== undefined && h.depth >= 0) ? `${h.depth} km` : '-';
+            const timeStr = e.time ? e.time.substring(0, 16) : '不明';
+
+            const item = document.createElement('div');
+            item.className = `eq ${maxClass} eqh-list-card` + (isCurrent ? ' active' : '');
+            item.innerHTML = `
+              <div class="meta">
+                <strong>時刻:</strong> ${timeStr}<br>
+                <strong>震源:</strong> ${h.name || '不明'}<br>
+                <strong>マグニチュード:</strong> ${magStr} ／ <strong>最大震度:</strong> ${scaleText}<br>
+                <strong>深さ:</strong> ${depthStr}
+              </div>
+            `;
+            item.addEventListener('click', () => {
+              if (eqhMap) {
+                eqhMap.panTo([h.latitude, h.longitude], { animate: true });
+                const mk = markersByIdx[i];
+                if (mk) mk.openTooltip();
+              }
+            });
+            eqhListPanel.appendChild(item);
+          }
         }
       }
 
