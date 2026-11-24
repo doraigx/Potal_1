@@ -499,6 +499,67 @@
       background: rgba(33, 150, 243, 0.45);
     }
 
+
+    /* --- 最新の地震情報「もっと見る」モーダル --- */
+    #eq-more-modal .modal-content {
+      width: 92%;
+      max-width: 560px;
+      max-height: 86vh;
+      display: flex;
+      flex-direction: column;
+      padding: 16px 18px;
+      overflow: hidden;
+    }
+
+    #eq-modal-list {
+      list-style: none;
+      padding: 0 4px 0 0;
+      margin: 0;
+      overflow-y: auto;
+      flex: 1 1 auto;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    #eq-modal-list li {
+      margin: 0;
+    }
+
+    #eq-modal-list .eq {
+      padding: 0.85rem 1rem;
+    }
+
+    .eq-modal-footer {
+      margin-top: 12px;
+      padding-top: 10px;
+      border-top: 1px solid var(--border-color);
+      display: flex;
+      gap: 8px;
+    }
+
+    #eq-modal-load-more {
+      flex: 1;
+      padding: 10px;
+      border: none;
+      border-radius: 8px;
+      background: rgba(255, 152, 129, 0.85);
+      color: var(--text-color);
+      font-weight: bold;
+      font-size: 0.92rem;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    #eq-modal-load-more:hover {
+      background: rgba(255, 152, 129, 1);
+    }
+
+    #eq-modal-load-more:disabled {
+      opacity: 0.55;
+      cursor: default;
+    }
+
     /* --- 歴代地震アーカイブモーダル --- */
     #eq-history-modal .modal-content {
       width: 95%;
@@ -2403,7 +2464,8 @@
       body:has(#ql-modal[style*="display: flex"]) #mobile-nav-bar,
       body:has(#wheel-modal[style*="display: flex"]) #mobile-nav-bar,
       body:has(#roulette-overlay.active) #mobile-nav-bar,
-      body:has(#eq-history-modal[style*="display: flex"]) #mobile-nav-bar {
+      body:has(#eq-history-modal[style*="display: flex"]) #mobile-nav-bar,
+      body:has(#eq-more-modal[style*="display: flex"]) #mobile-nav-bar {
         display: none !important;
       }
 
@@ -2560,7 +2622,8 @@
     body:has(#wheel-modal[style*="display: flex"]) #edit-btn,
     body:has(#timer-fullscreen-overlay.active) #edit-btn,
     body:has(#roulette-overlay.active) #edit-btn,
-    body:has(#eq-history-modal[style*="display: flex"]) #edit-btn {
+    body:has(#eq-history-modal[style*="display: flex"]) #edit-btn,
+    body:has(#eq-more-modal[style*="display: flex"]) #edit-btn {
       display: none !important;
     }
 
@@ -3799,21 +3862,28 @@
       height: auto;
     }
 
-    /* 天気カード：上段と表の間の大穴を防ぎ、表エリアを均等に広げてフィット */
+    /* 天気カード：1列(スマホ含む)は縦並びで自然収束、2列ワイドは横並びで均等フィット */
     #weather-card #weather {
       flex: 1 1 auto;
       display: flex;
       flex-direction: column;
       gap: 10px;
     }
-    #weather-card .weather-tables-grid {
+    #weather-card:not(.is-wide) .weather-tables-grid {
       flex: 1 1 auto;
-      margin-top: 0 !important;
-    }
-    #weather-card .weather-table-col {
       display: flex;
       flex-direction: column;
-      height: 100%;
+      gap: 12px;
+      margin-top: 0 !important;
+    }
+    #weather-card:not(.is-wide) .weather-table-col {
+      display: flex;
+      flex-direction: column;
+      flex: 1 1 auto;
+      height: auto;
+    }
+    #weather-card:not(.is-wide) .weather-table-col h3 {
+      margin: 0 0 6px;
     }
     #weather-card .weather-table-col .weekly-weather {
       flex: 1 1 auto;
@@ -3822,6 +3892,19 @@
     }
     #weather-card .weather-table-col table {
       flex: 1 1 auto;
+      height: auto;
+    }
+    #weather-card.is-wide .weather-tables-grid {
+      flex: 1 1 auto;
+      margin-top: 0 !important;
+      align-items: stretch;
+    }
+    #weather-card.is-wide .weather-table-col {
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+    }
+    #weather-card.is-wide .weather-table-col table {
       height: 100%;
     }
     #weather-card .weather-table-col th,
@@ -3837,14 +3920,19 @@
       height: 48px;
       font-size: 2rem;
     }
-    .widgets #weather-card.is-wide .weather-tables-grid {
-      align-items: stretch;
-    }
     #weather-card.is-measuring #weather {
       flex: none;
       display: block;
     }
+    #weather-card.is-measuring .weather-tables-grid {
+      flex: none;
+    }
+    #weather-card.is-measuring .weather-table-col {
+      flex: none;
+      height: auto;
+    }
     #weather-card.is-measuring .weather-table-col table {
+      flex: none;
       height: auto;
     }
 
@@ -3888,13 +3976,19 @@
     #news-card.is-wide #news-list,
     #trend-card.is-wide #trend-list {
       flex: 1 1 auto;
+      min-height: 0;
       margin: 0;
       display: grid !important;
       grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
-      gap: 8px 12px !important;
+      gap: 6px 10px !important;
       align-items: stretch !important;
       align-content: stretch;
       grid-auto-rows: minmax(0, 1fr);
+    }
+    #news-card.is-wide #news-list li a {
+      padding: 5px 12px !important;
+      font-size: 0.86rem !important;
+      line-height: 1.28 !important;
     }
     #news-card.is-measuring.is-wide #news-list,
     #trend-card.is-measuring.is-wide #trend-list {
@@ -3904,6 +3998,7 @@
     #trend-card.is-wide #trend-list li {
       display: flex !important;
       width: 100% !important;
+      min-height: 0;
       margin: 0 !important;
     }
     #news-card.is-measuring #news-list,
@@ -4214,6 +4309,22 @@
         <button id="close-holiday-popup" class="close-btn">&times;</button>
       </div>
       <div id="holiday-popup-name" style="font-size: 1.25rem; font-weight: bold; padding: 14px 0 8px; color: #e53935;"></div>
+    </div>
+  </div>
+
+  <!-- ★最新の地震情報「もっと見る」モーダル -->
+  <div id="eq-more-modal" class="modal-overlay" style="display: none;">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>⚠️ 最新の地震情報一覧</h3>
+        <button id="close-eq-more-modal" class="close-btn">&times;</button>
+      </div>
+      <ul id="eq-modal-list">
+        <li class="loading">取得中…</li>
+      </ul>
+      <div class="eq-modal-footer">
+        <button type="button" id="eq-modal-load-more">さらに読み込む</button>
+      </div>
     </div>
   </div>
 
@@ -6533,132 +6644,190 @@
       return "scale-1";
     }
 
-    let offset = 0;
-    const limit = 4;
-    let additionalItems = [];
+    const eqCardLimit = 4;
+    let eqModalOffset = 0;
+    const eqModalLimit = 10;
+    let eqModalLoaded = false;
+
+    function buildEarthquakeItemLi(d) {
+      const e = d.earthquake;
+      const h = e.hypocenter || {};
+      const p = d.points || [];
+      const maxClass = sindoClass(e.maxScale);
+
+      const displayTime = e.time ? e.time.substring(0, 16) : "不明";
+      const sortedPoints = [...p].sort((a, b) => b.scale - a.scale);
+
+      let pointsHtml = "";
+      if (sortedPoints.length === 0) {
+        pointsHtml = '<div class="point-row">各地の詳細はありません。</div>';
+      } else {
+        sortedPoints.forEach(pi => {
+          const scText = sindo(pi.scale);
+          const badgeClass = scaleBadgeClass(pi.scale);
+          const addr = pi.addr ?? "";
+          pointsHtml += `
+            <div class="point-row" style="display:flex; justify-content:space-between; align-items:center;">
+              <span>${pi.pref} ${addr}</span>
+              <span class="scale-badge ${badgeClass}">${scText}</span>
+            </div>`;
+        });
+      }
+
+      const li = document.createElement('li');
+      li.innerHTML = `
+        <div class="eq ${maxClass}">
+          <div class="meta">
+            <strong>時刻:</strong> ${displayTime}<br>
+            <strong>震源:</strong> ${h.name || "不明"}<br>
+            <strong>マグニチュード:</strong> ${h.magnitude || "-"}<br>
+            <strong>最大震度:</strong> ${sindo(e.maxScale)}
+            <strong>深さ:</strong> ${h.depth !== undefined ? h.depth + " km" : "-"}<br>
+          </div>
+        </div>
+        <div class="ac-parent">各地の震度を表示</div>
+        <div class="ac-child" style="display:none;">${pointsHtml}</div>
+      `;
+      return li;
+    }
+
+    // 各地の震度アコーディオン（カード内・モーダル内共通）
+    $(document).off("click", ".ac-parent");
+    $(document).on("click", ".ac-parent", function() {
+      const $child = $(this).next(".ac-child");
+      const card = $(this).closest('.card')[0];
+
+      if ($child.is(":hidden")) {
+        if (card) {
+          $child.css({ display: 'block', visibility: 'hidden' });
+          if (typeof resizeGridItem === 'function') resizeGridItem(card);
+          $child.css({ display: 'none', visibility: 'visible' });
+        }
+        $child.slideDown(260);
+      } else {
+        $child.slideUp(260, function() {
+          if (card && typeof resizeGridItem === 'function') resizeGridItem(card);
+        });
+      }
+    });
 
     async function fetchEarthquake() {
       const container = document.getElementById('result');
       const moreButton = document.getElementById('eq-load-more');
       const closeAllButton = document.getElementById('eq-close-all');
 
-      if (offset === 0) {
-        container.innerHTML = '<li class="loading">地震情報を取得中…</li>';
-        moreButton.style.display = "inline-block";
-        closeAllButton.style.display = "none";
-        additionalItems = [];
-      }
+      container.innerHTML = '<li class="loading">地震情報を取得中…</li>';
+      if (moreButton) moreButton.style.display = "inline-block";
+      if (closeAllButton) closeAllButton.style.display = "none";
 
       try {
-        const resp = await fetch(`https://api.p2pquake.net/v2/history?codes=551&limit=${limit}&offset=${offset}`);
+        const resp = await fetch(`https://api.p2pquake.net/v2/history?codes=551&limit=${eqCardLimit}&offset=0`);
         if (!resp.ok) throw new Error('HTTP ' + resp.status);
         const data = await resp.json();
-        if (offset === 0) container.innerHTML = '';
+        container.innerHTML = '';
 
         if (!Array.isArray(data) || data.length === 0) {
-          moreButton.style.display = "none";
-          closeAllButton.style.display = "none";
+          container.innerHTML = '<li class="loading">地震情報はありません。</li>';
+          if (moreButton) moreButton.style.display = "none";
           return;
         }
 
         data.forEach(d => {
-          const e = d.earthquake;
-          const h = e.hypocenter || {};
-          const p = d.points || [];
-          const maxClass = sindoClass(e.maxScale);
-
-          const displayTime = e.time ? e.time.substring(0, 16) : "不明";
-          const sortedPoints = [...p].sort((a, b) => b.scale - a.scale);
-
-          let pointsHtml = "";
-          if (sortedPoints.length === 0) {
-            pointsHtml = '<div class="point-row">各地の詳細はありません。</div>';
-          } else {
-            sortedPoints.forEach(pi => {
-              const scText = sindo(pi.scale);
-              const badgeClass = scaleBadgeClass(pi.scale);
-              const addr = pi.addr ?? "";
-              pointsHtml += `
-                <div class="point-row" style="display:flex; justify-content:space-between; align-items:center;">
-                  <span>${pi.pref} ${addr}</span>
-                  <span class="scale-badge ${badgeClass}">${scText}</span>
-                </div>`;
-            });
-          }
-
-          const li = document.createElement('li');
-          li.innerHTML = `
-            <div class="eq ${maxClass}">
-              <div class="meta">
-                <strong>時刻:</strong> ${displayTime}<br>
-                <strong>震源:</strong> ${h.name || "不明"}<br>
-                <strong>マグニチュード:</strong> ${h.magnitude || "-"}<br>
-                <strong>最大震度:</strong> ${sindo(e.maxScale)}
-                <strong>深さ:</strong> ${h.depth !== undefined ? h.depth + " km" : "-"}<br>
-              </div>
-            </div>
-            <div class="ac-parent">各地の震度を表示</div>
-            <div class="ac-child" style="display:none;">${pointsHtml}</div>
-          `;
-
-          container.appendChild(li);
-          if (typeof resizeGridItem === 'function') resizeGridItem(document.getElementById('eq-card'));
-
-          if (offset > 0) additionalItems.push(li);
+          container.appendChild(buildEarthquakeItemLi(d));
         });
-
-        $(document).off("click", ".ac-parent");
-        $(document).on("click", ".ac-parent", function() {
-          const $child = $(this).next(".ac-child");
-          const card = $(this).closest('.card')[0];
-
-          if ($child.is(":hidden")) {
-            $child.css({ display: 'block', visibility: 'hidden' });
-            if (typeof resizeGridItem === 'function') resizeGridItem(card);
-            $child.css({ display: 'none', visibility: 'visible' });
-            $child.slideDown(300);
-          } else {
-            $child.slideUp(300, function() {
-              if (typeof resizeGridItem === 'function') resizeGridItem(card);
-            });
-          }
-        });
-
-        if (offset > 0 && additionalItems.length > 0) closeAllButton.style.display = "inline-block";
-
+        if (typeof resizeGridItem === 'function') resizeGridItem(document.getElementById('eq-card'));
       } catch (err) {
         container.innerHTML = `<li class="error">地震情報の取得に失敗しました。（${err.message}）</li>`;
-        moreButton.style.display = "none";
-        closeAllButton.style.display = "none";
+      }
+    }
+
+    async function fetchEarthquakeModal(reset = false) {
+      const listEl = document.getElementById('eq-modal-list');
+      const loadMoreBtn = document.getElementById('eq-modal-load-more');
+      if (!listEl) return;
+
+      if (reset) {
+        eqModalOffset = 0;
+        listEl.innerHTML = '<li class="loading">地震情報を取得中…</li>';
+      }
+      if (loadMoreBtn) {
+        loadMoreBtn.disabled = true;
+        loadMoreBtn.textContent = '読み込み中…';
+      }
+
+      try {
+        const resp = await fetch(`https://api.p2pquake.net/v2/history?codes=551&limit=${eqModalLimit}&offset=${eqModalOffset}`);
+        if (!resp.ok) throw new Error('HTTP ' + resp.status);
+        const data = await resp.json();
+        if (reset) listEl.innerHTML = '';
+
+        if (!Array.isArray(data) || data.length === 0) {
+          if (reset) listEl.innerHTML = '<li class="loading">地震情報はありません。</li>';
+          if (loadMoreBtn) {
+            loadMoreBtn.textContent = 'これ以上ありません';
+            loadMoreBtn.disabled = true;
+          }
+          return;
+        }
+
+        data.forEach(d => {
+          listEl.appendChild(buildEarthquakeItemLi(d));
+        });
+
+        eqModalOffset += data.length;
+        eqModalLoaded = true;
+
+        if (loadMoreBtn) {
+          if (data.length < eqModalLimit) {
+            loadMoreBtn.textContent = 'これ以上ありません';
+            loadMoreBtn.disabled = true;
+          } else {
+            loadMoreBtn.textContent = 'さらに読み込む';
+            loadMoreBtn.disabled = false;
+          }
+        }
+      } catch (err) {
+        if (reset) {
+          listEl.innerHTML = `<li class="error">地震情報の取得に失敗しました。（${err.message}）</li>`;
+        }
+        if (loadMoreBtn) {
+          loadMoreBtn.textContent = '再試行';
+          loadMoreBtn.disabled = false;
+        }
       }
     }
 
     fetchEarthquake();
 
-    document.getElementById("eq-load-more").onclick = function() {
-      const card = document.getElementById('eq-card');
-      if (card && card.classList.contains('is-wide') && !card.classList.contains('eq-expanded')) {
-        card.classList.add('eq-expanded');
-        document.getElementById("eq-close-all").style.display = "inline-block";
-        if (typeof resizeGridItem === 'function') resizeGridItem(card);
-        return;
-      }
-      offset += limit;
-      fetchEarthquake();
-    };
+    (function() {
+      const moreModal = document.getElementById('eq-more-modal');
+      const openBtn = document.getElementById('eq-load-more');
+      const closeBtn = document.getElementById('close-eq-more-modal');
+      const modalLoadMoreBtn = document.getElementById('eq-modal-load-more');
 
-    document.getElementById("eq-close-all").onclick = function() {
-      additionalItems.forEach(li => li.remove());
-      additionalItems = [];
-      this.style.display = "none";
-      offset = 0;
-      const card = document.getElementById('eq-card');
-      if (card) card.classList.remove('eq-expanded');
-      if (typeof resizeGridItem === 'function') resizeGridItem(card);
-    };
+      if (openBtn && moreModal) {
+        openBtn.addEventListener('click', () => {
+          moreModal.style.display = 'flex';
+          if (typeof window.resetAll === 'function') window.resetAll();
+          fetchEarthquakeModal(true);
+        });
+      }
+
+      const closeModal = () => {
+        if (moreModal) moreModal.style.display = 'none';
+      };
+      if (closeBtn) closeBtn.addEventListener('click', closeModal);
+      if (moreModal) {
+        moreModal.addEventListener('click', (e) => {
+          if (e.target === moreModal) closeModal();
+        });
+      }
+      if (modalLoadMoreBtn) {
+        modalLoadMoreBtn.addEventListener('click', () => fetchEarthquakeModal(false));
+      }
+    })();
 
     setInterval(() => {
-      offset = 0;
       fetchEarthquake();
     }, 5 * 60 * 1000);
   </script>
