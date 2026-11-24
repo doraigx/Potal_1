@@ -3601,6 +3601,241 @@
     .rl-ov-retry { background: linear-gradient(135deg, #ff7043, #ff9800); }
     .rl-ov-close { background: rgba(255, 255, 255, 0.22); }
 
+
+    /* --- Bento統一サイズ＆中身自動フィット（余白・見切れゼロ） --- */
+    .widgets .card {
+      display: flex !important;
+      flex-direction: column;
+    }
+
+    .widgets .card > .card-inner {
+      display: flex;
+      flex-direction: column;
+      flex: 1;
+      height: 100%;
+      min-height: 0;
+    }
+
+    /* 計測用の一時クラス（自然な必要高さを測る） */
+    .widgets .card.is-measuring {
+      height: auto !important;
+      align-self: start !important;
+    }
+
+    .widgets .card.is-measuring > .card-inner {
+      height: auto !important;
+      flex: none !important;
+    }
+
+    .widgets .card h2 {
+      margin: 0 0 10px 0;
+      flex-shrink: 0;
+    }
+
+    /* 簡易メモ帳：テキストエリアを枠いっぱいに自動伸縮 */
+    #memo-card #simple-memo {
+      flex: 1 1 auto !important;
+      min-height: 68px !important;
+      height: auto !important;
+      resize: none !important;
+    }
+    #memo-card.is-measuring #simple-memo {
+      flex: none !important;
+      height: 76px !important;
+    }
+
+    /* 郵便番号・住所検索：結果ボックスを枠いっぱいに自動伸縮 */
+    #zipcode-card .zip-result-box {
+      flex: 1 1 auto;
+      min-height: 64px;
+      overflow-y: auto;
+    }
+    #zipcode-card.is-measuring .zip-result-box {
+      flex: none;
+    }
+
+    /* ランダム決定ルーレット：候補エリアを自動伸縮してボタンを下端揃え */
+    #roulette-card .rl-items {
+      flex: 1 1 auto;
+      align-content: flex-start;
+      max-height: 140px;
+      overflow-y: auto;
+      margin-bottom: 8px;
+    }
+    #roulette-card.is-measuring .rl-items {
+      flex: none;
+    }
+    #roulette-card .rl-last-result {
+      margin-top: 4px;
+      min-height: 0;
+    }
+    #roulette-card .rl-last-result:empty {
+      display: none;
+    }
+
+    /* QRコード生成：プレビュー枠を自動伸縮 */
+    #qr-card .qr-preview-box {
+      flex: 1 1 auto;
+      min-height: 180px;
+    }
+    #qr-card.is-measuring .qr-preview-box {
+      flex: none;
+      height: 220px;
+    }
+
+    /* 直近の地震マップ：地図コンテナを自動伸縮 */
+    #eq-map-card #eq-map-container {
+      flex: 1 1 auto;
+      height: auto !important;
+      min-height: 240px;
+    }
+    #eq-map-card.is-measuring #eq-map-container {
+      flex: none;
+      height: 280px !important;
+    }
+
+    /* 全国天気マップ：地図コンテナを自動伸縮 */
+    #jp-weather-map-card .jp-map-container {
+      flex: 1 1 auto;
+      height: auto !important;
+      min-height: 280px;
+    }
+    #jp-weather-map-card.is-measuring .jp-map-container {
+      flex: none;
+      height: 310px !important;
+    }
+
+    /* 癒やしの猫：画像フレームを自動伸縮 */
+    #cat-card .cat-frame {
+      flex: 1 1 auto;
+      height: auto !important;
+      min-height: 220px;
+    }
+    #cat-card.is-measuring .cat-frame {
+      flex: none;
+      height: 240px !important;
+    }
+
+    /* ToDoリスト：リストエリアを自動伸縮 */
+    #todo-card .todo-list {
+      flex: 1 1 auto;
+      overflow-y: auto;
+    }
+    #todo-card.is-measuring .todo-list {
+      flex: none;
+    }
+
+    /* お気に入りリンク：リンク一覧を自動伸縮してボタンを下端揃え */
+    #quicklinks-card .ql-list {
+      flex: 1 1 auto;
+      align-content: start;
+      overflow-y: auto;
+    }
+    #quicklinks-card.is-measuring .ql-list {
+      flex: none;
+    }
+
+    /* 学内サイト：2つのタイルを均等に広げてフィット */
+    #campus-sites-card .campus-grid {
+      flex: 1 1 auto;
+      justify-content: space-between;
+    }
+    #campus-sites-card .campus-tile {
+      flex: 1;
+    }
+    #campus-sites-card.is-measuring .campus-grid {
+      flex: none;
+    }
+    #campus-sites-card.is-measuring .campus-tile {
+      flex: none;
+    }
+
+    /* 日の出・日の入 / 為替 / 星座占い / おみくじ / あと何日？：余白を均等配分 */
+    #sun-card #sun-info,
+    #kawase-card .card-inner,
+    #horoscope-card .card-inner,
+    #fortune-card .card-inner {
+      display: flex;
+      flex-direction: column;
+      flex: 1;
+      justify-content: space-between;
+    }
+    #countdown-card .countdown-display {
+      flex: 1 1 auto;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      margin: 0.25rem 0;
+    }
+    #countdown-card.is-measuring .countdown-display {
+      flex: none;
+    }
+
+    /* タイマー：中央に綺麗に配置 */
+    #pomodoro-card .pomo-display {
+      flex: 1 1 auto;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 4px 0;
+    }
+    #pomodoro-card.is-measuring .pomo-display {
+      flex: none;
+      display: block;
+    }
+
+    /* カレンダー：テーブルを枠いっぱいに均等伸ばし */
+    #calendar-card #calendar {
+      flex: 1 1 auto;
+      display: flex;
+      flex-direction: column;
+    }
+    #calendar-card #calendar .calendar {
+      flex: 1;
+      height: 100%;
+    }
+    #calendar-card.is-measuring #calendar {
+      flex: none;
+      display: block;
+    }
+    #calendar-card.is-measuring #calendar .calendar {
+      height: auto;
+    }
+
+    /* 天気カード：テーブルを枠いっぱいに綺麗に配置 */
+    #weather-card #weather {
+      flex: 1 1 auto;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+    #weather-card.is-measuring #weather {
+      flex: none;
+      display: block;
+    }
+
+    /* 地震情報カード（2列ワイド）：左右の高さを揃えつつMサイズ（436px）に美しく収める */
+    #eq-card .eq-wide-layout {
+      flex: 1 1 auto;
+    }
+    #eq-card.is-measuring .eq-wide-layout {
+      flex: none;
+    }
+    .widgets .card.is-wide .kmoni-stage {
+      max-width: 248px;
+    }
+
+    /* ニュース・トレンド：リストを均等配分 */
+    #news-card #news-list,
+    #trend-card #trend-list {
+      flex: 1 1 auto;
+      margin: 0;
+    }
+    #news-card.is-measuring #news-list,
+    #trend-card.is-measuring #trend-list {
+      flex: none;
+    }
+
     body.dark .calendar td.empty {
       background-color: #2a2a2a;
     }
@@ -4936,13 +5171,22 @@
       return 1;
     }
 
-    function calcCardSpan(card) {
+    const SNAP_UNIT = 8; // S=8(212px), M=16(436px), L=24(660px) -> S2枚=M1枚で完全一致
+
+    function calcCardSpan(card, snapToModule = true) {
+      card.classList.add("is-measuring");
       const inner = card.querySelector(":scope > .card-inner");
       const contentH = inner ? inner.getBoundingClientRect().height : card.scrollHeight;
       const style = window.getComputedStyle(card);
       const padV = (parseFloat(style.paddingTop) || 0) + (parseFloat(style.paddingBottom) || 0);
+      card.classList.remove("is-measuring");
+
       const totalH = Math.ceil(contentH + padV + 2);
-      return Math.max(2, Math.ceil((totalH + ROW_GAP) / (ROW_HEIGHT + ROW_GAP)));
+      const rawSpan = Math.max(2, Math.ceil((totalH + ROW_GAP) / (ROW_HEIGHT + ROW_GAP)));
+
+      if (!snapToModule) return rawSpan;
+      // 8の倍数スパンへ切り上げ（見切れゼロ＆カードサイズ統一）
+      return Math.ceil(rawSpan / SNAP_UNIT) * SNAP_UNIT;
     }
 
     function loadGridPositions() {
@@ -4968,19 +5212,24 @@
       return Math.min(desired, currentCols);
     }
 
+    let isLayouting = false;
+
     function layoutGrid(forcePack = false) {
+      if (isLayouting) return;
+      isLayouting = true;
+      try {
       currentCols = getColumnCount();
       widgets.style.setProperty("--grid-cols", currentCols);
 
       const cards = Array.from(widgets.querySelectorAll(":scope > .card"))
         .filter(c => c.style.display !== "none");
 
-      // スマホ（1列）時は2列指定カードも自動で1列に変換して矛盾なく縦並びにする
+      // スマホ（1列）時は2列指定カードも自動で1列に変換し、自然な高さで縦並びにする
       if (currentCols === 1) {
         cards.forEach(card => {
           card.classList.remove("is-wide");
           card.style.gridColumn = "1 / span 1";
-          const span = calcCardSpan(card);
+          const span = calcCardSpan(card, false);
           card.dataset.span = span;
           card.dataset.colSpan = "1";
           card.style.gridRow = `auto / span ${span}`;
@@ -5073,6 +5322,9 @@
         card.style.gridRow = `${row} / span ${span}`;
         gridPositions[card.id] = { col, row };
       });
+      } finally {
+        isLayouting = false;
+      }
     }
 
     window.resizeGridItem = () => layoutGrid(false);
@@ -5085,6 +5337,7 @@
 
     let roTimer = null;
     const cardResizeObserver = new ResizeObserver(() => {
+      if (isLayouting) return;
       if (roTimer) cancelAnimationFrame(roTimer);
       roTimer = requestAnimationFrame(() => layoutGrid(false));
     });
