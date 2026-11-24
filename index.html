@@ -10,6 +10,8 @@
   <meta http-equiv="Expires" content="0">
   <link rel="manifest" href="manifest.json">
   <link rel="apple-touch-icon" href="icon-192.png">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
   <style>
     html[data-theme="dark"],
@@ -349,21 +351,136 @@
       display: block;
     }
 
-    /* 地震情報：2列並び */
-    .widgets .card.is-wide #result {
+    /* 地震情報：2列ワイド時は左に2件＋右に強震モニタ */
+    .eq-wide-layout {
+      display: block;
+    }
+
+    .eq-kmoni-col {
+      display: none;
+    }
+
+    .widgets .card.is-wide .eq-wide-layout {
       display: grid;
       grid-template-columns: 1fr 1fr;
-      gap: 12px;
+      gap: 16px;
       align-items: start;
     }
 
-    .widgets .card.is-wide #result li {
-      margin-bottom: 0;
+    .widgets .card.is-wide .eq-kmoni-col {
+      display: block;
     }
 
-    .widgets .card.is-wide #result li.loading,
-    .widgets .card.is-wide #result li.error {
-      grid-column: 1 / -1;
+    .widgets .card.is-wide:not(.eq-expanded) #result > li:nth-child(n+3) {
+      display: none;
+    }
+
+    .kmoni-box {
+      background: var(--bg-color);
+      border-radius: 10px;
+      padding: 10px;
+      text-align: center;
+      border: 1px solid var(--border-color);
+    }
+
+    .kmoni-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+      font-size: 0.85rem;
+      font-weight: bold;
+    }
+
+    .kmoni-time {
+      font-size: 0.75rem;
+      opacity: 0.75;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .kmoni-stage {
+      position: relative;
+      width: 100%;
+      max-width: 352px;
+      aspect-ratio: 352 / 400;
+      margin: 0 auto;
+      background: #1a2332;
+      border-radius: 8px;
+      overflow: hidden;
+    }
+
+    .kmoni-stage img {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      pointer-events: none;
+    }
+
+    .kmoni-note {
+      font-size: 0.72rem;
+      opacity: 0.7;
+      margin-top: 6px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .kmoni-note a {
+      color: var(--link-color);
+      text-decoration: none;
+      font-weight: bold;
+    }
+
+    /* --- 直近の地震マップカード --- */
+    #eq-map-container {
+      width: 100%;
+      height: 320px;
+      border-radius: 10px;
+      overflow: hidden;
+      border: 1px solid var(--border-color);
+      z-index: 1;
+    }
+
+    .widgets .card.is-wide #eq-map-container {
+      height: 400px;
+    }
+
+    html[data-theme="dark"] #eq-map-container .leaflet-tile-pane,
+    html[data-theme="ocean"] #eq-map-container .leaflet-tile-pane,
+    html[data-theme="cyber"] #eq-map-container .leaflet-tile-pane,
+    html[data-theme="midnight"] #eq-map-container .leaflet-tile-pane {
+      filter: invert(100%) hue-rotate(180deg) brightness(92%) contrast(90%);
+    }
+
+    .eq-map-legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 8px;
+      font-size: 0.72rem;
+      justify-content: center;
+      opacity: 0.85;
+    }
+
+    .eq-map-legend span {
+      display: inline-flex;
+      align-items: center;
+      gap: 3px;
+    }
+
+    .eq-map-dot {
+      width: 9px;
+      height: 9px;
+      border-radius: 50%;
+      display: inline-block;
+    }
+
+    .eq-tooltip {
+      font-family: 'Noto Sans JP', sans-serif;
+      font-size: 0.78rem;
+      line-height: 1.45;
     }
 
     /* お気に入りリンク＆ToDo：2列並び */
@@ -3797,13 +3914,46 @@
 
       <div class="card" id="eq-card">
         <h2>最新の地震情報</h2>
-        <ul id="result">
-          <li class="loading">取得中…</li>
-        </ul>
+        <div class="eq-wide-layout">
+          <div class="eq-list-col">
+            <ul id="result">
+              <li class="loading">取得中…</li>
+            </ul>
+            <div class="eq-buttons" style="display:flex; gap:0.5rem; margin-top:0.6rem;">
+              <button id="eq-load-more">もっと見る</button>
+              <button id="eq-close-all" style="display:none;">閉じる</button>
+            </div>
+          </div>
+          <div class="eq-kmoni-col">
+            <div class="kmoni-box">
+              <div class="kmoni-header">
+                <span>📡 強震モニタ（リアルタイム）</span>
+                <span id="kmoni-time" class="kmoni-time">--:--:--</span>
+              </div>
+              <div class="kmoni-stage">
+                <img src="https://www.kmoni.bosai.go.jp/data/map_img/CommonImg/base_map_w.gif" alt="日本地図" id="kmoni-base">
+                <img src="" alt="強震モニタ" id="kmoni-realtime">
+              </div>
+              <div class="kmoni-note">
+                <span>防災科研 (NIED)</span>
+                <a href="http://www.kmoni.bosai.go.jp/" target="_blank" rel="noopener noreferrer">公式を開く ↗</a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
 
-        <div class="eq-buttons" style="display:flex; gap:0.5rem; margin-top:0.6rem;">
-          <button id="eq-load-more">もっと見る</button>
-          <button id="eq-close-all" style="display:none;">閉じる</button>
+      <!-- ★新規：直近の地震マップカード -->
+      <div class="card" id="eq-map-card">
+        <h2>直近の地震マップ</h2>
+        <div id="eq-map-container"></div>
+        <div class="eq-map-legend">
+          <span><i class="eq-map-dot" style="background:#5dade2;"></i>震度1</span>
+          <span><i class="eq-map-dot" style="background:#0288d1;"></i>震度2</span>
+          <span><i class="eq-map-dot" style="background:#81c784;"></i>震度3</span>
+          <span><i class="eq-map-dot" style="background:#fbc02d;"></i>震度4</span>
+          <span><i class="eq-map-dot" style="background:#ff9800;"></i>震度5</span>
+          <span><i class="eq-map-dot" style="background:#f44336;"></i>震度6+</span>
         </div>
       </div>
 
@@ -5875,6 +6025,13 @@
     fetchEarthquake();
 
     document.getElementById("eq-load-more").onclick = function() {
+      const card = document.getElementById('eq-card');
+      if (card && card.classList.contains('is-wide') && !card.classList.contains('eq-expanded')) {
+        card.classList.add('eq-expanded');
+        document.getElementById("eq-close-all").style.display = "inline-block";
+        if (typeof resizeGridItem === 'function') resizeGridItem(card);
+        return;
+      }
       offset += limit;
       fetchEarthquake();
     };
@@ -5885,6 +6042,7 @@
       this.style.display = "none";
       offset = 0;
       const card = document.getElementById('eq-card');
+      if (card) card.classList.remove('eq-expanded');
       if (typeof resizeGridItem === 'function') resizeGridItem(card);
     };
 
@@ -6550,6 +6708,7 @@
         { id: 'trend-card', icon: '🔥', label: 'トレンド' },
         { id: 'news-card', icon: '📰', label: 'ニュース' },
         { id: 'eq-card', icon: '⚠️', label: '地震' },
+        { id: 'eq-map-card', icon: '🌋', label: '地震マップ' },
         { id: 'todo-card', icon: '✅', label: 'ToDo' },
         { id: 'pomodoro-card', icon: '⏱️', label: 'タイマー' },
         { id: 'quicklinks-card', icon: '🔗', label: 'リンク' },
@@ -7319,6 +7478,146 @@
 
       window.renderRouletteItems = renderItems;
       renderItems();
+    })();
+  </script>
+
+
+  <!-- ★直近の地震マップ（Leaflet）＆ 強震モニタ更新 -->
+  <script>
+    (function() {
+      // --- 強震モニタ（2列ワイド表示時のみ更新して通信節約） ---
+      const kmoniImg = document.getElementById('kmoni-realtime');
+      const kmoniTimeEl = document.getElementById('kmoni-time');
+      const eqCardEl = document.getElementById('eq-card');
+
+      function updateKmoni() {
+        if (!kmoniImg || !eqCardEl || !eqCardEl.classList.contains('is-wide')) return;
+        // 防災科研のリアルタイム画像は現在時刻より約2〜3秒遅れて生成される
+        const d = new Date(Date.now() - 3000);
+        const yyyy = d.getFullYear();
+        const MM = String(d.getMonth() + 1).padStart(2, '0');
+        const dd = String(d.getDate()).padStart(2, '0');
+        const hh = String(d.getHours()).padStart(2, '0');
+        const mm = String(d.getMinutes()).padStart(2, '0');
+        const ss = String(d.getSeconds()).padStart(2, '0');
+        const dateStr = `${yyyy}${MM}${dd}`;
+        const fullStr = `${dateStr}${hh}${mm}${ss}`;
+
+        const url = `https://www.kmoni.bosai.go.jp/data/map_img/RealTimeImg/jma_s/${dateStr}/${fullStr}.jma_s.gif`;
+        const tmp = new Image();
+        tmp.onload = () => {
+          kmoniImg.src = url;
+          if (kmoniTimeEl) kmoniTimeEl.textContent = `${hh}:${mm}:${ss}`;
+        };
+        tmp.src = url;
+      }
+
+      setInterval(updateKmoni, 2000);
+      setTimeout(updateKmoni, 600);
+
+      // --- 直近の地震マップ（Leaflet + 地理院淡色地図） ---
+      const mapEl = document.getElementById('eq-map-container');
+      if (!mapEl || typeof L === 'undefined') return;
+
+      const eqMap = L.map('eq-map-container', {
+        center: [36.5, 138.0],
+        zoom: 5,
+        zoomControl: true,
+        attributionControl: false
+      });
+
+      L.tileLayer('https://cyberjapandata.gsi.go.jp/xyz/pale/{z}/{x}/{y}.png', {
+        maxZoom: 12,
+        minZoom: 4
+      }).addTo(eqMap);
+
+      const markersLayer = L.layerGroup().addTo(eqMap);
+
+      function eqScaleColor(scale) {
+        const s = Number(scale);
+        if (s >= 60) return '#d32f2f';
+        if (s >= 55) return '#f44336';
+        if (s >= 45) return '#ff9800';
+        if (s >= 40) return '#fbc02d';
+        if (s >= 30) return '#66bb6a';
+        if (s >= 20) return '#0288d1';
+        return '#5dade2';
+      }
+
+      function eqScaleRadius(scale) {
+        const s = Number(scale);
+        if (s >= 55) return 12;
+        if (s >= 45) return 10;
+        if (s >= 40) return 9;
+        if (s >= 30) return 8;
+        if (s >= 20) return 7;
+        return 6;
+      }
+
+      async function fetchEarthquakeMap() {
+        try {
+          const res = await fetch('https://api.p2pquake.net/v2/history?codes=551&limit=15');
+          if (!res.ok) return;
+          const data = await res.json();
+          if (!Array.isArray(data)) return;
+
+          markersLayer.clearLayers();
+
+          // 古い順に描画して最新が一番上に来るようにする
+          const validList = data.filter(d => {
+            const h = d.earthquake && d.earthquake.hypocenter;
+            return h && typeof h.latitude === 'number' && typeof h.longitude === 'number' && h.latitude > 0 && h.longitude > 0;
+          });
+
+          validList.slice().reverse().forEach((d, idx) => {
+            const e = d.earthquake;
+            const h = e.hypocenter;
+            const isLatest = (idx === validList.length - 1);
+            const color = eqScaleColor(e.maxScale);
+            const radius = eqScaleRadius(e.maxScale) + (isLatest ? 2 : 0);
+            const magStr = (h.magnitude !== undefined && h.magnitude >= 0) ? `M${h.magnitude.toFixed(1)}` : 'M不明';
+            const depthStr = (h.depth !== undefined && h.depth >= 0) ? `${h.depth}km` : '不明';
+            const timeStr = e.time ? e.time.substring(5, 16) : '不明';
+            const scaleText = typeof sindo === 'function' ? sindo(e.maxScale) : String(e.maxScale);
+
+            const marker = L.circleMarker([h.latitude, h.longitude], {
+              radius: radius,
+              fillColor: color,
+              color: isLatest ? '#ffffff' : '#222222',
+              weight: isLatest ? 2.5 : 1.2,
+              opacity: 1,
+              fillOpacity: isLatest ? 0.95 : 0.78
+            });
+
+            const tooltipHtml = `
+              <div class="eq-tooltip">
+                <strong>${isLatest ? '🆕 ' : ''}${h.name || '震源不明'}</strong><br>
+                最大震度: <strong>${scaleText}</strong> ／ <strong>${magStr}</strong><br>
+                深さ: ${depthStr} ／ ${timeStr}
+              </div>
+            `;
+
+            marker.bindTooltip(tooltipHtml, {
+              direction: 'top',
+              offset: [0, -6],
+              opacity: 0.96
+            });
+
+            marker.addTo(markersLayer);
+          });
+        } catch (err) {
+          console.error('地震マップ取得エラー:', err);
+        }
+      }
+
+      fetchEarthquakeMap();
+      setInterval(fetchEarthquakeMap, 5 * 60 * 1000);
+
+      // カードリサイズ（1列⇔2列切替など）時に地図サイズを再計算
+      const mapRo = new ResizeObserver(() => {
+        eqMap.invalidateSize();
+      });
+      mapRo.observe(mapEl);
     })();
   </script>
 
