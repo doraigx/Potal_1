@@ -3931,7 +3931,7 @@
                 <span id="kmoni-time" class="kmoni-time">--:--:--</span>
               </div>
               <div class="kmoni-stage">
-                <img src="https://www.kmoni.bosai.go.jp/data/map_img/CommonImg/base_map_w.gif" alt="日本地図" id="kmoni-base">
+                <img src="https://wsrv.nl/?url=www.kmoni.bosai.go.jp/data/map_img/CommonImg/base_map_w.gif" alt="日本地図" id="kmoni-base">
                 <img src="" alt="強震モニタ" id="kmoni-realtime">
               </div>
               <div class="kmoni-note">
@@ -7492,7 +7492,8 @@
 
       function updateKmoni() {
         if (!kmoniImg || !eqCardEl || !eqCardEl.classList.contains('is-wide')) return;
-        // 防災科研のリアルタイム画像は現在時刻より約2〜3秒遅れて生成される
+        // 防災科研のリアルタイム画像は現在時刻より約3秒遅れて生成される
+        // 防災科研はHTTP配信のため、HTTPSサイトからMixed Content回避でプロキシ経由取得
         const d = new Date(Date.now() - 3000);
         const yyyy = d.getFullYear();
         const MM = String(d.getMonth() + 1).padStart(2, '0');
@@ -7503,7 +7504,8 @@
         const dateStr = `${yyyy}${MM}${dd}`;
         const fullStr = `${dateStr}${hh}${mm}${ss}`;
 
-        const url = `https://www.kmoni.bosai.go.jp/data/map_img/RealTimeImg/jma_s/${dateStr}/${fullStr}.jma_s.gif`;
+        const rawPath = `www.kmoni.bosai.go.jp/data/map_img/RealTimeImg/jma_s/${dateStr}/${fullStr}.jma_s.gif`;
+        const url = `https://wsrv.nl/?url=${encodeURIComponent(rawPath)}&n=-1`;
         const tmp = new Image();
         tmp.onload = () => {
           kmoniImg.src = url;
