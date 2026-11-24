@@ -2272,6 +2272,8 @@
         color: var(--text-color);
       }
 
+      #main-hub-btn { grid-column: span 2; }
+      #main-hub-btn::after { content: "メインページ"; }
       #fullscreen-btn::after { content: "全画面"; }
       #simple-mode-btn::after { content: "その他"; }
       #theme-toggle::after { content: "モード"; }
@@ -3616,6 +3618,7 @@
     <div id="clock"></div>
 
     <div class="header-controls">
+      <button id="main-hub-btn" class="header-btn" title="メインページへ" onclick="window.open('https://doraigx.github.io/main/main.html', '_blank', 'noopener,noreferrer')">🚀</button>
       <button id="fullscreen-btn" class="header-btn" title="全画面表示">🖥️</button>
       <button id="theme-toggle" class="header-btn" title="テーマ切り替え"><span>🎨</span></button>
       <button id="clock-portal-btn" class="header-btn" title="時計モード" onclick="openClockMode()">🕒</button>
@@ -3910,6 +3913,9 @@
         <button type="button" class="eqh-preset-btn" data-days="365">直近1年</button>
         <button type="button" class="eqh-preset-btn" data-range="20240101,20240131,45">能登半島地震(2024/1)</button>
         <button type="button" class="eqh-preset-btn" data-range="20160414,20160430,45">熊本地震(2016/4)</button>
+      </div>
+      <div style="font-size:0.76rem; opacity:0.78; margin-bottom:8px; color:#ff9800;">
+        ※検索結果のデータ量が100件を超えると、APIの制限等によりエラーになる場合があります。その際は期間を短くするか最小震度を上げてお試しください。
       </div>
       <div class="eqh-controls">
         <input type="date" id="eqh-since" class="eqh-input" aria-label="開始日">
@@ -4356,29 +4362,6 @@
           <button id="rl-clear-btn" class="rl-clear-btn">全消去</button>
         </div>
         <div id="rl-last-result" class="rl-last-result"></div>
-      </div>
-
-      <div class="card" id="app-download-card">
-        <h2>アプリダウンロード</h2>
-        <div class="app-dl-container">
-          <p class="app-dl-help">
-            作者が作ったアプリを、ダウンロードできます。
-          </p>
-          <div class="app-list">
-            <div class="app-item">
-              <span class="app-icon">画面録画</span>
-              <a href="record.apk" download="record.apk" class="app-link">
-                <button class="app-dl-btn">ダウンロード</button>
-              </a>
-            </div>
-            <div class="app-item">
-              <span class="app-icon">ゲーム</span>
-              <a href="https://doraigx.github.io/game/main.html" class="app-link">
-                <button class="app-dl-btn">開く</button>
-              </a>
-            </div>
-          </div>
-        </div>
       </div>
 
     </div>
@@ -7006,8 +6989,7 @@
         { id: 'campus-sites-card', icon: '🏫', label: '学内' },
         { id: 'qr-card', icon: '📷', label: 'QR生成' },
         { id: 'zipcode-card', icon: '📮', label: '郵便番号' },
-        { id: 'roulette-card', icon: '🎯', label: 'ルーレット' },
-        { id: 'app-download-card', icon: '📱', label: 'アプリ' }
+        { id: 'roulette-card', icon: '🎯', label: 'ルーレット' }
       ];
 
       const trigger = document.getElementById('circle-trigger-btn');
