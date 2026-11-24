@@ -7300,9 +7300,6 @@
       }
 
       addBtn.addEventListener('click', addItem);
-      inputEl.addEventListener('keydown', (e) => {
-        if (e.key === 'Enter') addItem();
-      });
 
       clearBtn.addEventListener('click', () => {
         if (getItems().length === 0) return;
