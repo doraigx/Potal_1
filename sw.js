@@ -1,16 +1,30 @@
-const CACHE_NAME = 'portal-cache-v28';
+const CACHE_NAME = 'portal-cache-v0.1.3';
+const urlsToCache = [
+  './',
+  './index.html',
+  './manifest.json',
+  './login.html',
+  './clock.html',
+  './icon-192.png',
+  './icon-512.png',
+  './logo.png'
+];
 
 self.addEventListener('install', (event) => {
-  self.skipWaiting();
+  event.waitUntil(
+    caches.open(CACHE_NAME)
+      .then((cache) => cache.addAll(urlsToCache))
+      .then(() => self.skipWaiting())
+  );
 });
 
 self.addEventListener('activate', (event) => {
   event.waitUntil(
-    caches.keys().then((keys) =>
+    caches.keys().then((cacheNames) =>
       Promise.all(
-        keys
-          .filter((key) => key !== CACHE_NAME)
-          .map((key) => caches.delete(key))
+        cacheNames
+          .filter((name) => name !== CACHE_NAME)
+          .map((name) => caches.delete(name))
       )
     ).then(() => self.clients.claim())
   );
@@ -19,16 +33,13 @@ self.addEventListener('activate', (event) => {
 self.addEventListener('fetch', (event) => {
   const req = event.request;
 
-  // 1. GET以外（FirebaseのPOSTなど）はService Workerで処理せず素通りさせる
+  // GET以外（FirebaseのPOSTなど）や外部ドメイン（強震モニタ・API等）は素通り
   if (req.method !== 'GET') return;
-
   const url = new URL(req.url);
-
-  // 2. http/https以外（chrome-extension等）や外部ドメイン（強震モニタ・API等）は素通りさせる
   if (url.protocol !== 'http:' && url.protocol !== 'https:') return;
   if (url.origin !== self.location.origin) return;
 
-  // 3. 自サイト内のリソースのみネットワーク優先＋キャッシュフォールバック
+  // 自サイト内のみ Network First
   event.respondWith(
     fetch(req)
       .then((res) => {
@@ -40,8 +51,7 @@ self.addEventListener('fetch', (event) => {
       })
       .catch(async () => {
         const cached = await caches.match(req);
-        if (cached) return cached;
-        return new Response('Offline', { status: 503, statusText: 'Service Unavailable' });
+        return cached || new Response('Offline', { status: 503, statusText: 'Service Unavailable' });
       })
   );
 });
