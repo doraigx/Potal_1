@@ -3923,6 +3923,10 @@
           <option value="55">震度6弱以上</option>
           <option value="70">震度7のみ</option>
         </select>
+        <select id="eqh-order" class="eqh-select" aria-label="取得順">
+          <option value="-1" selected>新しい順から取得</option>
+          <option value="1">古い順（開始日）から取得</option>
+        </select>
         <button type="button" id="eqh-search-btn" class="eqh-btn">検索</button>
       </div>
       <div class="eqh-main-grid">
@@ -3933,7 +3937,10 @@
       </div>
       <div class="eqh-timeline-box">
         <div class="eqh-timeline-top">
-          <span id="eqh-status" style="font-weight:bold;">読み込み中...</span>
+          <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
+            <span id="eqh-status" style="font-weight:bold;">読み込み中...</span>
+            <button type="button" id="eqh-load-more-btn" class="eqh-preset-btn" style="display:none; background:rgba(33,150,243,0.22);">＋ さらに取得</button>
+          </div>
           <span id="eqh-current-time" style="color:var(--link-color); font-weight:bold; font-variant-numeric:tabular-nums;">----/--/-- --:--</span>
         </div>
         <div class="eqh-slider-row">
@@ -7898,25 +7905,31 @@
       });
       mapRo.observe(mapEl);
 
-      // --- 歴代地震アーカイブモーダル（P2P地震情報データベース＋時間スライダー） ---
+      // --- 歴代地震アーカイブモーダル（P2P地震情報データベース＋複数ページ取得＋時間スライダー） ---
       const eqhModal = document.getElementById('eq-history-modal');
       const eqhOpenBtn = document.getElementById('eq-map-more-btn');
       const eqhCloseBtn = document.getElementById('close-eqh-modal');
       const eqhSinceInput = document.getElementById('eqh-since');
       const eqhUntilInput = document.getElementById('eqh-until');
       const eqhMinScale = document.getElementById('eqh-min-scale');
+      const eqhOrderSelect = document.getElementById('eqh-order');
       const eqhSearchBtn = document.getElementById('eqh-search-btn');
       const eqhStatusEl = document.getElementById('eqh-status');
+      const eqhLoadMoreBtn = document.getElementById('eqh-load-more-btn');
       const eqhTimeEl = document.getElementById('eqh-current-time');
       const eqhSlider = document.getElementById('eqh-time-slider');
       const eqhPlayBtn = document.getElementById('eqh-play-btn');
-      const eqhPresetBtns = document.querySelectorAll('.eqh-preset-btn');
+      const eqhPresetBtns = document.querySelectorAll('.eqh-preset-btn[data-days], .eqh-preset-btn[data-range]');
       const eqhListPanel = document.getElementById('eqh-list-panel');
 
       let eqhMap = null;
       let eqhMarkersLayer = null;
-      let eqhRecords = []; // 古い順にソートされた配列
+      let eqhRecords = []; // 古い順（昇順）にソートされた配列
       let eqhPlayTimer = null;
+      let eqhNextOffset = 0;
+      let eqhHasMore = false;
+      let eqhFetchSeq = 0;
+      let eqhRawMap = new Map();
 
       function fmtDateInput(d) {
         const y = d.getFullYear();
@@ -7962,7 +7975,7 @@
         const idxLimit = Math.min(Math.max(0, parseInt(eqhSlider.value, 10) || 0), eqhRecords.length - 1);
         const targetRec = eqhRecords[idxLimit];
         eqhTimeEl.textContent = (targetRec.earthquake.time || '').substring(0, 16);
-        eqhStatusEl.textContent = `表示中: ${idxLimit + 1} / ${eqhRecords.length} 件`;
+        eqhStatusEl.textContent = `表示中: ${idxLimit + 1} / ${eqhRecords.length} 件${eqhHasMore ? '（まだ続きあり）' : ''}`;
 
         const markersByIdx = [];
 
@@ -7999,10 +8012,13 @@
           markersByIdx[i] = marker;
         }
 
-        // 右側の地震カード一覧（新しい順に表示・スクロール可能）
+        // 右側の地震カード一覧（新しい順に表示・軽量化のため最新200件を描画）
         if (eqhListPanel) {
-          eqhListPanel.innerHTML = '';
-          for (let i = idxLimit; i >= 0; i--) {
+          const frag = document.createDocumentFragment();
+          const maxListCount = 200;
+          const startIdx = Math.max(0, idxLimit - maxListCount + 1);
+
+          for (let i = idxLimit; i >= startIdx; i--) {
             const d = eqhRecords[i];
             const e = d.earthquake;
             const h = e.hypocenter;
@@ -8030,33 +8046,99 @@
                 if (mk) mk.openTooltip();
               }
             });
-            eqhListPanel.appendChild(item);
+            frag.appendChild(item);
           }
+
+          if (startIdx > 0) {
+            const note = document.createElement('div');
+            note.style.cssText = 'font-size:0.75rem; opacity:0.65; text-align:center; padding:6px 0;';
+            note.textContent = `※リストは直近${maxListCount}件を表示中（地図には全${idxLimit + 1}件表示）`;
+            frag.appendChild(note);
+          }
+
+          eqhListPanel.innerHTML = '';
+          eqhListPanel.appendChild(frag);
         }
       }
 
-      async function fetchEqHistory() {
+      async function fetchEqHistory(append = false) {
         stopEqhPlay();
+        const mySeq = ++eqhFetchSeq;
+
+        if (!append) {
+          eqhNextOffset = 0;
+          eqhHasMore = false;
+          eqhRawMap = new Map();
+          eqhRecords = [];
+        }
+
         const since = (eqhSinceInput.value || '').replace(/-/g, '');
         const until = (eqhUntilInput.value || '').replace(/-/g, '');
         const minScale = eqhMinScale.value || '10';
+        const order = eqhOrderSelect ? eqhOrderSelect.value : '-1';
 
-        eqhStatusEl.textContent = 'データベースから取得中...';
-        let url = `https://api.p2pquake.net/v2/jma/quake?limit=100&min_scale=${minScale}`;
-        if (since.length === 8) url += `&since_date=${since}`;
-        if (until.length === 8) url += `&until_date=${until}`;
+        if (eqhLoadMoreBtn) eqhLoadMoreBtn.style.display = 'none';
+        eqhStatusEl.textContent = append ? `追加取得中... (現在 ${eqhRecords.length} 件)` : 'データベースから取得中...';
+
+        const MAX_PAGES = 5; // 1回の操作で最大500件まで取得
+        let pagesFetched = 0;
+        let hitRateLimit = false;
 
         try {
-          const res = await fetch(url);
-          if (!res.ok) throw new Error('HTTP ' + res.status);
-          const data = await res.json();
-          const valid = (Array.isArray(data) ? data : []).filter(d => {
-            const h = d.earthquake && d.earthquake.hypocenter;
-            return h && typeof h.latitude === 'number' && typeof h.longitude === 'number' && h.latitude > 0 && h.longitude > 0;
+          while (pagesFetched < MAX_PAGES) {
+            if (mySeq !== eqhFetchSeq) return;
+
+            let url = `https://api.p2pquake.net/v2/jma/quake?limit=100&offset=${eqhNextOffset}&order=${order}&quake_type=DetailScale&min_scale=${minScale}`;
+            if (since.length === 8) url += `&since_date=${since}`;
+            if (until.length === 8) url += `&until_date=${until}`;
+
+            const res = await fetch(url);
+            if (res.status === 429) {
+              hitRateLimit = true;
+              eqhHasMore = true;
+              break;
+            }
+            if (!res.ok) throw new Error('HTTP ' + res.status);
+            const data = await res.json();
+            if (!Array.isArray(data) || data.length === 0) {
+              eqhHasMore = false;
+              break;
+            }
+
+            data.forEach(d => {
+              const h = d.earthquake && d.earthquake.hypocenter;
+              if (h && typeof h.latitude === 'number' && typeof h.longitude === 'number' && h.latitude > 0 && h.longitude > 0) {
+                const key = d.id || `${d.earthquake.time}_${h.name}_${h.latitude}_${h.longitude}`;
+                if (!eqhRawMap.has(key)) eqhRawMap.set(key, d);
+              }
+            });
+
+            eqhNextOffset += data.length;
+            pagesFetched++;
+            eqhStatusEl.textContent = `取得中... ${eqhRawMap.size} 件`;
+
+            if (data.length < 100) {
+              eqhHasMore = false;
+              break;
+            } else {
+              eqhHasMore = true;
+            }
+
+            // APIレート制限回避のため短い待機
+            if (pagesFetched < MAX_PAGES) {
+              await new Promise(r => setTimeout(r, 180));
+            }
+          }
+
+          if (mySeq !== eqhFetchSeq) return;
+
+          // 時刻昇順（古い→新しい）にソートしてタイムラインに並べる
+          eqhRecords = Array.from(eqhRawMap.values()).sort((a, b) => {
+            const ta = (a.earthquake && a.earthquake.time) || '';
+            const tb = (b.earthquake && b.earthquake.time) || '';
+            return ta.localeCompare(tb);
           });
 
-          // 古い順に並べ替えてタイムラインで過去→未来へ進めるようにする
-          eqhRecords = valid.slice().reverse();
           if (eqhRecords.length === 0) {
             eqhSlider.min = 0;
             eqhSlider.max = 0;
@@ -8070,8 +8152,17 @@
           eqhSlider.max = eqhRecords.length - 1;
           eqhSlider.value = eqhRecords.length - 1;
           renderEqhAtSlider();
+
+          if (eqhLoadMoreBtn) {
+            eqhLoadMoreBtn.style.display = eqhHasMore ? 'inline-block' : 'none';
+            eqhLoadMoreBtn.textContent = hitRateLimit ? '＋ さらに取得（少し待って押す）' : '＋ さらに500件取得';
+          }
         } catch (err) {
-          eqhStatusEl.textContent = '取得に失敗しました（時間をおいて再試行してください）';
+          if (eqhRecords.length > 0) {
+            renderEqhAtSlider();
+          } else {
+            eqhStatusEl.textContent = '取得に失敗しました（時間をおいて再試行してください）';
+          }
         }
       }
 
@@ -8086,7 +8177,7 @@
             const past = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
             eqhUntilInput.value = fmtDateInput(now);
             eqhSinceInput.value = fmtDateInput(past);
-            fetchEqHistory();
+            fetchEqHistory(false);
           }
         });
       }
@@ -8098,7 +8189,8 @@
       if (eqhCloseBtn) eqhCloseBtn.addEventListener('click', closeEqh);
       if (eqhModal) eqhModal.addEventListener('click', (e) => { if (e.target === eqhModal) closeEqh(); });
 
-      if (eqhSearchBtn) eqhSearchBtn.addEventListener('click', fetchEqHistory);
+      if (eqhSearchBtn) eqhSearchBtn.addEventListener('click', () => fetchEqHistory(false));
+      if (eqhLoadMoreBtn) eqhLoadMoreBtn.addEventListener('click', () => fetchEqHistory(true));
       if (eqhSlider) {
         eqhSlider.addEventListener('input', () => {
           stopEqhPlay();
@@ -8118,15 +8210,16 @@
             renderEqhAtSlider();
           }
           eqhPlayBtn.textContent = '⏸ 停止';
+          const stepSize = eqhRecords.length > 200 ? Math.ceil(eqhRecords.length / 120) : 1;
           eqhPlayTimer = setInterval(() => {
             const cur = parseInt(eqhSlider.value, 10);
             if (cur >= eqhRecords.length - 1) {
               stopEqhPlay();
               return;
             }
-            eqhSlider.value = cur + 1;
+            eqhSlider.value = Math.min(eqhRecords.length - 1, cur + stepSize);
             renderEqhAtSlider();
-          }, 220);
+          }, 160);
         });
       }
 
@@ -8138,13 +8231,15 @@
             const past = new Date(now.getTime() - days * 24 * 60 * 60 * 1000);
             eqhUntilInput.value = fmtDateInput(now);
             eqhSinceInput.value = fmtDateInput(past);
+            if (eqhOrderSelect) eqhOrderSelect.value = '-1';
           } else if (btn.dataset.range) {
             const [s, u, minS] = btn.dataset.range.split(',');
             eqhSinceInput.value = `${s.slice(0,4)}-${s.slice(4,6)}-${s.slice(6,8)}`;
             eqhUntilInput.value = `${u.slice(0,4)}-${u.slice(4,6)}-${u.slice(6,8)}`;
             if (minS) eqhMinScale.value = minS;
+            if (eqhOrderSelect) eqhOrderSelect.value = '1';
           }
-          fetchEqHistory();
+          fetchEqHistory(false);
         });
       });
     })();
