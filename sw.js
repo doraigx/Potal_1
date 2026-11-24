@@ -1,51 +1,47 @@
-const CACHE_NAME = 'portal-cache-v0.1.2'; 
-const urlsToCache = [
-  './',
-  './index.html',
-  './manifest.json',
-  './login.html',
-  './clock.html', 
-  './icon-192.png',
-  './icon-512.png',
-  './logo.png'
-];
+const CACHE_NAME = 'portal-cache-v28';
 
-self.addEventListener('install', function(event) {
-  event.waitUntil(
-    caches.open(CACHE_NAME).then(function(cache) {
-      return cache.addAll(urlsToCache);
-    }).then(() => self.skipWaiting()) // 待機せずにすぐ入れ替える
-  );
+self.addEventListener('install', (event) => {
+  self.skipWaiting();
 });
 
-// アクティベート：古い v1 などのキャッシュを完全に消去する
-self.addEventListener('activate', function(event) {
-  event.waitUntil(
-    caches.keys().then(function(cacheNames) {
-      return Promise.all(
-        cacheNames.map(function(cacheName) {
-          if (cacheName !== CACHE_NAME) {
-            console.log('古いキャッシュを削除:', cacheName);
-            return caches.delete(cacheName);
-          }
-        })
-      );
-    }).then(() => self.clients.claim())
-  );
+self.addEventListener('activate', (event) => {
+  event.waitUntil(
+    caches.keys().then((keys) =>
+      Promise.all(
+        keys
+          .filter((key) => key !== CACHE_NAME)
+          .map((key) => caches.delete(key))
+      )
+    ).then(() => self.clients.claim())
+  );
 });
 
-// フェッチ：まずネットを確認、ダメならキャッシュ（Network First）
-self.addEventListener('fetch', function(event) {
-  event.respondWith(
-    fetch(event.request)
-      .then(function(response) {
-        return caches.open(CACHE_NAME).then(function(cache) {
-          cache.put(event.request, response.clone());
-          return response;
-        });
-      })
-      .catch(function() {
-        return caches.match(event.request);
-      })
-  );
+self.addEventListener('fetch', (event) => {
+  const req = event.request;
+
+  // 1. GET以外（FirebaseのPOSTなど）はService Workerで処理せず素通りさせる
+  if (req.method !== 'GET') return;
+
+  const url = new URL(req.url);
+
+  // 2. http/https以外（chrome-extension等）や外部ドメイン（強震モニタ・API等）は素通りさせる
+  if (url.protocol !== 'http:' && url.protocol !== 'https:') return;
+  if (url.origin !== self.location.origin) return;
+
+  // 3. 自サイト内のリソースのみネットワーク優先＋キャッシュフォールバック
+  event.respondWith(
+    fetch(req)
+      .then((res) => {
+        if (res && res.ok && res.type === 'basic') {
+          const clone = res.clone();
+          caches.open(CACHE_NAME).then((cache) => cache.put(req, clone)).catch(() => {});
+        }
+        return res;
+      })
+      .catch(async () => {
+        const cached = await caches.match(req);
+        if (cached) return cached;
+        return new Response('Offline', { status: 503, statusText: 'Service Unavailable' });
+      })
+  );
 });
