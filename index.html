@@ -223,10 +223,6 @@
       height: 390px;
     }
 
-    .widgets .card.is-wide #simple-memo {
-      height: 180px !important;
-    }
-
     /* 天気：上段に現在天気、下段に「3時間ごと(7行)」と「週間天気(7行)」を左右完全揃え */
     .weather-tables-grid {
       display: block;
@@ -3862,9 +3858,9 @@
       max-width: 248px;
     }
 
-    /* ニュース・トレンド：各アイテムを均等に広げて下余白ゼロ */
-    #news-card #news-list,
-    #trend-card #trend-list {
+    /* ニュース・トレンド：1列／2列どちらでも均等フィット＆はみ出しゼロ */
+    #news-card:not(.is-wide) #news-list,
+    #trend-card:not(.is-wide) #trend-list {
       flex: 1 1 auto;
       margin: 0;
       display: flex;
@@ -3877,31 +3873,37 @@
       display: flex;
       margin: 0;
     }
-    #news-card:not(.is-wide) #news-list li a,
-    #trend-card:not(.is-wide) #trend-list li a {
+    #news-card #news-list li a,
+    #trend-card #trend-list li a {
       margin: 0 !important;
       width: 100% !important;
       height: 100% !important;
       box-sizing: border-box !important;
       display: flex !important;
       align-items: center !important;
-      padding: 8px 14px !important;
+      padding: 8px 12px !important;
+      line-height: 1.35 !important;
     }
     #news-card.is-wide #news-list,
     #trend-card.is-wide #trend-list {
-      grid-auto-rows: 1fr;
+      flex: 1 1 auto;
+      margin: 0;
+      display: grid !important;
+      grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+      gap: 8px 12px !important;
+      align-items: stretch !important;
+      align-content: stretch;
+      grid-auto-rows: auto;
+    }
+    #news-card.is-wide #news-list li,
+    #trend-card.is-wide #trend-list li {
+      display: flex !important;
+      width: 100% !important;
+      margin: 0 !important;
     }
     #news-card.is-measuring #news-list,
     #trend-card.is-measuring #trend-list {
       flex: none;
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-    }
-    #news-card.is-measuring.is-wide #news-list,
-    #trend-card.is-measuring.is-wide #trend-list {
-      display: grid !important;
-      grid-auto-rows: auto;
     }
     #news-card.is-measuring #news-list li,
     #trend-card.is-measuring #trend-list li {
@@ -5252,10 +5254,11 @@
     const SNAP_UNIT = 4; // 4スパン(112px)刻み（8=212px, 12=324px, 16=436px, 20=548px, 24=660px）で揃えつつ巨大余白を防止
 
     function calcCardSpan(card, snapToModule = true) {
-      // ToDoリストは2件以下なら小さいサイズ(8スパン)、3件以上なら次のサイズ(12スパン)に繰り上げて固定（それ以上はスクロール）
+      // ToDoリストは1列時3件以上（2列ワイド時は5件以上）で12スパンに繰り上げて固定（それ以上はスクロール）
       if (snapToModule && card.id === "todo-card") {
         const todoCount = card.querySelectorAll(".todo-item").length;
-        return todoCount >= 3 ? 12 : 8;
+        const threshold = card.classList.contains("is-wide") ? 5 : 3;
+        return todoCount >= threshold ? 12 : 8;
       }
 
       card.classList.add("is-measuring");
@@ -5321,11 +5324,12 @@
         return;
       }
 
-      // 先に横幅クラスとgridColumnの幅感を仮適用して正しい高さを測れるようにする
+      // 先に横幅クラスと実際の列幅(gridColumn)を仮適用して、1列⇔2列切替直後でも1pxの誤差なく計測する
       cards.forEach(card => {
         const effColSpan = getEffectiveColSpan(card.id);
         card.classList.toggle("is-wide", effColSpan === 2);
         card.dataset.colSpan = String(effColSpan);
+        card.style.gridColumn = `1 / span ${effColSpan}`;
       });
 
       const colHeights = new Array(currentCols).fill(1);
