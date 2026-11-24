@@ -474,7 +474,7 @@
     /* --- 直近の地震マップカード --- */
     #eq-map-container {
       width: 100%;
-      height: 320px;
+      height: 312px;
       border-radius: 10px;
       overflow: hidden;
       border: 1px solid var(--border-color);
@@ -482,7 +482,134 @@
     }
 
     .widgets .card.is-wide #eq-map-container {
-      height: 400px;
+      height: 380px;
+    }
+
+    .eq-map-more-btn {
+      width: 100%;
+      margin-top: 8px;
+      padding: 8px 12px;
+      border: none;
+      border-radius: 8px;
+      background: rgba(33, 150, 243, 0.25);
+      color: var(--text-color);
+      font-weight: bold;
+      font-size: 0.86rem;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .eq-map-more-btn:hover {
+      background: rgba(33, 150, 243, 0.45);
+    }
+
+    /* --- 歴代地震アーカイブモーダル --- */
+    #eq-history-modal .modal-content {
+      width: 94%;
+      max-width: 780px;
+      max-height: 90vh;
+      padding: 16px 18px;
+    }
+
+    .eqh-controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: center;
+      margin-bottom: 10px;
+      font-size: 0.84rem;
+    }
+
+    .eqh-input, .eqh-select {
+      padding: 6px 8px;
+      border-radius: 6px;
+      border: 1px solid var(--border-color);
+      background: var(--bg-color);
+      color: var(--text-color);
+      font-size: 0.84rem;
+    }
+
+    .eqh-btn {
+      padding: 6px 12px;
+      border: none;
+      border-radius: 6px;
+      background: #2196f3;
+      color: #fff;
+      font-weight: bold;
+      font-size: 0.84rem;
+      cursor: pointer;
+    }
+
+    .eqh-btn.play {
+      background: #ff7043;
+      min-width: 76px;
+    }
+
+    .eqh-presets {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 5px;
+      margin-bottom: 8px;
+    }
+
+    .eqh-preset-btn {
+      padding: 4px 9px;
+      border: none;
+      border-radius: 999px;
+      background: var(--bg-color);
+      color: var(--text-color);
+      font-size: 0.76rem;
+      font-weight: bold;
+      cursor: pointer;
+      border: 1px solid var(--border-color);
+    }
+
+    .eqh-preset-btn:hover {
+      background: rgba(33, 150, 243, 0.22);
+    }
+
+    #eqh-map-container {
+      width: 100%;
+      height: 360px;
+      border-radius: 10px;
+      overflow: hidden;
+      border: 1px solid var(--border-color);
+      margin-bottom: 10px;
+    }
+
+    html[data-theme="dark"] #eqh-map-container .leaflet-tile-pane,
+    html[data-theme="ocean"] #eqh-map-container .leaflet-tile-pane,
+    html[data-theme="cyber"] #eqh-map-container .leaflet-tile-pane,
+    html[data-theme="midnight"] #eqh-map-container .leaflet-tile-pane {
+      filter: invert(100%) hue-rotate(180deg) brightness(92%) contrast(90%);
+    }
+
+    .eqh-timeline-box {
+      background: var(--bg-color);
+      border-radius: 10px;
+      padding: 10px 12px;
+      border: 1px solid var(--border-color);
+    }
+
+    .eqh-timeline-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.82rem;
+      margin-bottom: 6px;
+      flex-wrap: wrap;
+    }
+
+    .eqh-slider-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    #eqh-time-slider {
+      flex: 1;
+      cursor: pointer;
     }
 
     html[data-theme="dark"] #eq-map-container .leaflet-tile-pane,
@@ -2228,7 +2355,8 @@
       body:has(#theme-modal[style*="display: flex"]) #mobile-nav-bar,
       body:has(#ql-modal[style*="display: flex"]) #mobile-nav-bar,
       body:has(#wheel-modal[style*="display: flex"]) #mobile-nav-bar,
-      body:has(#roulette-overlay.active) #mobile-nav-bar {
+      body:has(#roulette-overlay.active) #mobile-nav-bar,
+      body:has(#eq-history-modal[style*="display: flex"]) #mobile-nav-bar {
         display: none !important;
       }
 
@@ -2384,7 +2512,8 @@
     body:has(#ql-modal[style*="display: flex"]) #edit-btn,
     body:has(#wheel-modal[style*="display: flex"]) #edit-btn,
     body:has(#timer-fullscreen-overlay.active) #edit-btn,
-    body:has(#roulette-overlay.active) #edit-btn {
+    body:has(#roulette-overlay.active) #edit-btn,
+    body:has(#eq-history-modal[style*="display: flex"]) #edit-btn {
       display: none !important;
     }
 
@@ -3718,6 +3847,58 @@
     </div>
   </div>
 
+  <!-- ★歴代地震アーカイブマップモーダル -->
+  <div id="eq-history-modal" class="modal-overlay" style="display: none;">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>🌋 歴代地震マップ・タイムライン</h3>
+        <button id="close-eqh-modal" class="close-btn">&times;</button>
+      </div>
+      <div class="eqh-presets">
+        <button type="button" class="eqh-preset-btn" data-days="7">直近7日</button>
+        <button type="button" class="eqh-preset-btn" data-days="30">直近1ヶ月</button>
+        <button type="button" class="eqh-preset-btn" data-days="180">直近半年</button>
+        <button type="button" class="eqh-preset-btn" data-days="365">直近1年</button>
+        <button type="button" class="eqh-preset-btn" data-range="20240101,20240131,45">能登半島地震(2024/1)</button>
+        <button type="button" class="eqh-preset-btn" data-range="20160414,20160430,45">熊本地震(2016/4)</button>
+      </div>
+      <div class="eqh-controls">
+        <input type="date" id="eqh-since" class="eqh-input" aria-label="開始日">
+        <span>〜</span>
+        <input type="date" id="eqh-until" class="eqh-input" aria-label="終了日">
+        <select id="eqh-min-scale" class="eqh-select" aria-label="最小震度">
+          <option value="10">震度1以上</option>
+          <option value="30" selected>震度3以上</option>
+          <option value="40">震度4以上</option>
+          <option value="45">震度5弱以上</option>
+          <option value="55">震度6弱以上</option>
+          <option value="70">震度7のみ</option>
+        </select>
+        <button type="button" id="eqh-search-btn" class="eqh-btn">検索</button>
+      </div>
+      <div id="eqh-map-container"></div>
+      <div class="eqh-timeline-box">
+        <div class="eqh-timeline-top">
+          <span id="eqh-status" style="font-weight:bold;">読み込み中...</span>
+          <span id="eqh-current-time" style="color:var(--link-color); font-weight:bold; font-variant-numeric:tabular-nums;">----/--/-- --:--</span>
+        </div>
+        <div class="eqh-slider-row">
+          <button type="button" id="eqh-play-btn" class="eqh-btn play">▶ 再生</button>
+          <input type="range" id="eqh-time-slider" min="0" max="100" value="100">
+        </div>
+      </div>
+      <div class="eq-map-legend" style="margin-top:8px;">
+        <span><i class="eq-map-dot" style="background:#5dade2;"></i>震度1</span>
+        <span><i class="eq-map-dot" style="background:#0288d1;"></i>震度2</span>
+        <span><i class="eq-map-dot" style="background:#81c784;"></i>震度3</span>
+        <span><i class="eq-map-dot" style="background:#fbc02d;"></i>震度4</span>
+        <span><i class="eq-map-dot" style="background:#ff9800;"></i>震度5</span>
+        <span><i class="eq-map-dot" style="background:#f44336;"></i>震度6</span>
+        <span><i class="eq-map-dot" style="background:#6a1b9a;"></i>震度7</span>
+      </div>
+    </div>
+  </div>
+
   <!-- ★ルーレット全画面演出オーバーレイ -->
   <div id="roulette-overlay">
     <div id="rl-stage-label" class="rl-stage-label">抽選中...</div>
@@ -3991,8 +4172,10 @@
           <span><i class="eq-map-dot" style="background:#81c784;"></i>震度3</span>
           <span><i class="eq-map-dot" style="background:#fbc02d;"></i>震度4</span>
           <span><i class="eq-map-dot" style="background:#ff9800;"></i>震度5</span>
-          <span><i class="eq-map-dot" style="background:#f44336;"></i>震度6+</span>
+          <span><i class="eq-map-dot" style="background:#f44336;"></i>震度6</span>
+          <span><i class="eq-map-dot" style="background:#6a1b9a;"></i>震度7</span>
         </div>
+        <button type="button" id="eq-map-more-btn" class="eq-map-more-btn">🕒 さらに見る（歴代地震・時間操作）</button>
       </div>
 
       <div class="card" id="news-card">
@@ -7576,7 +7759,7 @@
 
       function eqScaleColor(scale) {
         const s = Number(scale);
-        if (s >= 60) return '#d32f2f';
+        if (s >= 70) return '#6a1b9a';
         if (s >= 55) return '#f44336';
         if (s >= 45) return '#ff9800';
         if (s >= 40) return '#fbc02d';
@@ -7587,6 +7770,7 @@
 
       function eqScaleRadius(scale) {
         const s = Number(scale);
+        if (s >= 70) return 14;
         if (s >= 55) return 12;
         if (s >= 45) return 10;
         if (s >= 40) return 9;
@@ -7659,6 +7843,214 @@
         eqMap.invalidateSize();
       });
       mapRo.observe(mapEl);
+
+      // --- 歴代地震アーカイブモーダル（P2P地震情報データベース＋時間スライダー） ---
+      const eqhModal = document.getElementById('eq-history-modal');
+      const eqhOpenBtn = document.getElementById('eq-map-more-btn');
+      const eqhCloseBtn = document.getElementById('close-eqh-modal');
+      const eqhSinceInput = document.getElementById('eqh-since');
+      const eqhUntilInput = document.getElementById('eqh-until');
+      const eqhMinScale = document.getElementById('eqh-min-scale');
+      const eqhSearchBtn = document.getElementById('eqh-search-btn');
+      const eqhStatusEl = document.getElementById('eqh-status');
+      const eqhTimeEl = document.getElementById('eqh-current-time');
+      const eqhSlider = document.getElementById('eqh-time-slider');
+      const eqhPlayBtn = document.getElementById('eqh-play-btn');
+      const eqhPresetBtns = document.querySelectorAll('.eqh-preset-btn');
+
+      let eqhMap = null;
+      let eqhMarkersLayer = null;
+      let eqhRecords = []; // 古い順にソートされた配列
+      let eqhPlayTimer = null;
+
+      function fmtDateInput(d) {
+        const y = d.getFullYear();
+        const m = String(d.getMonth() + 1).padStart(2, '0');
+        const day = String(d.getDate()).padStart(2, '0');
+        return `${y}-${m}-${day}`;
+      }
+
+      function initEqhMap() {
+        if (eqhMap) return;
+        eqhMap = L.map('eqh-map-container', {
+          center: [36.5, 138.0],
+          zoom: 5,
+          zoomControl: true,
+          attributionControl: false
+        });
+        L.tileLayer('https://cyberjapandata.gsi.go.jp/xyz/pale/{z}/{x}/{y}.png', {
+          maxZoom: 12,
+          minZoom: 4
+        }).addTo(eqhMap);
+        eqhMarkersLayer = L.layerGroup().addTo(eqhMap);
+      }
+
+      function stopEqhPlay() {
+        if (eqhPlayTimer) {
+          clearInterval(eqhPlayTimer);
+          eqhPlayTimer = null;
+        }
+        if (eqhPlayBtn) eqhPlayBtn.textContent = '▶ 再生';
+      }
+
+      function renderEqhAtSlider() {
+        if (!eqhMarkersLayer) return;
+        eqhMarkersLayer.clearLayers();
+        if (eqhRecords.length === 0) {
+          eqhTimeEl.textContent = 'データなし';
+          return;
+        }
+
+        const idxLimit = Math.min(Math.max(0, parseInt(eqhSlider.value, 10) || 0), eqhRecords.length - 1);
+        const targetRec = eqhRecords[idxLimit];
+        eqhTimeEl.textContent = (targetRec.earthquake.time || '').substring(0, 16);
+        eqhStatusEl.textContent = `表示中: ${idxLimit + 1} / ${eqhRecords.length} 件`;
+
+        for (let i = 0; i <= idxLimit; i++) {
+          const d = eqhRecords[i];
+          const e = d.earthquake;
+          const h = e.hypocenter;
+          const isCurrent = (i === idxLimit);
+          const color = eqScaleColor(e.maxScale);
+          const radius = eqScaleRadius(e.maxScale) + (isCurrent ? 3 : 0);
+          const magStr = (h.magnitude !== undefined && h.magnitude >= 0) ? `M${h.magnitude.toFixed(1)}` : 'M不明';
+          const depthStr = (h.depth !== undefined && h.depth >= 0) ? `${h.depth}km` : '不明';
+          const timeStr = e.time ? e.time.substring(0, 16) : '不明';
+          const scaleText = typeof sindo === 'function' ? sindo(e.maxScale) : String(e.maxScale);
+
+          const marker = L.circleMarker([h.latitude, h.longitude], {
+            radius: radius,
+            fillColor: color,
+            color: isCurrent ? '#ffffff' : '#222222',
+            weight: isCurrent ? 2.5 : 1,
+            opacity: 1,
+            fillOpacity: isCurrent ? 0.96 : 0.72
+          });
+
+          marker.bindTooltip(`
+            <div class="eq-tooltip">
+              <strong>${isCurrent ? '📍 ' : ''}${h.name || '震源不明'}</strong><br>
+              最大震度: <strong>${scaleText}</strong> ／ <strong>${magStr}</strong><br>
+              深さ: ${depthStr} ／ ${timeStr}
+            </div>
+          `, { direction: 'top', offset: [0, -6], opacity: 0.96 });
+
+          marker.addTo(eqhMarkersLayer);
+        }
+      }
+
+      async function fetchEqHistory() {
+        stopEqhPlay();
+        const since = (eqhSinceInput.value || '').replace(/-/g, '');
+        const until = (eqhUntilInput.value || '').replace(/-/g, '');
+        const minScale = eqhMinScale.value || '10';
+
+        eqhStatusEl.textContent = 'データベースから取得中...';
+        let url = `https://api.p2pquake.net/v2/jma/quake?limit=100&min_scale=${minScale}`;
+        if (since.length === 8) url += `&since_date=${since}`;
+        if (until.length === 8) url += `&until_date=${until}`;
+
+        try {
+          const res = await fetch(url);
+          if (!res.ok) throw new Error('HTTP ' + res.status);
+          const data = await res.json();
+          const valid = (Array.isArray(data) ? data : []).filter(d => {
+            const h = d.earthquake && d.earthquake.hypocenter;
+            return h && typeof h.latitude === 'number' && typeof h.longitude === 'number' && h.latitude > 0 && h.longitude > 0;
+          });
+
+          // 古い順に並べ替えてタイムラインで過去→未来へ進めるようにする
+          eqhRecords = valid.slice().reverse();
+          if (eqhRecords.length === 0) {
+            eqhSlider.min = 0;
+            eqhSlider.max = 0;
+            eqhSlider.value = 0;
+            eqhStatusEl.textContent = '該当する地震データがありません（条件を緩めて再検索してください）';
+            renderEqhAtSlider();
+            return;
+          }
+
+          eqhSlider.min = 0;
+          eqhSlider.max = eqhRecords.length - 1;
+          eqhSlider.value = eqhRecords.length - 1;
+          renderEqhAtSlider();
+        } catch (err) {
+          eqhStatusEl.textContent = '取得に失敗しました（時間をおいて再試行してください）';
+        }
+      }
+
+      if (eqhOpenBtn && eqhModal) {
+        eqhOpenBtn.addEventListener('click', () => {
+          eqhModal.style.display = 'flex';
+          initEqhMap();
+          setTimeout(() => eqhMap.invalidateSize(), 120);
+
+          if (!eqhSinceInput.value) {
+            const now = new Date();
+            const past = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+            eqhUntilInput.value = fmtDateInput(now);
+            eqhSinceInput.value = fmtDateInput(past);
+            fetchEqHistory();
+          }
+        });
+      }
+
+      const closeEqh = () => {
+        stopEqhPlay();
+        if (eqhModal) eqhModal.style.display = 'none';
+      };
+      if (eqhCloseBtn) eqhCloseBtn.addEventListener('click', closeEqh);
+      if (eqhModal) eqhModal.addEventListener('click', (e) => { if (e.target === eqhModal) closeEqh(); });
+
+      if (eqhSearchBtn) eqhSearchBtn.addEventListener('click', fetchEqHistory);
+      if (eqhSlider) {
+        eqhSlider.addEventListener('input', () => {
+          stopEqhPlay();
+          renderEqhAtSlider();
+        });
+      }
+
+      if (eqhPlayBtn) {
+        eqhPlayBtn.addEventListener('click', () => {
+          if (eqhPlayTimer) {
+            stopEqhPlay();
+            return;
+          }
+          if (eqhRecords.length <= 1) return;
+          if (parseInt(eqhSlider.value, 10) >= eqhRecords.length - 1) {
+            eqhSlider.value = 0;
+            renderEqhAtSlider();
+          }
+          eqhPlayBtn.textContent = '⏸ 停止';
+          eqhPlayTimer = setInterval(() => {
+            const cur = parseInt(eqhSlider.value, 10);
+            if (cur >= eqhRecords.length - 1) {
+              stopEqhPlay();
+              return;
+            }
+            eqhSlider.value = cur + 1;
+            renderEqhAtSlider();
+          }, 220);
+        });
+      }
+
+      eqhPresetBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+          if (btn.dataset.days) {
+            const days = parseInt(btn.dataset.days, 10);
+            const now = new Date();
+            const past = new Date(now.getTime() - days * 24 * 60 * 60 * 1000);
+            eqhUntilInput.value = fmtDateInput(now);
+            eqhSinceInput.value = fmtDateInput(past);
+          } else if (btn.dataset.range) {
+            const [s, u, minS] = btn.dataset.range.split(',');
+            eqhSinceInput.value = `${s.slice(0,4)}-${s.slice(4,6)}-${s.slice(6,8)}`;
+            eqhUntilInput.value = `${u.slice(0,4)}-${u.slice(4,6)}-${u.slice(6,8)}`;
+            if (minS) eqhMinScale.value = minS;
+          }
+          fetchEqHistory();
+        });
+      });
     })();
   </script>
 
