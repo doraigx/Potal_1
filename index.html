@@ -3802,16 +3802,53 @@
       height: auto;
     }
 
-    /* 天気カード：テーブルを枠いっぱいに綺麗に配置 */
+    /* 天気カード：上段と表の間の大穴を防ぎ、表エリアを均等に広げてフィット */
     #weather-card #weather {
       flex: 1 1 auto;
       display: flex;
       flex-direction: column;
-      justify-content: space-between;
+      gap: 10px;
+    }
+    #weather-card .weather-tables-grid {
+      flex: 1 1 auto;
+      margin-top: 0 !important;
+    }
+    #weather-card .weather-table-col {
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+    }
+    #weather-card .weather-table-col .weekly-weather {
+      flex: 1 1 auto;
+      display: flex;
+      flex-direction: column;
+    }
+    #weather-card .weather-table-col table {
+      flex: 1 1 auto;
+      height: 100%;
+    }
+    #weather-card .weather-table-col th,
+    #weather-card .weather-table-col td {
+      padding: 4px 4px;
+      font-size: 13.5px;
+    }
+    .widgets #weather-card.is-wide .weather {
+      padding: 8px 12px;
+    }
+    .widgets #weather-card.is-wide .weather .icon {
+      width: 48px;
+      height: 48px;
+      font-size: 2rem;
+    }
+    .widgets #weather-card.is-wide .weather-tables-grid {
+      align-items: stretch;
     }
     #weather-card.is-measuring #weather {
       flex: none;
       display: block;
+    }
+    #weather-card.is-measuring .weather-table-col table {
+      height: auto;
     }
 
     /* 地震情報カード（2列ワイド）：左右の高さを揃えつつMサイズ（436px）に美しく収める */
@@ -3825,15 +3862,52 @@
       max-width: 248px;
     }
 
-    /* ニュース・トレンド：リストを均等配分 */
+    /* ニュース・トレンド：各アイテムを均等に広げて下余白ゼロ */
     #news-card #news-list,
     #trend-card #trend-list {
       flex: 1 1 auto;
       margin: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    #news-card:not(.is-wide) #news-list li,
+    #trend-card:not(.is-wide) #trend-list li {
+      flex: 1 1 auto;
+      display: flex;
+      margin: 0;
+    }
+    #news-card:not(.is-wide) #news-list li a,
+    #trend-card:not(.is-wide) #trend-list li a {
+      margin: 0 !important;
+      width: 100% !important;
+      height: 100% !important;
+      box-sizing: border-box !important;
+      display: flex !important;
+      align-items: center !important;
+      padding: 8px 14px !important;
+    }
+    #news-card.is-wide #news-list,
+    #trend-card.is-wide #trend-list {
+      grid-auto-rows: 1fr;
     }
     #news-card.is-measuring #news-list,
     #trend-card.is-measuring #trend-list {
       flex: none;
+      display: block;
+    }
+    #news-card.is-measuring.is-wide #news-list,
+    #trend-card.is-measuring.is-wide #trend-list {
+      display: grid;
+      grid-auto-rows: auto;
+    }
+    #news-card.is-measuring #news-list li,
+    #trend-card.is-measuring #trend-list li {
+      flex: none;
+    }
+    #news-card.is-measuring #news-list li a,
+    #trend-card.is-measuring #trend-list li a {
+      height: auto !important;
     }
 
     body.dark .calendar td.empty {
@@ -5171,7 +5245,7 @@
       return 1;
     }
 
-    const SNAP_UNIT = 8; // S=8(212px), M=16(436px), L=24(660px) -> S2枚=M1枚で完全一致
+    const SNAP_UNIT = 4; // 4スパン(112px)刻み（8=212px, 12=324px, 16=436px, 20=548px, 24=660px）で揃えつつ巨大余白を防止
 
     function calcCardSpan(card, snapToModule = true) {
       card.classList.add("is-measuring");
@@ -5185,8 +5259,8 @@
       const rawSpan = Math.max(2, Math.ceil((totalH + ROW_GAP) / (ROW_HEIGHT + ROW_GAP)));
 
       if (!snapToModule) return rawSpan;
-      // 8の倍数スパンへ切り上げ（見切れゼロ＆カードサイズ統一）
-      return Math.ceil(rawSpan / SNAP_UNIT) * SNAP_UNIT;
+      // 最小8スパン、4スパン刻みへスナップ（見切れゼロ＆余白最小化）
+      return Math.max(8, Math.ceil(rawSpan / SNAP_UNIT) * SNAP_UNIT);
     }
 
     function loadGridPositions() {
