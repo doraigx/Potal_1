@@ -3767,13 +3767,14 @@
       flex: none;
     }
 
-    /* タイマー：中央に綺麗に配置 */
+    /* タイマー：Mサイズ枠の中で見やすく中央配置 */
     #pomodoro-card .pomo-display {
       flex: 1 1 auto;
       display: flex;
       align-items: center;
       justify-content: center;
       margin: 4px 0;
+      font-size: 3.4rem;
     }
     #pomodoro-card.is-measuring .pomo-display {
       flex: none;
@@ -3893,6 +3894,10 @@
       gap: 8px 12px !important;
       align-items: stretch !important;
       align-content: stretch;
+      grid-auto-rows: minmax(0, 1fr);
+    }
+    #news-card.is-measuring.is-wide #news-list,
+    #trend-card.is-measuring.is-wide #trend-list {
       grid-auto-rows: auto;
     }
     #news-card.is-wide #news-list li,
@@ -5251,14 +5256,14 @@
       return 1;
     }
 
-    const SNAP_UNIT = 4; // 4スパン(112px)刻み（8=212px, 12=324px, 16=436px, 20=548px, 24=660px）で揃えつつ巨大余白を防止
+    const SNAP_UNIT = 8; // S=8(212px), M=16(436px), L=24(660px) の完全整数倍（S×2=M×1 で段差ゼロ）
 
     function calcCardSpan(card, snapToModule = true) {
-      // ToDoリストは1列時3件以上（2列ワイド時は5件以上）で12スパンに繰り上げて固定（それ以上はスクロール）
+      // ToDoリストは1列時3件以上（2列ワイド時は5件以上）でMサイズ(16スパン)に繰り上げて固定（それ以上はスクロール）
       if (snapToModule && card.id === "todo-card") {
         const todoCount = card.querySelectorAll(".todo-item").length;
         const threshold = card.classList.contains("is-wide") ? 5 : 3;
-        return todoCount >= threshold ? 12 : 8;
+        return todoCount >= threshold ? 16 : 8;
       }
 
       card.classList.add("is-measuring");
@@ -5272,7 +5277,7 @@
       const rawSpan = Math.max(2, Math.ceil((totalH + ROW_GAP) / (ROW_HEIGHT + ROW_GAP)));
 
       if (!snapToModule) return rawSpan;
-      // 最小8スパン、4スパン刻みへスナップ（見切れゼロ＆余白最小化）
+      // 8スパンの倍数（8 / 16 / 24...）へスナップして横のラインを完全一致させる
       return Math.max(8, Math.ceil(rawSpan / SNAP_UNIT) * SNAP_UNIT);
     }
 
